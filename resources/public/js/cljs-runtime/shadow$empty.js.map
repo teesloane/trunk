@@ -1,0 +1,9 @@
+{
+"version":3,
+"file":"shadow$empty.js",
+"lineCount":1,
+"mappings":"AAAAA,cAAA,CAAA,YAAA,CAAiC,QAAQ,CAACC,MAAD,CAAQC,OAAR,CAAgBC,MAAhB,CAAuBC,OAAvB,CAAgC;",
+"sources":["shadow$empty.js"],
+"sourcesContent":["shadow$provide[\"shadow$empty\"] = function(global,require,module,exports) {\n\n};"],
+"names":["shadow$provide","global","require","module","exports"]
+}

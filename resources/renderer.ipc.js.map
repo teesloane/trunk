@@ -1,0 +1,1 @@
+{"version":3,"sources":["renderer/ipc.cljs"],"mappings":";;;;;;;;;;;;;;;;;;;;;AAMA,0BAAA,1BAAMA;AAAN,AAEE,gHAAA,zGAACC","names":["renderer.ipc/send!","cljs.core.println"],"sourcesContent":["(ns renderer.ipc\n  #_(:require\n   [\"electron\" :refer [ipcRenderer]])\n  )\n\n\n(defn send!\n  []\n  (println \"hi there\")\n  )\n"]}
