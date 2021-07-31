@@ -5,9 +5,9 @@
   "main": "resources/main.js",
   "scripts": {
     "dev": "concurrently -p \"[{name}]\" -n \"CLJS, Electron boot\" -c \"red.bgBlack.bold,yellow.bgBlack.bold\" \"npm run dev-cljs\" \"npm run dev-electron\"",
-    "dev-cljs": "shadow-cljs watch main renderer",
+    "dev-cljs": "shadow-cljs watch main renderer preload",
     "dev-electron": "npx electron .",
-    "build": "shadow-cljs compile main renderer",
+    "build": "shadow-cljs compile main renderer preload",
     "clean": "rm -rf resources/public/js/* && rm -rf target",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

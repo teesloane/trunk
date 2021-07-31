@@ -1,24 +1,27 @@
 (ns renderer.ipc)
 
-;; create our front end api functions for interfacing with ipcRenderer (from preload.js)
 (defn send!
   [channel data]
-  (let [send-fn (.. js/window -api -send)]
-    (send-fn channel (clj->js data))))
+  (let [ipcRenderer (.. (js/require "electron") -ipcRenderer)
+        _         (.send ipcRenderer channel (clj->js data))]))
 
 
-(defn receive!
-  [channel func]
-  (let [receive-fn (.. js/window -api -receive)]
-    (receive-fn channel func)))
-
+(defonce ipcHandlers
+  {"->article-created" (fn [event data]
+                         (println "->article-created" event data)
+                         )})
 
 ;; setup our applications to receive vals.
 
 (defn init
+  "Load ipcRenderer and loop through defined handlers,
+  then "
   []
+  ;; TODO: this seems to bind multiple times with hot reload.
   (println "Initing renderer ipc handlers.")
-  (receive! "my-reply" (fn [data]
-                            (println "received stuff" data)
-                            ))
-  )
+  (let [ipcRenderer (.. (js/require "electron") -ipcRenderer)]
+    (doseq [[key handler] ipcHandlers]
+      (.on ipcRenderer key
+           (fn [event args]
+             (println "[IPC]: " key)
+             (handler event (js->clj args :keywordize-keys true)))))))

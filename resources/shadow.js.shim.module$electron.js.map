@@ -1,9 +1,0 @@
-{
-"version":3,
-"file":"shadow.js.shim.module$electron.js",
-"lineCount":5,
-"mappings":"AAAAA,IAAKC,CAAAA,OAAL,CAAa,gCAAb,CAAA;AACAD,IAAKC,CAAAA,OAAL,CAAa,uCAAb,CAAA;AACAC,MAAOC,CAAAA,EAAGC,CAAAA,IAAKC,CAAAA,eAAf,GAAiCC,OAAA,CAAQ,UAAR,CAAjC;AACAC,qCAAsCC,CAAAA,OAAtC,GAAgDN,MAAOC,CAAAA,EAAGC,CAAAA,IAAKC,CAAAA,eAA/D;;",
-"sources":["shadow.js.shim.module$electron.js"],
-"sourcesContent":["goog.provide(\"shadow.js.shim.module$electron\");\ngoog.provide(\"module$shadow_js_shim_module$electron\");\nshadow.js.shim.module$electron = require(\"electron\");\nmodule$shadow_js_shim_module$electron.default = shadow.js.shim.module$electron;\n"],
-"names":["goog","provide","shadow","js","shim","module$electron","require","module$shadow_js_shim_module$electron","default"]
-}

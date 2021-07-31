@@ -10,7 +10,7 @@
   []
   [:div
    [:textarea]
-   [:button {:on-click #(ipc/send! "toMain" {:foo {:jarrr "foo"}})} "Submit"]])
+   [:button {:on-click #(ipc/send! "<-article-create" "payload")} "Submit"]])
 
 (defn root-component []
   []

@@ -12,8 +12,11 @@
            (clj->js {:width  800
                      :height 600
                      :webPreferences
-                     {:nodeIntegration false
-                      :preload         (.join path (str js/__dirname "/preload.js"))}
+                     {:nodeIntegration  true
+                      :contextIsolation false ;; come back and figure out preload.js someday.
+                      ;; :preload         (.join path (str js/__dirname "/preload.js"))
+                      }
+
                      })))
   (.loadURL ^js/electron.BrowserWindow @main-window (str "file://" js/__dirname "/public/index.html"))
   (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil))

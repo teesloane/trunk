@@ -1,7 +1,7 @@
 goog.provide('renderer.core');
 renderer.core.article_submit = (function renderer$core$article_submit(){
 return new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"div","div",1057191632),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"textarea","textarea",-650375824)], null),new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"button","button",1456579943),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"on-click","on-click",1632826543),(function (){
-return renderer.ipc.send_BANG_("toMain",new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"foo","foo",1268894036),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"jarrr","jarrr",349805911),"foo"], null)], null));
+return renderer.ipc.send_BANG_("<-article-create","payload");
 })], null),"Submit"], null)], null);
 });
 renderer.core.root_component = (function renderer$core$root_component(){

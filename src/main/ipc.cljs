@@ -2,11 +2,9 @@
   (:require ["electron" :refer [ipcMain]]))
 
 (def ipcHandlers
-  {"toMain" (fn [event data]
-              (println data)
-              (js/event.reply "my-reply" "pong")
-              ;; (.send (.-sender js/event) "my-reply" "pong")
-   )})
+  {"<-article-create" (fn [event data]
+              (println "toMain called" data)
+              (js/event.reply "->article-created" "pong"))})
 
 (defn init
   []

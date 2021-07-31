@@ -19,10 +19,19 @@
     (println "receive called!")
     (.on ipcRenderer channel (fn [event data] (func data)))))
 
+(defn foo
+  []
+  "foooo bar")
+
 (defn main
   []
-  (println "🙇‍️ Establishing renderer's api from preload...")
+  ;; (println "🙇‍️ Establishing renderer's api from preload...")
+  (set! js/window -foo "bar")
+  (js/console.log "window is " js/window)
+  (set! (.-foo js/window) "barrrr")
+;; (set! (.-innerHTML el) "Hi!")
+
   (.exposeInMainWorld contextBridge "api"
-                      (clj->js {:send        send
-                                :ipcRenderer ipcRenderer
-                                :receive     receive })))
+                      (clj->js {:send    send
+                                :foo     foo
+                                :receive receive })))
