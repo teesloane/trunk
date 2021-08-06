@@ -8,6 +8,7 @@
 /.nrepl-port
 /.idea
 resources/public/js
+resources/public/css
 resources/main.js
 resources/*.js
 

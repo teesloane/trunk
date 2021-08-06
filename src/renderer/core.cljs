@@ -18,8 +18,8 @@
 (defn view-nav
   []
   [:nav
-   [:button {:on-click #(navigate! "article-list")} "Articles"]
-   [:button {:on-click #(navigate! "article-create")} "New +"]])
+   [:button.bg-black.text-white.border-r.border-white.px-4 {:on-click #(navigate! "article-list")} "Articles"]
+   [:button.bg-black.text-white.px-4 {:on-click #(navigate! "article-create")} " +"]])
 
 (defn view-article-list
   []

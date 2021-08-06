@@ -15,9 +15,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "autoprefixer": "^10.3.1",
     "concurrently": "^6.2.0",
+    "cssnano": "^5.0.7",
     "electron": "^13.1.7",
-    "shadow-cljs": "^2.15.2"
+    "postcss-cli": "^8.3.1",
+    "shadow-cljs": "^2.15.2",
+    "tailwindcss": "^2.2.7"
   },
   "dependencies": {
     "react": "^17.0.2",

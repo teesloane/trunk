@@ -4,16 +4,27 @@
 
  :dependencies
  [
-  [reagent "1.1.0"]]
+  [reagent "1.1.0"]
+  [com.teknql/shadow-cljs-tailwind-jit "0.2.2"]
+  ]
 
  :builds
- {:main    {:target    :node-script
-            :output-to "resources/main.js"
-            :main      main.core/main}
-  :preload {:target    :browser ; I don't know if this has to be a npm module.
-            :output-to "resources/preload.js"
-            ;; :main      main.preload/main}
-            :modules   {:renderer {:init-fn main.preload/main}}}
+ {:main {:target    :node-script
+         :output-to "resources/main.js"
+
+         :main main.core/main}
+  :preload  {:target    :browser ; I don't know if this has to be a npm module.
+             :output-to "resources/preload.js"
+             ;; :main      main.preload/main}
+             :modules   {:renderer {:init-fn main.preload/main}}}
   :renderer {:target     :browser
              :output-dir "resources/public/js"
+             :dev        {:build-hooks [(teknql.tailwind/start-watch!)]}
+             :devtools
+             {:http-root   "resources/public/" ;; Must be set to infer default purge targets.
+              :watch-dir   "resources/public"
+              ;; :http-port   3000
+              }
+             :tailwind/output "resources/public/css/site.css"
+             :release    {:build-hooks [(teknql.tailwind/compile-release!)]}
              :modules    {:renderer {:init-fn renderer.core/start!}}}}}
