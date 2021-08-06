@@ -13,3 +13,5 @@ resources/main.js
 resources/*.js
 
 .lsp
+
+trunk.db
