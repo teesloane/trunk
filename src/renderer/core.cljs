@@ -1,7 +1,6 @@
 (ns renderer.core
   (:require
    [reagent.core :as r]
-   [clojure.string :as str]
    [renderer.ipc :as ipc]
    [reagent.dom :as rd]))
 
@@ -17,9 +16,10 @@
 
 (defn view-nav
   []
-  [:nav
-   [:button.bg-black.text-white.border-r.border-white.px-4 {:on-click #(navigate! "article-list")} "Articles"]
-   [:button.bg-black.text-white.px-4 {:on-click #(navigate! "article-create")} " +"]])
+  [:nav.inline-flex
+   [:button.bg-gray-300.hover:bg-gray-400.text-gray-800.font-bold.py-2.px-4.rounded-l {:on-click #(navigate! "article-list")} "Articles"]
+   [:button.bg-gray-300.hover:bg-gray-400.text-gray-800.font-bold.py-2.px-4.rounded-r {:on-click #(navigate! "article-create")} " +"]]
+)
 
 (defn view-article-list
   []
@@ -31,10 +31,14 @@
 
 (defn view-article-create
   []
-  [:div
-   [:textarea]
-   [:button {:on-click #(ipc/send! "<-article-create" "payload")} "Submit"]]
-  )
+  (let [article-text (r/atom "foo")
+        handle-change #(reset! article-text (-> % .-target .-value))]
+    (fn []
+      [:div
+       [:textarea {:name @article-text :on-change handle-change}]
+       [:div "hi there ->" @article-text]
+       [:button {:class "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
+                 :on-click #(ipc/send! "<-article-create" @article-text)} "Submit"]])))
 
 (defn views
   []
