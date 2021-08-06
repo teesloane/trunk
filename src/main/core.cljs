@@ -15,7 +15,6 @@
                      :webPreferences
                      {:nodeIntegration  true
                       :contextIsolation false ;; come back and figure out preload.js someday.
-                      ;; :preload         (.join path (str js/__dirname "/preload.js"))
                       }
 
                      })))
