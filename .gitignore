@@ -9,3 +9,6 @@
 /.idea
 resources/public/js
 resources/main.js
+resources/*.js
+
+.lsp
