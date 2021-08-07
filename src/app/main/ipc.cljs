@@ -1,12 +1,11 @@
-(ns main.ipc
+(ns app.main.ipc
   (:require ["electron" :refer [ipcMain]]
-            [main.db :as db]))
+            [app.main.db :as db]))
 
 (def ipcHandlers
   {"<-article-create" (fn [event data]
-                        (println "toMain called" data)
-                        (db/insert-words data)
-                        (js/event.reply "->article-created" "pong"))})
+                        (db/insert-words data) ;; < try catch here
+                        (js/event.reply "->article-created" "return value"))})
 
 (defn init
   []

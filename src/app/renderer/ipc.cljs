@@ -1,4 +1,4 @@
-(ns renderer.ipc)
+(ns app.renderer.ipc)
 
 (defn send!
   [channel data]

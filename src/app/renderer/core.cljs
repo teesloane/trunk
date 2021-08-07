@@ -1,7 +1,7 @@
-(ns renderer.core
+(ns app.renderer.core
   (:require
    [reagent.core :as r]
-   [renderer.ipc :as ipc]
+   [app.renderer.ipc :as ipc]
    [reagent.dom :as rd]))
 
 (defonce app-db

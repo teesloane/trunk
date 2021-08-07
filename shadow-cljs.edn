@@ -12,11 +12,11 @@
  {:main {:target    :node-script
          :output-to "resources/main.js"
 
-         :main main.core/main}
-  :preload  {:target    :browser ; I don't know if this has to be a npm module.
-             :output-to "resources/preload.js"
-             ;; :main      main.preload/main}
-             :modules   {:renderer {:init-fn main.preload/main}}}
+         :main app.main.core/main}
+  ;; :preload  {:target    :browser ; I don't know if this has to be a npm module.
+  ;;            :output-to "resources/preload.js"
+  ;;            ;; :main      main.preload/main}
+  ;;            :modules   {:renderer {:init-fn app.main.preload/main}}}
   :renderer {:target     :browser
              :output-dir "resources/public/js"
              :dev        {:build-hooks [(teknql.tailwind/start-watch!)]}
@@ -27,4 +27,4 @@
               }
              :tailwind/output "resources/public/css/site.css"
              :release    {:build-hooks [(teknql.tailwind/compile-release!)]}
-             :modules    {:renderer {:init-fn renderer.core/start!}}}}}
+             :modules    {:renderer {:init-fn app.renderer.core/start!}}}}}

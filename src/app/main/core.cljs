@@ -1,8 +1,8 @@
-(ns main.core
+(ns app.main.core
   (:require ["electron" :refer [app BrowserWindow]]
             ["path" :as path]
-            [main.db :as db]
-            [main.ipc :as ipc]))
+            [app.main.db :as db]
+            [app.main.ipc :as ipc]))
 
 (def main-window (atom nil))
 
