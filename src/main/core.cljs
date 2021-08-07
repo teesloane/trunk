@@ -31,8 +31,6 @@
            (.quit app))))
 
   (db/init)
-
   (ipc/init)
-
 
   (.on app "ready" init-browser))

@@ -13,14 +13,14 @@
 
 (def db-seed "
 
-  CREATE TABLE words (
+  CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     comfort INTEGER,
     translation TEXT
   );
 
-  CREATE TABLE articles (
+  CREATE TABLE IF NOT EXISTS articles (
     article_id INTEGER PRIMARY KEY,
     name TEXT,
     source TEXT,
@@ -30,10 +30,24 @@
 
 ")
 
+(defn seq->placeholder
+  [seq]
+  (->> seq
+       (map (fn [_] "(?)"))
+       (apply array)
+       (str/join ",")))
+
+
 (defn insert-words
   [word-str]
-  (let [words (str/split word-str " " )]
-    (println words)))
+  (let [words       (str/split word-str " " )
+        placeholder (seq->placeholder words)
+        vals        (apply array words)
+        query       (str "INSERT INTO words(name) VALUES " placeholder)
+        _           (println query)
+        ]
+    (.run db query vals)
+    ))
 
 (defn init
   []
@@ -43,31 +57,4 @@
             (throw (js/Error. (str "Failed db" err)))))))
 
 
-;; -- Create articles table
-
-;; CREATE TABLE articles (
-;;   article_id INTEGER PRIMARY KEY,
-;;   name TEXT,
-;;   source TEXT,
-;;   original TEXT,
-;;   word_ids TEXT
-;; )
-
-;; var sqlite3 = require('sqlite3').verbose();
-;; var db = new sqlite3.Database(':memory:');
-
-;; db.serialize(function() {
-;;   db.run("CREATE TABLE lorem (info TEXT)");
-
-;;   var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-;;   for (var i = 0; i < 10; i++) {
-;;       stmt.run("Ipsum " + i);
-;;   }
-;;   stmt.finalize();
-
-;;   db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-;;       console.log(row.id + ": " + row.info);
-;;   });
-;; });
-
-;; db.close();
+;; FIXME: when do I run "db.close()"?
