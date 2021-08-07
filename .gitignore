@@ -15,3 +15,6 @@ resources/*.js
 .lsp
 
 trunk.db
+
+**/*/.DS_STORE
+.DS_STORE
