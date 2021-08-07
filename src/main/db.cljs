@@ -43,11 +43,12 @@
   (let [words       (str/split word-str " " )
         placeholder (seq->placeholder words)
         vals        (apply array words)
-        query       (str "INSERT INTO words(name) VALUES " placeholder)
-        _           (println query)
+        queryWords  (str "INSERT INTO words(name) VALUES " placeholder)
+        _           (println "query [words]: " queryWords "[placeholders]: " vals)
         ]
-    (.run db query vals)
-    ))
+    (.run db queryWords vals (fn [err]
+                               (println "err is " err) ;; do what with err?
+                          ))))
 
 (defn init
   []
