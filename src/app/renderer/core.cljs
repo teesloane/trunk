@@ -20,7 +20,7 @@
    [:div.inline-flex.p-2
     [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-l {:on-click #(navigate! "article-list")} "Articles"]
     [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-r {:on-click #(navigate! "article-create")} " +"]]]
-)
+  )
 
 (defn container
   [& children]
@@ -33,6 +33,7 @@
 
 (defn view-article-list
   []
+  (ipc/articles-get)
   (let [stz {:class "table-cell border-b border-gray-100 py-2"}]
     [container
      [:div.text-center [page-heading "Your articles"]]
@@ -56,7 +57,7 @@
         [:textarea.w-full.p-3.text-gray-700.border.rounded-lg.focus:outline-none.text-sm.my-6
          {:name @article-text :on-change handle-change :rows 8 :placeholder "Paste article here..."}]
         [:button {:class "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
-                  :on-click #(ipc/send! "<-article-create" @article-text)} "Submit"]]])))
+                  :on-click #(ipc/article-create @article-text)} "Submit"]]])))
 
 (defn views
   []

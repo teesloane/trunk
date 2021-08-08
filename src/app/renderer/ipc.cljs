@@ -6,10 +6,26 @@
         _           (.send ipcRenderer channel (clj->js data))]))
 
 
+;; -- Outgoing IPC calls
+
+(defn article-create
+  [data]
+  (send! "<-article-create" data))
+
+(defn articles-get
+  []
+  (prn "Requesting articles from ipc renderer")
+  (send! "<-articles-get" nil))
+
+
+;; -- Incoming IPC handlers
+
 (defonce ipcHandlers
   {"->article-created" (fn [event data]
-                         (println "->article-created" event data)
-                         )})
+                         (println "->article-created" event data))
+   "->articles-got"    (fn [event data]
+                         (println "->articles-got" data))
+   })
 
 ;; setup our applications to receive vals.
 

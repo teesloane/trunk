@@ -31,6 +31,13 @@
 
 ")
 
+(defn articles-get
+  [callback]
+  (let [sql "SELECT * FROM articles"]
+    (.all db sql (fn [err rows]
+                   (callback rows)))))
+
+;; (articles-get)
 
 (defn insert-article
   "Takes a word string and creates a new article entry for it."
