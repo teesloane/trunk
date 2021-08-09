@@ -1,4 +1,6 @@
-(ns app.renderer.ipc)
+(ns app.renderer.ipc
+  (:require [app.renderer.events :as events :refer [|>]])
+  )
 
 (defn send!
   [channel data]
@@ -24,7 +26,8 @@
   {"->article-created" (fn [event data]
                          (println "->article-created" event data))
    "->articles-got"    (fn [event data]
-                         (println "->articles-got" data))
+                         (println "->articles-got" data)
+                         (|> [::events/articles-got data]))
    })
 
 ;; setup our applications to receive vals.

@@ -2,13 +2,13 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
-   [app.renderer.subs :as subs]
-   [app.renderer.events :as events]))
+   [app.renderer.subs :as subs :refer [<|]]
+   [app.renderer.events :as events :refer [ |> ]]))
 
 
 (defn view-nav
   []
-  (let [nav! (fn [route] (rf/dispatch [::events/navigate route]))]
+  (let [nav! (fn [route] (|> [::events/navigate route]))]
     [:nav.w-full.bg-gray-200.text-xs
      [:div.inline-flex.p-2
       [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-l
@@ -28,6 +28,7 @@
 (defn view-article-list
   []
   ;; (ipc/articles-get)
+  (|> [::events/fetch-articles])
   (let [stz {:class "table-cell border-b border-gray-100 py-2"}]
     [container
      [:div.text-center [page-heading "Your articles"]]
@@ -56,10 +57,10 @@
 
 
 (defn main-panel []
-  (let [current-view (rf/subscribe [::subs/current-view])]
+  (let [current-view (<| [::subs/current-view])]
     [:div
      [view-nav]
-     (case @current-view
+     (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
        )]))

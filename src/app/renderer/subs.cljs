@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as rf]))
 
+(def <| (comp deref rf/subscribe))
 
 (rf/reg-sub
  ::current-view
