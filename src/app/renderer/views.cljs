@@ -33,24 +33,24 @@
 
 (defn view-article-list
   []
-  ;; (ipc/articles-get)
-  (|> [(shared-events :fetch-articles) nil])
-  (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
-        loading? (<| [::subs/articles-loading?])
-        articles (<| [::subs/articles]  )
-        ]
-    [container
-     [:div.text-center [page-heading "Your articles"]]
-     [:div.table.w-full.pt-8
-      [:div.table-row
-       [:div.font-bold stz "Article title"]
-       [:div.font-bold stz "Excerpt"]]
-      (if loading?
-        [loading]
-        (map (fn [article]
-               [:div.table-row
-                [:div stz (article :name)]
-                [:div.max-w-xs.truncate stz (article :original)]]) articles))]]))
+  (|> [(shared-events :articles-fetch) nil])
+  (fn []
+    (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
+          loading? (<| [::subs/articles-loading?])
+          articles (<| [::subs/articles]  )
+          ]
+      [container
+       [:div.text-center [page-heading "Your articles"]]
+       [:div.table.w-full.pt-8
+        [:div.table-row
+         [:div.font-bold stz "Article title"]
+         [:div.font-bold stz "Excerpt"]]
+        (if loading?
+          [loading]
+          (map (fn [article]
+                 [:div.table-row
+                  [:div stz (article :name)]
+                  [:div.max-w-xs.truncate stz (article :original)]]) articles))]])))
 
 (defn view-article-create
   []

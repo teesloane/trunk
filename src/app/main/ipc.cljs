@@ -17,10 +17,10 @@
      ;; TODO: this should be done in the above's callback
      (js/event.reply "->article-created" "return value"))
 
-   (shared-events :fetch-articles)
+   (shared-events :articles-fetch)
    (fn [event data]
      (db/articles-get (fn [data]
-                        (reply! event (shared-events :received-articles) data))))})
+                        (reply! event (shared-events :articles-received) data))))})
 
 (defn init
   []

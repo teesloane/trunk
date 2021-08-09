@@ -14,10 +14,7 @@
  (fn [db]
    (:articles db)))
 
-(rf/reg-sub
- ::loading?
- (fn [db]
-   (:loading? db)))
 
-;; loading subs
+;; -- loading subs --
+;;
 (rf/reg-sub ::articles-loading? (fn [db] (-> db :loading? :articles)))

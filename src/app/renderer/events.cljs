@@ -27,12 +27,16 @@
    (assoc db :current-view new-route)))
 
 (rf/reg-event-fx
- (shared-events :fetch-articles)
+ (shared-events :articles-fetch)
  (fn [{:keys [db]} event]
    {:db         (assoc-in db [:loading? :articles] true)
     ::ipc-send! event}))
 
-;; TODO: should be fx?
+(rf/reg-event-fx
+ (shared-events :article-create)
+ (fn [_ event]
+   {::ipc-send! event}))
+
 (rf/reg-event-db
  ::articles-got
  (fn [db [_ data]]
@@ -54,7 +58,7 @@
    (fn [event data]
      (println "->article-created" event data))
 
-   (shared-events :received-articles)
+   (shared-events :articles-received)
    (fn [event data] (|> [::articles-got data]))})
 
 (defn ipc-init
