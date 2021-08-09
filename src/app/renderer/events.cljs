@@ -28,22 +28,22 @@
 
 (rf/reg-event-fx
  (shared-events :fetch-articles)
- (fn [cofx event]
-   {:db         (cofx :db) ;; todo - loading flag.
+ (fn [{:keys [db]} event]
+   {:db         (assoc-in db [:loading? :articles] true)
     ::ipc-send! event}))
 
 ;; TODO: should be fx?
 (rf/reg-event-db
  ::articles-got
  (fn [db [_ data]]
-   (prn "in articles got handler " data)
-   (assoc db :articles data)
-   ))
+   (-> db
+       (assoc :articles data)
+       (assoc-in [:loading? :articles] false))))
 
 (rf/reg-fx
  ::ipc-send!
  (fn [[event-key payload]]
-   (println "sending event!!" event-key payload)
+   (println "sending IPC event: " event-key payload)
    (send! event-key nil)))
 
 

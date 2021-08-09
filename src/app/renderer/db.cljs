@@ -2,4 +2,6 @@
 
 (def default-db
   {:current-view "article-list"
-   :articles nil})
+   :articles nil
+   :loading? {:articles false}
+   })

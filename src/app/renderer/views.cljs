@@ -17,6 +17,11 @@
       [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-r
        {:on-click #(nav! "article-create")} " +"]]]))
 
+(defn loading
+  []
+  [:div "Loading..."]
+  )
+
 (defn container
   [& children]
   [:div {:class "mt-8 flex flex-col w-9/12 mx-auto"}
@@ -30,17 +35,22 @@
   []
   ;; (ipc/articles-get)
   (|> [(shared-events :fetch-articles) nil])
-  (let [stz {:class "table-cell border-b border-gray-100 py-2"}]
+  (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
+        loading? (<| [::subs/articles-loading?])
+        articles (<| [::subs/articles]  )
+        ]
     [container
      [:div.text-center [page-heading "Your articles"]]
      [:div.table.w-full.pt-8
       [:div.table-row
        [:div.font-bold stz "Article title"]
        [:div.font-bold stz "Excerpt"]]
-      #_(map (fn [article]
-             [:div.table-row
-              [:div stz (article :title)]
-              [:div.max-w-xs.truncate stz (article :content)]]) (@app-db :articles))]]))
+      (if loading?
+        [loading]
+        (map (fn [article]
+               [:div.table-row
+                [:div stz (article :name)]
+                [:div.max-w-xs.truncate stz (article :original)]]) articles))]]))
 
 (defn view-article-create
   []
