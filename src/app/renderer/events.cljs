@@ -1,15 +1,19 @@
 (ns app.renderer.events
   (:require
    [re-frame.core :as rf]
-   [app.renderer.db :as db]))
+   [app.renderer.db :as db]
+   [app.shared.ipc-events :refer [shared-events]]
+   ))
 
 
 (def |> re-frame.core/dispatch)
 
 (defn send!
+  "This is how we send data to the ipc back end.
+  Channels must be strings, so we convert keywords here."
   [channel data]
   (let [ipcRenderer (.. (js/require "electron") -ipcRenderer)
-        _           (.send ipcRenderer channel (clj->js data))]))
+        _           (.send ipcRenderer (name channel) (clj->js data))]))
 
 (rf/reg-event-db
  ::initialize-db
@@ -22,12 +26,11 @@
  (fn [db [_ new-route]]
    (assoc db :current-view new-route)))
 
-;; TODO: this will eventually move to reg-event-fx + a reg-fx?
-(rf/reg-event-db
- ::fetch-articles
- (fn [db [_ _]]
-   (send! "<-articles-get" nil)
-   db))
+(rf/reg-event-fx
+ (shared-events :fetch-articles)
+ (fn [cofx event]
+   {:db         (cofx :db) ;; todo - loading flag.
+    ::ipc-send! event}))
 
 ;; TODO: should be fx?
 (rf/reg-event-db
@@ -36,3 +39,34 @@
    (prn "in articles got handler " data)
    (assoc db :articles data)
    ))
+
+(rf/reg-fx
+ ::ipc-send!
+ (fn [[event-key payload]]
+   (println "sending event!!" event-key payload)
+   (send! event-key nil)))
+
+
+;; -- IPC Event registrations --------------------------------------------------
+
+(defonce ipcHandlers
+  {"->article-created"
+   (fn [event data]
+     (println "->article-created" event data))
+
+   (shared-events :received-articles)
+   (fn [event data] (|> [::articles-got data]))})
+
+(defn ipc-init
+  "Load ipcRenderer and loop through defined handlers
+  and attach handlers with handle."
+  []
+  (println "Initing renderer ipc handlers.")
+  (let [ipcRenderer    (.. (js/require "electron") -ipcRenderer)
+        existingEvents (.eventNames ipcRenderer)]
+    (doseq [[key handler] ipcHandlers]
+      (when-not (some #{key} existingEvents)
+        (.on ipcRenderer (name key) ;; convert str to be readable for ipcRenderer.
+             (fn [event args]
+               (println "[IPC]: " key)
+               (handler event (js->clj args :keywordize-keys true))))))))

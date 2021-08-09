@@ -2,6 +2,7 @@
   (:require
    [re-frame.core :as rf]
    [reagent.core :as r]
+   [app.shared.ipc-events :refer [shared-events]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]))
 
@@ -28,7 +29,7 @@
 (defn view-article-list
   []
   ;; (ipc/articles-get)
-  (|> [::events/fetch-articles])
+  (|> [(shared-events :fetch-articles) nil])
   (let [stz {:class "table-cell border-b border-gray-100 py-2"}]
     [container
      [:div.text-center [page-heading "Your articles"]]
