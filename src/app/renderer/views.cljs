@@ -56,16 +56,40 @@
 
 (defn view-article-create
   []
-  (let [article-text (r/atom "")
-        handle-change #(reset! article-text (-> % .-target .-value))]
+  (let [article-text  (r/atom "")
+        input-stz     "w-full p-2 text-gray-700 border rounded-lg focus:outline-none text-sm my-2"
+        form          (r/atom {:article ""
+                               :title   ""
+                               :source  ""
+                               })
+        ;; update-form #(swap! form assoc %2 (-> %1  -target .-value))
+        update-form   (fn [event k]
+                        (swap! form assoc k (-> event .-target .-value)))
+        handle-change #(reset! form (-> % .-target .-value))]
     (fn []
       [container
-       [:div {:key "view-article-list"}
-        [:div.text-center [page-heading "Create a new article"]]
-        [:textarea.w-full.p-3.text-gray-700.border.rounded-lg.focus:outline-none.text-sm.my-6
-         {:name @article-text :on-change handle-change :rows 8 :placeholder "Paste article here..."}]
-        [:button {:class "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
-                  :on-click #(|> [(shared-events :article-create) @article-text]) #_(ipc/article-create @article-text)
+       [:div.flex.flex-col {:key "view-article-list"}
+        [:div.text-center.mb-8 [page-heading "Create a new article"]]
+        [:input
+         {:class input-stz
+          :placeholder "Article Title"
+          :type "text"
+          :value (@form :title)
+          :on-change #(update-form %1 :title)}]
+        [:input
+         {:class input-stz
+          :placeholder "Article source"
+          :type "text"
+          :value (@form :source)
+          :on-change #(update-form %1 :source)}]
+        [:textarea
+         {:name ""
+          :class input-stz
+          :on-change #(update-form %1 :article)
+          :rows 8
+          :placeholder "Paste article here..."}]
+        [:button {:class    "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
+                  :on-click #(|> [(shared-events :article-create) @form])
                   } "Submit"]]])))
 
 
