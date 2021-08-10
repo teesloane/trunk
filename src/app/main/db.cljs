@@ -37,9 +37,18 @@
     (.all db sql (fn [err rows]
                    (callback rows)))))
 
+(defn- get-article
+  [id cb]
+  (let [query  "SELECT * FROM articles WHERE article_id = ?"
+        params (array id)]
+    (.get db query params (fn [err row]
+                            ;; TODO: error handling
+                            (cb row)))))
 
 (defn- insert-article
-  "Takes a word string and creates a new article entry for it."
+  "Takes a word string and creates a new article entry for it.
+  Welcome to the callback swamp!
+  "
   [word-str cb]
   (let [
         sql-get-all-words "SELECT * FROM words"
@@ -61,7 +70,9 @@
               (let [sql-new-article (str "INSERT INTO articles(original, word_ids) VALUES (?, ?)")
                     delimited-ids   (str/join "$" @word-ids)
                     vals            (apply array [word-str delimited-ids])]
-                (.run db sql-new-article vals cb)))))))
+                (.run db sql-new-article vals (fn [err]
+                                                (this-as this
+                                                  (get-article (.-lastID this) cb))))))))))
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.

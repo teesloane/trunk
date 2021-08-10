@@ -15,9 +15,8 @@
    (fn [event data]
      ;; (db/insert-words data) ;; < try catch here
      (db/article-create data
-                        (fn [err]
-                          (reply! event (shared-events :article-created) "return data")
-                                )))
+                        (fn [data]
+                          (reply! event (shared-events :article-created) data))))
 
    (shared-events :articles-fetch)
    (fn [event data]

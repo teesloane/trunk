@@ -47,8 +47,7 @@
 (rf/reg-event-db
  (shared-events :article-created)
  (fn [db [_ data]]
-     (println "article created successfully" data)
-     db))
+   (assoc db :current-article data)))
 
 (rf/reg-event-db
  (shared-events :articles-received)
