@@ -45,20 +45,22 @@
                             ;; TODO: error handling
                             (cb row)))))
 
+(defn- get-all-words
+  [cb]
+  (let [sql "SELECT * FROM words"]
+    (.all db sql (fn [err rows] (cb rows)))))
+
 (defn- insert-article
   "Takes a word string and creates a new article entry for it.
   Welcome to the callback swamp!
   "
   [word-str cb]
-  (let [
-        sql-get-all-words "SELECT * FROM words"
-        words             (str/split word-str " ") ;; FIXME: better lowercase and trim all words.
-        vals              (apply array [word-str])
+  (let [words             (str/split word-str " ") ;; FIXME: better lowercase and trim all words.
         word-ids          (atom [])]
 
     ;; -- [SQL] ALL words
-    (.all db sql-get-all-words                               ;; PERF: this could get slow
-          (fn [err rows]
+    (get-all-words
+          (fn [rows]
             (let [rows (js->clj rows :keywordize-keys true)] ;; PERF: this could get also get slow
               (doseq [row  rows
                       :let [{:keys [word_id name]} row]]
