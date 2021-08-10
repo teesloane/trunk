@@ -45,7 +45,13 @@
    {::ipc-send! event}))
 
 (rf/reg-event-db
- ::articles-got
+ (shared-events :article-created)
+ (fn [db [_ data]]
+     (println "article created successfully" data)
+     db))
+
+(rf/reg-event-db
+ (shared-events :articles-received)
  (fn [db [_ data]]
    (-> db
        (assoc :articles data)
@@ -54,7 +60,7 @@
 (rf/reg-fx
  ::ipc-send!
  (fn [[event-key payload]]
-   (println "[IPC ->]: " event-key payload)
+   (println "[ipcRenderer <-]: " event-key payload)
    (send! event-key payload)))
 
 
@@ -63,10 +69,10 @@
 (defonce ipcHandlers
   {(shared-events :article-created)
    (fn [event data]
-     (println "->article-created" event data))
+     (|> [(shared-events :article-created) data]))
 
    (shared-events :articles-received)
-   (fn [event data] (|> [::articles-got data]))})
+   (fn [event data] (|> [(shared-events :articles-received) data]))})
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers
@@ -79,5 +85,5 @@
       (when-not (some #{key} existingEvents)
         (.on ipcRenderer (name key) ;; convert str to be readable for ipcRenderer.
              (fn [event args]
-               (println "[IPC]: " key)
+               (println "[ipcRenderer ->]: " key)
                (handler event (js->clj args :keywordize-keys true))))))))

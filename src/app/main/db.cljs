@@ -37,11 +37,10 @@
     (.all db sql (fn [err rows]
                    (callback rows)))))
 
-;; (articles-get)
 
-(defn insert-article
+(defn- insert-article
   "Takes a word string and creates a new article entry for it."
-  [word-str]
+  [word-str cb]
   (let [
         sql-get-all-words "SELECT * FROM words"
         words             (str/split word-str " ") ;; FIXME: better lowercase and trim all words.
@@ -62,19 +61,28 @@
               (let [sql-new-article (str "INSERT INTO articles(original, word_ids) VALUES (?, ?)")
                     delimited-ids   (str/join "$" @word-ids)
                     vals            (apply array [word-str delimited-ids])]
-                (.run db sql-new-article vals
-                      (fn [err]
-                        (println "err on insert-article: " err)))))))))
+                (.run db sql-new-article vals cb)))))))
 
-(defn insert-words
-  [word-str]
+(defn- insert-words
+  "Takes a string representing a new article, and breaks it into chunks.
+  Then insert ALL words into the `words` table, if they don't already exist.
+  "
+
+  [word-str cb]
   (let [words       (str/split word-str " " )
         placeholder (util/seq->sql-placeholder words)
         vals        (apply array words)
         queryWords  (str "INSERT OR IGNORE INTO words(name) VALUES " placeholder)]
-    (.run db queryWords vals (fn [err] ;; TODO: something with err.
-                               (util/print-deep-js err)
-                               (insert-article word-str)))))
+    (.run db queryWords vals cb)))
+
+(defn article-create
+  [word-str cb]
+  (insert-words word-str
+                (fn [err]
+                  ;; TODO error handling.
+                  (insert-article word-str cb)))
+
+  )
 
 (defn init
   []

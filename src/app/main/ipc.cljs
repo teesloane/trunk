@@ -13,11 +13,11 @@
   {
    (shared-events :article-create)
    (fn [event data]
-     (db/insert-words data) ;; < try catch here
-     ;; TODO: this should be done in the above's callback
-     ;; TODO: PICKUP
-     (reply! event (shared-events :article-created) "return data")
-     )
+     ;; (db/insert-words data) ;; < try catch here
+     (db/article-create data
+                        (fn [err]
+                          (reply! event (shared-events :article-created) "return data")
+                                )))
 
    (shared-events :articles-fetch)
    (fn [event data]
