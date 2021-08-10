@@ -74,7 +74,7 @@
                     vals            (apply array [word-str delimited-ids])]
                 (.run db sql-new-article vals (fn [err]
                                                 (this-as this
-                                                  (get-article (.-lastID this) cb))))))))))
+                                                  (get-article (.-lastID ^js this) cb))))))))))
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.
