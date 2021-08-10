@@ -9,7 +9,9 @@
 (def db (sqlite/Database. db-path))
 
 (defn db-del!  [] (.unlinkSync fs db-path))
-(defn db-wipe! [] (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
+(defn wipe! []
+  (println "wip!  called")
+  (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
 
 
 (def db-seed "

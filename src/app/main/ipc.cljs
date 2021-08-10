@@ -21,7 +21,14 @@
    (shared-events :articles-fetch)
    (fn [event data]
      (db/articles-get (fn [data]
-                        (reply! event (shared-events :articles-received) data))))})
+                        (reply! event (shared-events :articles-received) data))))
+
+   (shared-events :wipe-db!)
+   (fn [event data] (db/wipe!))
+
+   })
+
+
 
 (defn init
   []

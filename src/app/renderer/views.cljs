@@ -69,10 +69,18 @@
                   } "Submit"]]])))
 
 
+(defn debug
+  []
+  [:div.flex.w-full.bg-gray-800.bg-opacity-100.fixed.bottom-0.p-2
+   [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white
+    {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]
+   ])
+
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])]
     [:div
      [view-nav]
+     [debug]
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]

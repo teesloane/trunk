@@ -62,6 +62,12 @@
    (println "[ipcRenderer <-]: " event-key payload)
    (send! event-key payload)))
 
+(rf/reg-event-fx
+ (shared-events :wipe-db!)
+ (fn [_ event]
+   {::ipc-send! event
+    :dispatch [::initialize-db]}))
+
 
 ;; -- IPC Event registrations --------------------------------------------------
 
