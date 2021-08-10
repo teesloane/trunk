@@ -23,7 +23,8 @@
   )
 
 (defn container
-  [& children]
+  "This needs to have it's react-keys resolved."
+  [children]
   [:div {:class "mt-8 flex flex-col w-9/12 mx-auto"}
    children])
 
@@ -40,17 +41,18 @@
           articles (<| [::subs/articles]  )
           ]
       [container
-       [:div.text-center [page-heading "Your articles"]]
-       [:div.table.w-full.pt-8
-        [:div.table-row
-         [:div.font-bold stz "Article title"]
-         [:div.font-bold stz "Excerpt"]]
-        (if loading?
-          [loading]
-          (map (fn [article]
-                 [:div.table-row
-                  [:div stz (article :name)]
-                  [:div.max-w-xs.truncate stz (article :original)]]) articles))]])))
+       [:div {:key "view-article-list"} ;; keep react happy.
+        [:div.text-center [page-heading "Your articles"]]
+        [:div.table.w-full.pt-8
+         [:div.table-row
+          [:div.font-bold stz "Article title"]
+          [:div.font-bold stz "Excerpt"]]
+         (if loading?
+           [loading]
+           (map-indexed (fn [idx article]
+                  [:div.table-row {:key idx}
+                   [:div stz (article :name)]
+                   [:div.max-w-xs.truncate stz (article :original)]]) articles))]] ])))
 
 (defn view-article-create
   []
@@ -58,7 +60,7 @@
         handle-change #(reset! article-text (-> % .-target .-value))]
     (fn []
       [container
-       [:div
+       [:div {:key "view-article-list"}
         [:div.text-center [page-heading "Create a new article"]]
         [:textarea.w-full.p-3.text-gray-700.border.rounded-lg.focus:outline-none.text-sm.my-6
          {:name @article-text :on-change handle-change :rows 8 :placeholder "Paste article here..."}]
