@@ -8,9 +8,19 @@
 
 
 (defn seq->sql-placeholder
-  "TODO, move to utils."
   [seq]
   (->> seq
        (map (fn [_] "(?)"))
        (apply array)
        (str/join ",")))
+
+
+
+(defn split-article
+  "Splits a string by whitespace and punctuation"
+  [string]
+  (let [re  #"(\s+|[.,!?:;\"])"
+        res (str/split string re)
+        res (filter (fn [s] (and (not= s " ")
+                                (not= s ""))) res)]
+    res))

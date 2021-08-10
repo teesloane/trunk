@@ -42,6 +42,8 @@
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
+                            ;; TODO: get the row's delimited words and THEN split them up and query for EACH
+                            ;; of those words until you have a compiled article full of data-y word chunks.
                             ;; TODO: error handling
                             (cb row)))))
 
@@ -52,11 +54,12 @@
 
 (defn- insert-article
   "Takes a word string and creates a new article entry for it.
+  NOTE: This happens before `insert-words`!!
   Welcome to the callback swamp!
   "
   [word-str cb]
-  (let [words             (str/split word-str " ") ;; FIXME: better lowercase and trim all words.
-        word-ids          (atom [])]
+  (let [words (util/split-article word-str)
+        word-ids (atom [])]
 
     ;; -- [SQL] ALL words
     (get-all-words
@@ -82,7 +85,7 @@
   "
 
   [word-str cb]
-  (let [words       (str/split word-str " " )
+  (let [words       (util/split-article word-str)
         placeholder (util/seq->sql-placeholder words)
         vals        (apply array words)
         queryWords  (str "INSERT OR IGNORE INTO words(name) VALUES " placeholder)]
