@@ -7,4 +7,5 @@
    :articles-fetch    ::articles-fetch
    :articles-received ::articles-received
    :article-create    ::article-create
+   :article-created   ::article-created
    })

@@ -11,11 +11,13 @@
 
 (def ipcHandlers
   {
-   "<-article-create"
+   (shared-events :article-create)
    (fn [event data]
      (db/insert-words data) ;; < try catch here
      ;; TODO: this should be done in the above's callback
-     (js/event.reply "->article-created" "return value"))
+     ;; TODO: PICKUP
+     (reply! event (shared-events :article-created) "return data")
+     )
 
    (shared-events :articles-fetch)
    (fn [event data]

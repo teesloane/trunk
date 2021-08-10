@@ -65,7 +65,7 @@
         [:textarea.w-full.p-3.text-gray-700.border.rounded-lg.focus:outline-none.text-sm.my-6
          {:name @article-text :on-change handle-change :rows 8 :placeholder "Paste article here..."}]
         [:button {:class "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
-                  ;; :on-click #(ipc/article-create @article-text)
+                  :on-click #(|> [(shared-events :article-create) @article-text]) #_(ipc/article-create @article-text)
                   } "Submit"]]])))
 
 

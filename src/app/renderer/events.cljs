@@ -32,6 +32,13 @@
    {:db         (assoc-in db [:loading? :articles] true)
     ::ipc-send! event}))
 
+
+(rf/reg-event-fx
+ (shared-events :articles-fetch)
+ (fn [{:keys [db]} event]
+   {:db         (assoc-in db [:loading? :articles] true)
+    ::ipc-send! event}))
+
 (rf/reg-event-fx
  (shared-events :article-create)
  (fn [_ event]
@@ -47,14 +54,14 @@
 (rf/reg-fx
  ::ipc-send!
  (fn [[event-key payload]]
-   (println "sending IPC event: " event-key payload)
-   (send! event-key nil)))
+   (println "[IPC ->]: " event-key payload)
+   (send! event-key payload)))
 
 
 ;; -- IPC Event registrations --------------------------------------------------
 
 (defonce ipcHandlers
-  {"->article-created"
+  {(shared-events :article-created)
    (fn [event data]
      (println "->article-created" event data))
 
