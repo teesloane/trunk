@@ -56,7 +56,7 @@
 
 (defn view-article-create
   []
-  (let [article-text (r/atom "foo")
+  (let [article-text (r/atom "")
         handle-change #(reset! article-text (-> % .-target .-value))]
     (fn []
       [container
