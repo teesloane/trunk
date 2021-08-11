@@ -59,9 +59,10 @@
   NOTE: This happens before `insert-words`!!
   Welcome to the callback swamp!
   "
-  [word-str cb]
-  (let [words (util/split-article word-str)
-        word-ids (atom [])]
+  [data cb]
+  (let [{:keys [article title source]} data
+        words         (util/split-article article)
+        word-ids      (atom [])]
 
     ;; -- [SQL] ALL words
     (get-all-words
@@ -74,18 +75,17 @@
 
               ;; -- [SQL] Insert - New article
               ;; now that we have our ids for delimiting words... let's insert it.
-              (let [sql-new-article (str "INSERT INTO articles(original, word_ids) VALUES (?, ?)")
+              (let [sql-new-article (str "INSERT INTO articles(original, word_ids, name, source) VALUES (?, ?, ?, ?)")
                     delimited-ids   (str/join "$" @word-ids)
-                    vals            (apply array [word-str delimited-ids])]
+                    vals            (apply array [article delimited-ids title source])]
                 (.run db sql-new-article vals (fn [err]
+                                                (prn "this!" err)
                                                 (this-as this
                                                   (get-article (.-lastID ^js this) cb))))))))))
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.
-  Then insert ALL words into the `words` table, if they don't already exist.
-  "
-
+  Then insert ALL words into the `words` table, if they don't already exist."
   [word-str cb]
   (let [words       (util/split-article word-str)
         placeholder (util/seq->sql-placeholder words)
@@ -94,13 +94,11 @@
     (.run db queryWords vals cb)))
 
 (defn article-create
-  [word-str cb]
-  (insert-words word-str
+  [data cb]
+  (insert-words (data :article)
                 (fn [err]
                   ;; TODO error handling.
-                  (insert-article word-str cb)))
-
-  )
+                  (insert-article data cb))))
 
 (defn init
   []
