@@ -10,17 +10,16 @@
 (defn view-nav
   []
   (let [nav! (fn [route] (|> [::events/navigate route]))]
-    [:nav.w-full.bg-gray-200.text-xs
+    [:nav.w-full.bg-gray-200.text-xs.dark:bg-black.dark:text-gray-50
      [:div.inline-flex.p-2
-      [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-l
+      [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-l
        {:on-click #(nav! "article-list")} "Articles"]
-      [:button.bg-gray-700.hover:bg-gray-800.text-white.font-bold.py-1.px-2.rounded-r
+      [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-r
        {:on-click #(nav! "article-create")} " +"]]]))
 
 (defn loading
   []
-  [:div "Loading..."]
-  )
+  [:div "Loading..."])
 
 (defn container
   "This needs to have it's react-keys resolved."
@@ -57,15 +56,12 @@
 (defn view-article-create
   []
   (let [article-text  (r/atom "")
-        input-stz     "w-full p-2 text-gray-700 border rounded-lg focus:outline-none text-sm my-2"
+        input-stz     "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm my-2 dark:bg-gray-700 dark:text-white"
         form          (r/atom {:article ""
                                :title   ""
                                :source  ""
                                })
-        ;; update-form #(swap! form assoc %2 (-> %1  -target .-value))
-        update-form   (fn [event k]
-                        (swap! form assoc k (-> event .-target .-value)))
-        handle-change #(reset! form (-> % .-target .-value))]
+        update-form   (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
     (fn []
       [container
        [:div.flex.flex-col {:key "view-article-list"}
@@ -88,7 +84,7 @@
           :on-change #(update-form %1 :article)
           :rows 8
           :placeholder "Paste article here..."}]
-        [:button {:class    "text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"
+        [:button {:class    "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded shadow"
                   :on-click #(|> [(shared-events :article-create) @form])
                   } "Submit"]]])))
 
@@ -102,7 +98,7 @@
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])]
-    [:div
+    [:div.h-screen.dark:bg-gray-800.dark:text-white
      [view-nav]
      [debug]
      (case current-view
