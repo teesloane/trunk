@@ -27,17 +27,18 @@
 
    (assoc db :current-view new-route)))
 
-(rf/reg-event-db
- ::set-current-article
- (fn [db [_ article]]
-   (assoc db :current-article article)))
+(rf/reg-event-fx
+ (shared-events :article-fetch)
+ (fn [cofx event]
+   {:db (assoc-in (cofx :db) [:loading? :article] true)
+    ::ipc-send! event}))
+
 
 (rf/reg-event-fx
  (shared-events :articles-fetch)
  (fn [{:keys [db]} event]
    {:db         (assoc-in db [:loading? :articles] true)
     ::ipc-send! event}))
-
 
 (rf/reg-event-fx
  (shared-events :articles-fetch)
@@ -66,7 +67,7 @@
  ::ipc-send!
  (fn [[event-key payload]]
    (println "[ipcRenderer <-]: " event-key payload)
-   (send! event-key payload)))
+   (send! event-key (clj->js payload))))
 
 (rf/reg-event-fx
  (shared-events :wipe-db!)

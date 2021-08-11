@@ -39,8 +39,7 @@
           loading? (<| [::subs/articles-loading?])
           articles (<| [::subs/articles]  )
           nav! (fn [route article]
-                 (|> [::events/navigate route])
-                 (|> [::events/set-current-article article]))]
+                 (|> [(shared-events :article-fetch) article]))]
       [container
        [:div {:key "view-article-list"} ;; keep react happy.
         [:div.text-center [page-heading "Your articles"]]
@@ -88,7 +87,7 @@
 
 (defn view-article
   []
-  (let [current-article                (<| [::subs/current-article])
+  (let [current-article (<| [::subs/current-article])
         {:keys [name source original]} current-article]
   [container
    [:div.flex.flex-col {:key "view-article"}
@@ -98,8 +97,7 @@
   []
   [:div.flex.w-full.bg-gray-800.bg-opacity-100.fixed.bottom-0.p-2
    [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white
-    {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]
-   ])
+    {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]])
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])]

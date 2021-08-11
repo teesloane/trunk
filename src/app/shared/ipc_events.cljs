@@ -8,6 +8,8 @@
    :articles-received ::articles-received
    :article-create    ::article-create
    :article-created   ::article-created
+   :article-fetch     ::article-fetch
+   :article-received  ::article-received
 
    :wipe-db! ::wipe-db!
    })

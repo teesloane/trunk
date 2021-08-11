@@ -39,15 +39,43 @@
     (.all db sql (fn [err rows]
                    (callback rows)))))
 
-(defn- get-article
+(defn- words-get-for-article
+  "Looks at a delimited string and queries for all the words in it."
+  [article cb]
+  (let [word-ids    (article :word_ids)
+        words       (str/split word-ids "$")
+        ]
+
+    ;; FIXME: leaving off - this is an infinite loop problem.
+    ;; probably can't recur in a async callback...
+    (loop [-words             words
+           new-article-output []]
+      (let [[x & xs] -words]
+        (println "-0---" -words x xs)
+        (if (= 0 (count xs))
+          (cb (assoc article :composed-article new-article-output))
+          (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
+                (fn [err row]
+                  (println "word row is " row xs)
+                  (recur xs (conj new-article-output (js->clj row))))))))))
+
+
+
+(defn- article-get
   [id cb]
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
+                            (println "row is" row)
+                            (words-get-for-article (js->clj row :keywordize-keys true) cb)
+
                             ;; TODO: get the row's delimited words and THEN split them up and query for EACH
                             ;; of those words until you have a compiled article full of data-y word chunks.
                             ;; TODO: error handling
-                            (cb row)))))
+                            ))))
+
+
+
 
 (defn- get-all-words
   [cb]
@@ -81,7 +109,7 @@
                 (.run db sql-new-article vals (fn [err]
                                                 (prn "this!" err)
                                                 (this-as this
-                                                  (get-article (.-lastID ^js this) cb))))))))))
+                                                  (article-get (.-lastID ^js this) cb))))))))))
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.

@@ -4,5 +4,6 @@
   {:current-view "article-create"
    :articles nil
    :current-article nil
-   :loading? {:articles false}
+   :loading? {:articles false
+              :article false}
    })

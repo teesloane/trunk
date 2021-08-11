@@ -13,7 +13,6 @@
   {
    (shared-events :article-create)
    (fn [event data]
-     ;; (db/insert-words data) ;; < try catch here
      (db/article-create data
                         (fn [data]
                           (reply! event (shared-events :article-created) data))))
@@ -23,12 +22,17 @@
      (db/articles-get (fn [data]
                         (reply! event (shared-events :articles-received) data))))
 
+   (shared-events :article-fetch)
+   (fn [event data]
+     (db/article-get (data :article_id) (fn [data]
+                                          (println "data out is! " data)
+                        (reply! event (shared-events :article-received) data))))
+
+
    (shared-events :wipe-db!)
    (fn [event data] (db/wipe!))
 
    })
-
-
 
 (defn init
   []
