@@ -24,7 +24,13 @@
 (rf/reg-event-db
  ::navigate
  (fn [db [_ new-route]]
+
    (assoc db :current-view new-route)))
+
+(rf/reg-event-db
+ ::set-current-article
+ (fn [db [_ article]]
+   (assoc db :current-article article)))
 
 (rf/reg-event-fx
  (shared-events :articles-fetch)

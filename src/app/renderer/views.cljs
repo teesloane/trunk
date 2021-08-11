@@ -38,7 +38,9 @@
     (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
           loading? (<| [::subs/articles-loading?])
           articles (<| [::subs/articles]  )
-          ]
+          nav! (fn [route article]
+                 (|> [::events/navigate route])
+                 (|> [::events/set-current-article article]))]
       [container
        [:div {:key "view-article-list"} ;; keep react happy.
         [:div.text-center [page-heading "Your articles"]]
@@ -49,45 +51,48 @@
          (if loading?
            [loading]
            (map-indexed (fn [idx article]
-                  [:div.table-row {:key idx}
+                  [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
                    [:div stz (article :name)]
-                   [:div.max-w-xs.truncate stz (article :original)]]) articles))]] ])))
+                   [:div.max-w-xs.truncate stz (article :original)]]) articles))]]])))
 
 (defn view-article-create
   []
-  (let [article-text  (r/atom "")
-        input-stz     "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm my-2 dark:bg-gray-700 dark:text-white"
-        form          (r/atom {:article ""
-                               :title   ""
-                               :source  ""
-                               })
-        update-form   (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
+  (let [input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm my-2 dark:bg-gray-700 dark:text-white"
+        form         (r/atom {:article "" :title "" :source ""})
+        update-form  (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
     (fn []
       [container
        [:div.flex.flex-col {:key "view-article-list"}
         [:div.text-center.mb-8 [page-heading "Create a new article"]]
         [:input
-         {:class input-stz
+         {:class       input-stz
           :placeholder "Article Title"
-          :type "text"
-          :value (@form :title)
-          :on-change #(update-form %1 :title)}]
+          :type        "text"
+          :value       (@form :title)
+          :on-change   #(update-form %1 :title)}]
         [:input
-         {:class input-stz
+         {:class       input-stz
           :placeholder "Article source"
-          :type "text"
-          :value (@form :source)
-          :on-change #(update-form %1 :source)}]
+          :type        "text"
+          :value       (@form :source)
+          :on-change   #(update-form %1 :source)}]
         [:textarea
-         {:name ""
-          :class input-stz
-          :on-change #(update-form %1 :article)
-          :rows 8
+         {:name        ""
+          :class       input-stz
+          :on-change   #(update-form %1 :article)
+          :rows        8
           :placeholder "Paste article here..."}]
         [:button {:class    "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded shadow"
                   :on-click #(|> [(shared-events :article-create) @form])
                   } "Submit"]]])))
 
+(defn view-article
+  []
+  (let [current-article                (<| [::subs/current-article])
+        {:keys [name source original]} current-article]
+  [container
+   [:div.flex.flex-col {:key "view-article"}
+    [:div.text-center.mb-8 [page-heading name]]]]))
 
 (defn debug
   []
@@ -104,4 +109,5 @@
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
+       "article"        [view-article]
        )]))
