@@ -42,29 +42,23 @@
 (defn- words-get-for-article
   "Looks at a delimited string and queries for all the words in it."
   [article cb]
-  (let [word-ids (article :word_ids)
+  (let [word-ids   (article :word_ids)
         words-orig (str/split word-ids "$")]
     (letfn [(recurse [words out]
               (if (= (count out) (count words-orig))
-                (cb out)
+                (cb (clj->js (assoc article :word-data out))) ;; maybe not efficient in the future to use clj->js, could do raw js interop in this fn.
                 (let [[x & xs] words]
                   (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
                         (fn [err row]
                           (recurse xs (conj out (js->clj row))))))))]
       (recurse words-orig []))))
 
-(defn- article-get
+(defn article-get
   [id cb]
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
-                            (println "row is" row)
-                            (words-get-for-article (js->clj row :keywordize-keys true) cb)
-
-                            ;; TODO: get the row's delimited words and THEN split them up and query for EACH
-                            ;; of those words until you have a compiled article full of data-y word chunks.
-                            ;; TODO: error handling
-                            ))))
+                            (words-get-for-article (js->clj row :keywordize-keys true) cb)))))
 
 
 

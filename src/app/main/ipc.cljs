@@ -24,12 +24,13 @@
 
    (shared-events :article-fetch)
    (fn [event data]
-     (db/article-get (data :article_id) (fn [data]
-                                          (reply! event (shared-events :article-received) data))))
-
+     (db/article-get (data :article_id)
+                     (fn [data]
+                       (reply! event (shared-events :article-received) data))))
 
    (shared-events :wipe-db!)
    (fn [event data] (db/wipe!))
+
 
    })
 

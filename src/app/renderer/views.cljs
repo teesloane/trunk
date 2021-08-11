@@ -21,6 +21,17 @@
   []
   [:div "Loading..."])
 
+(defn loading-wheel
+  "Bottom right absolute position loading whee."
+  []
+  (let [loading? (<| [::subs/loading?])
+        div-stz "transition duration-500 flex bg-gray-50 text-xs shadow fixed bottom-0 right-0 p-2 m-2 rounded-md align-center tems-center"
+        div-stz (if-not loading? (str "-bottom-16 " div-stz) (str "bottom-0 " div-stz))]
+      [:div {:class div-stz}
+       [:svg {:class "animate-spin text-blue-600", :style {:width "24px" :height "24px"} :xmlns "http://www.w3.org/2000/svg", :fill "none", :viewBox "0 0 24 24"}
+        [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
+        [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]]))
+
 (defn container
   "This needs to have it's react-keys resolved."
   [children]
@@ -36,7 +47,7 @@
   (|> [(shared-events :articles-fetch) nil])
   (fn []
     (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
-          loading? (<| [::subs/articles-loading?])
+          loading? (<| [::subs/loading?])
           articles (<| [::subs/articles]  )
           nav! (fn [route article]
                  (|> [(shared-events :article-fetch) article]))]
@@ -47,12 +58,13 @@
          [:div.table-row
           [:div.font-bold stz "Article title"]
           [:div.font-bold stz "Excerpt"]]
-         (if loading?
-           [loading]
-           (map-indexed (fn [idx article]
-                  [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
-                   [:div stz (article :name)]
-                   [:div.max-w-xs.truncate stz (article :original)]]) articles))]]])))
+         ;; (if loading?
+           ;; [loading]
+           (when articles
+             (map-indexed (fn [idx article]
+                            [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
+                             [:div stz (article :name)]
+                             [:div.max-w-xs.truncate stz (article :original)]]) articles))]]])))
 
 (defn view-article-create
   []
@@ -95,7 +107,7 @@
 
 (defn debug
   []
-  [:div.flex.w-full.bg-gray-800.bg-opacity-100.fixed.bottom-0.p-2
+  [:div.flex.bg-gray-800.bg-opacity-100.fixed.bottom-0.p-2.rounded-sm
    [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white
     {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]])
 
@@ -104,6 +116,7 @@
     [:div.h-screen.dark:bg-gray-800.dark:text-white
      [view-nav]
      [debug]
+     [loading-wheel]
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]

@@ -24,26 +24,26 @@
 (rf/reg-event-db
  ::navigate
  (fn [db [_ new-route]]
-
    (assoc db :current-view new-route)))
 
 (rf/reg-event-fx
  (shared-events :article-fetch)
  (fn [cofx event]
-   {:db (assoc-in (cofx :db) [:loading? :article] true)
+   {:db (assoc (cofx :db) :loading? true)
     ::ipc-send! event}))
 
+(rf/reg-event-db
+ (shared-events :article-received)
+ (fn [db [_ data]]
+   (-> db
+       (assoc :current-article data)
+       (assoc :current-view "article")
+       (assoc :loading? false))))
 
 (rf/reg-event-fx
  (shared-events :articles-fetch)
  (fn [{:keys [db]} event]
-   {:db         (assoc-in db [:loading? :articles] true)
-    ::ipc-send! event}))
-
-(rf/reg-event-fx
- (shared-events :articles-fetch)
- (fn [{:keys [db]} event]
-   {:db         (assoc-in db [:loading? :articles] true)
+   {:db         (assoc db :loading? true)
     ::ipc-send! event}))
 
 (rf/reg-event-fx
@@ -61,7 +61,7 @@
  (fn [db [_ data]]
    (-> db
        (assoc :articles data)
-       (assoc-in [:loading? :articles] false))))
+       (assoc :loading?  false))))
 
 (rf/reg-fx
  ::ipc-send!
@@ -84,7 +84,12 @@
      (|> [(shared-events :article-created) data]))
 
    (shared-events :articles-received)
-   (fn [event data] (|> [(shared-events :articles-received) data]))})
+   (fn [event data] (|> [(shared-events :articles-received) data]))
+
+   (shared-events :article-received)
+   (fn [event data]
+     (|> [(shared-events :article-received) data]))
+   })
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers

@@ -22,4 +22,6 @@
 
 ;; -- loading subs --
 ;;
-(rf/reg-sub ::articles-loading? (fn [db] (-> db :loading? :articles)))
+(rf/reg-sub ::loading? (fn [db]
+                         (prn "loading computed!")
+                         (-> db :loading?)))
