@@ -106,11 +106,15 @@
     [:div.text-center.mb-8 [page-heading name]]
     [:div.mt-8
      (map-indexed (fn [index word]
-                    [:span
-                     [:span (str (word :name) " ")]]
-                    ) word-data)
-     ]
-    ]]))
+                    (let [{:keys [name]} word]
+                      [:span {:key (str name index)}
+                       (cond
+                         (re-matches #"[!,\/?\.]" name) [:span name]
+                         (= name "\n") [:br]
+                         (= name "\n\n") [:div [:br] [:br]]
+                         :else  [:span (str " " (word :name))]
+                         )])
+                    ) word-data)]]]))
 
 (defn debug
   []
