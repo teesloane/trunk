@@ -25,8 +25,7 @@
    (shared-events :article-fetch)
    (fn [event data]
      (db/article-get (data :article_id) (fn [data]
-                                          (println "data out is! " data)
-                        (reply! event (shared-events :article-received) data))))
+                                          (reply! event (shared-events :article-received) data))))
 
 
    (shared-events :wipe-db!)

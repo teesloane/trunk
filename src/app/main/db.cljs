@@ -42,24 +42,16 @@
 (defn- words-get-for-article
   "Looks at a delimited string and queries for all the words in it."
   [article cb]
-  (let [word-ids    (article :word_ids)
-        words       (str/split word-ids "$")
-        ]
-
-    ;; FIXME: leaving off - this is an infinite loop problem.
-    ;; probably can't recur in a async callback...
-    (loop [-words             words
-           new-article-output []]
-      (let [[x & xs] -words]
-        (println "-0---" -words x xs)
-        (if (= 0 (count xs))
-          (cb (assoc article :composed-article new-article-output))
-          (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
-                (fn [err row]
-                  (println "word row is " row xs)
-                  (recur xs (conj new-article-output (js->clj row))))))))))
-
-
+  (let [word-ids (article :word_ids)
+        words-orig (str/split word-ids "$")]
+    (letfn [(recurse [words out]
+              (if (= (count out) (count words-orig))
+                (cb out)
+                (let [[x & xs] words]
+                  (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
+                        (fn [err row]
+                          (recurse xs (conj out (js->clj row))))))))]
+      (recurse words-orig []))))
 
 (defn- article-get
   [id cb]
