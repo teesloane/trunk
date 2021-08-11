@@ -100,10 +100,17 @@
 (defn view-article
   []
   (let [current-article (<| [::subs/current-article])
-        {:keys [name source original]} current-article]
+        {:keys [name source original word-data]} current-article]
   [container
    [:div.flex.flex-col {:key "view-article"}
-    [:div.text-center.mb-8 [page-heading name]]]]))
+    [:div.text-center.mb-8 [page-heading name]]
+    [:div.mt-8
+     (map-indexed (fn [index word]
+                    [:span
+                     [:span (str (word :name) " ")]]
+                    ) word-data)
+     ]
+    ]]))
 
 (defn debug
   []
