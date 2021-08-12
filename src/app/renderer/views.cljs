@@ -17,10 +17,6 @@
       [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-r
        {:on-click #(nav! "article-create")} " +"]]]))
 
-(defn loading
-  []
-  [:div "Loading..."])
-
 (defn loading-wheel
   "Bottom right absolute position loading whee."
   []
