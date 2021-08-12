@@ -40,7 +40,9 @@
                    (callback rows)))))
 
 (defn- words-get-for-article
-  "Looks at a delimited string and queries for all the words in it."
+  "Looks at a delimited string and queries for all the words in it.
+  TODO: maybe just combine this with article-get.
+  "
   [article cb]
   (let [word-ids   (article :word_ids)
         words-orig (str/split word-ids "$")]
@@ -55,58 +57,56 @@
 
 
 (defn article-get
+  "Fetches an article, and computes the `:word-data` for it."
   [id cb]
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
                             (words-get-for-article (js->clj row :keywordize-keys true) cb)))))
 
-(defn- get-all-words
-  [cb]
-  (let [sql "SELECT * FROM words"]
-    (.all db sql (fn [err rows] (cb rows)))))
-
 (defn- insert-article
   "Takes a word string and creates a new article entry for it.
-  NOTE: This happens before `insert-words`!!
+  NOTE: This happens after `insert-words`!
   Welcome to the callback swamp!
   "
   [data cb]
   (let [{:keys [article title source]} data
-        words         (util/split-article article)
-        word-ids      (atom [])]
+        words                          (util/split-article article)
+        word-ids                       []]
 
-    ;; -- [SQL] ALL words
-    (get-all-words
-          (fn [rows]
-            (let [rows (js->clj rows :keywordize-keys true)] ;; PERF: this could get also get slow
-              (doseq [row  rows
-                      :let [{:keys [word_id name]} row]]
-                (when (some #{name} words)             ;; FIXME this aint working?      ;; PERF this could also be slow.
-                  (swap! word-ids conj word_id)))
-
-              ;; -- [SQL] Insert - New article
-              ;; now that we have our ids for delimiting words... let's insert it.
+    (letfn [;; The function for actually inserting the article. We can't do
+            ;; this until we've gotten all the word_ids for the article to
+            ;; make to compose word_ids
+            (insert-new-article [word-ids-vec]
               (let [sql-new-article (str "INSERT INTO articles(original, word_ids, name, source) VALUES (?, ?, ?, ?)")
-                    delimited-ids   (str/join "$" @word-ids)
+                    delimited-ids   (str/join "$" word-ids-vec)
                     vals            (apply array [article delimited-ids title source])]
+                ;; once we have inserted the article, in our callback, get the article as well.
                 (.run db sql-new-article vals (fn [err]
                                                 (this-as this
-                                                  (article-get (.-lastID ^js this) cb))))))))))
+                                                  (article-get (.-lastID ^js this) cb))))))
 
-;; PICK UP: FIXME: when inserting for the first time that the database
-;; encounters a word, it will not allow that word to appear later that is, if
-;; your enter "foo bar baz! foo bar goobie!" The delimited ids will not capture
-;; repeat words and the delimited result, after fetching the respective words
-;; will be: "foo bar baz! goobie!"
+            ;; recursively get the ids for all the words in the article.
+            (get-word-ids-recursive [words word-ids cb]
+              (if (empty? words)
+                (cb word-ids)
+                (let [[frst & rst] words
+                      _ (prn frst rst)
+                      query        "SELECT word_id FROM words WHERE name = ?"
+                      vals         (array frst)
+                      ]
 
+                  (.get db query vals
+                        (fn [err res]
+                          (get-word-ids-recursive rst (conj word-ids (.-word_id ^js res)) cb))))))]
+      ;; Launch it off 🎯!
+      (get-word-ids-recursive words word-ids insert-new-article))))
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.
   Then insert ALL words into the `words` table, if they don't already exist."
   [word-str cb]
   (let [words       (util/split-article word-str)
-        _ (prn words)
         placeholder (util/seq->sql-placeholder words)
         vals        (apply array words)
         queryWords  (str "INSERT OR IGNORE INTO words(name) VALUES " placeholder)]
