@@ -10,7 +10,7 @@
 (defn view-nav
   []
   (let [nav! (fn [route] (|> [::events/navigate route]))]
-    [:nav.w-full.bg-gray-200.text-xs.dark:bg-black.dark:text-gray-50
+    [:nav.fixed.top-0.w-full.bg-gray-200.text-xs.dark:bg-black.dark:text-gray-50
      [:div.inline-flex.p-2
       [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-l
        {:on-click #(nav! "article-list")} "Articles"]
@@ -35,7 +35,7 @@
 (defn container
   "This needs to have it's react-keys resolved."
   [children]
-  [:div {:class "mt-8 flex flex-col w-9/12 mx-auto"}
+  [:div {:class "mt-24 flex flex-col w-8/12 mx-auto"}
    children])
 
 (defn page-heading
@@ -47,24 +47,20 @@
   (|> [(shared-events :articles-fetch) nil])
   (fn []
     (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
-          loading? (<| [::subs/loading?])
           articles (<| [::subs/articles]  )
-          nav! (fn [route article]
+          nav! (fn [_ article]
                  (|> [(shared-events :article-fetch) article]))]
-      [container
        [:div {:key "view-article-list"} ;; keep react happy.
         [:div.text-center [page-heading "Your articles"]]
         [:div.table.w-full.pt-8
          [:div.table-row
           [:div.font-bold stz "Article title"]
           [:div.font-bold stz "Excerpt"]]
-         ;; (if loading?
-           ;; [loading]
            (when articles
              (map-indexed (fn [idx article]
                             [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
                              [:div stz (article :name)]
-                             [:div.max-w-xs.truncate stz (article :original)]]) articles))]]])))
+                             [:div.max-w-xs.truncate stz (article :original)]]) articles))]])))
 
 (defn view-article-create
   []
@@ -72,7 +68,6 @@
         form         (r/atom {:article "" :title "" :source ""})
         update-form  (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
     (fn []
-      [container
        [:div.flex.flex-col {:key "view-article-list"}
         [:div.text-center.mb-8 [page-heading "Create a new article"]]
         [:input
@@ -95,26 +90,25 @@
           :placeholder "Paste article here..."}]
         [:button {:class    "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded shadow"
                   :on-click #(|> [(shared-events :article-create) @form])
-                  } "Submit"]]])))
+                  } "Submit"]])))
 
 (defn view-article
   []
   (let [current-article (<| [::subs/current-article])
         {:keys [name source original word-data]} current-article]
-  [container
-   [:div.flex.flex-col {:key "view-article"}
+   [:div.flex.flex-col.max-w-prose.mx-auto.mb-8 {:key "view-article"}
     [:div.text-center.mb-8 [page-heading name]]
     [:div.mt-8
      (map-indexed (fn [index word]
                     (let [{:keys [name]} word]
                       [:span {:key (str name index)}
                        (cond
-                         (re-matches #"[!,\/?\.]" name) [:span name]
+                         (re-matches #"[!,\/?\.:]" name) [:span name]
                          (= name "\n") [:br]
-                         (= name "\n\n") [:div [:br] [:br]]
+                         (= name "\n\n") [:div [:br]]
                          :else  [:span (str " " (word :name))]
                          )])
-                    ) word-data)]]]))
+                    ) word-data)]]))
 
 (defn debug
   []
@@ -124,12 +118,13 @@
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])]
-    [:div.h-screen.dark:bg-gray-800.dark:text-white
+    [:div.dark:bg-gray-800.dark:text-white
      [view-nav]
      [debug]
      [loading-wheel]
-     (case current-view
-       "article-list"   [view-article-list]
-       "article-create" [view-article-create]
-       "article"        [view-article]
-       )]))
+     [container
+      (case current-view
+        "article-list"   [view-article-list]
+        "article-create" [view-article-create]
+        "article"        [view-article]
+        )]]))
