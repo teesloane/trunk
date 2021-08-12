@@ -19,7 +19,7 @@
   CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
-    comfort INTEGER,
+    comfort INTEGER DEFAULT 0,
     translation TEXT
   );
 
@@ -91,7 +91,6 @@
               (if (empty? words)
                 (cb word-ids)
                 (let [[frst & rst] words
-                      _ (prn frst rst)
                       query        "SELECT word_id FROM words WHERE name = ?"
                       vals         (array frst)
                       ]

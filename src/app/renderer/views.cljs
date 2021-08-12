@@ -1,8 +1,8 @@
 (ns app.renderer.views
   (:require
-   [re-frame.core :as rf]
    [reagent.core :as r]
    [app.shared.ipc-events :refer [shared-events]]
+   [clojure.pprint :refer [pprint]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]))
 
@@ -88,23 +88,32 @@
                   :on-click #(|> [(shared-events :article-create) @form])
                   } "Submit"]])))
 
+(defn view-article-word
+  "how single words are styled based on their familiarity/comfort."
+  [word]
+  (let [{:keys [name comfort _translation ]} word
+        comfort-col {0 "bg-gray-200" 1 "bg-yellow-200" 2 "bg-blue-200" 4 "bg-green-200"}
+        stz (str (comfort-col comfort) " border rounded-sm p-1 mr-1")
+        ]
+     (cond
+       (re-matches #"[!,\/?\.:]" name) [:span name]
+       (= name "\n") [:br]
+       (= name "\n\n") [:div [:br]]
+       :else  [:span {:class stz} (str (word :name) " ")]
+       ))
+  )
+
 (defn view-article
   []
   (let [current-article (<| [::subs/current-article])
         {:keys [name source original word-data]} current-article]
+    (pprint current-article)
    [:div.flex.flex-col.max-w-prose.mx-auto.mb-8 {:key "view-article"}
     [:div.text-center.mb-8 [page-heading name]]
-    [:div.mt-8
+    [:div.mt-8.leading-10
      (map-indexed (fn [index word]
-                    (let [{:keys [name]} word]
-                      [:span {:key (str name index)}
-                       (cond
-                         (re-matches #"[!,\/?\.:]" name) [:span name]
-                         (= name "\n") [:br]
-                         (= name "\n\n") [:div [:br]]
-                         :else  [:span (str " " (word :name))]
-                         )])
-                    ) word-data)]]))
+                    ^{:key (str word "-" index)}
+                    [view-article-word  word]) word-data)]]))
 
 (defn debug
   []
