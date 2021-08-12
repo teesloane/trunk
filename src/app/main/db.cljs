@@ -53,15 +53,13 @@
                           (recurse xs (conj out (js->clj row))))))))]
       (recurse words-orig []))))
 
+
 (defn article-get
   [id cb]
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
                             (words-get-for-article (js->clj row :keywordize-keys true) cb)))))
-
-
-
 
 (defn- get-all-words
   [cb]
@@ -84,7 +82,7 @@
             (let [rows (js->clj rows :keywordize-keys true)] ;; PERF: this could get also get slow
               (doseq [row  rows
                       :let [{:keys [word_id name]} row]]
-                (when (some #{name} words)                   ;; PERF this could also be slow.
+                (when (some #{name} words)             ;; FIXME this aint working?      ;; PERF this could also be slow.
                   (swap! word-ids conj word_id)))
 
               ;; -- [SQL] Insert - New article
@@ -93,15 +91,22 @@
                     delimited-ids   (str/join "$" @word-ids)
                     vals            (apply array [article delimited-ids title source])]
                 (.run db sql-new-article vals (fn [err]
-                                                (prn "this!" err)
                                                 (this-as this
                                                   (article-get (.-lastID ^js this) cb))))))))))
+
+;; PICK UP: FIXME: when inserting for the first time that the database
+;; encounters a word, it will not allow that word to appear later that is, if
+;; your enter "foo bar baz! foo bar goobie!" The delimited ids will not capture
+;; repeat words and the delimited result, after fetching the respective words
+;; will be: "foo bar baz! goobie!"
+
 
 (defn- insert-words
   "Takes a string representing a new article, and breaks it into chunks.
   Then insert ALL words into the `words` table, if they don't already exist."
   [word-str cb]
   (let [words       (util/split-article word-str)
+        _ (prn words)
         placeholder (util/seq->sql-placeholder words)
         vals        (apply array words)
         queryWords  (str "INSERT OR IGNORE INTO words(name) VALUES " placeholder)]
