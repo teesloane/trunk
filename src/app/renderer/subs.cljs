@@ -19,6 +19,11 @@
  (fn [db]
    (db :current-article)))
 
+(rf/reg-sub
+ ::current-word
+ (fn [db]
+   (db :current-word)))
+
 
 ;; -- loading subs --
 ;;

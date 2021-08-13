@@ -2,9 +2,9 @@
   (:require
    [reagent.core :as r]
    [app.shared.ipc-events :refer [shared-events]]
-   [clojure.pprint :refer [pprint]]
    [app.renderer.subs :as subs :refer [<|]]
-   [app.renderer.events :as events :refer [ |> ]]))
+   [app.renderer.events :as events :refer [ |> ]]
+   [clojure.string :as str]))
 
 
 (defn view-nav
@@ -94,16 +94,47 @@
   "how single words are styled based on their familiarity/comfort."
   [word]
   (let [{:keys [name comfort _translation ]} word
-        comfort-col {0 "bg-gray-200" 1 "bg-yellow-200" 2 "bg-blue-200" 4 "bg-green-200"}
-        stz (str (comfort-col comfort) " border rounded-sm pl-1 mr-1")
-        ]
+        comfort-col  {0 "bg-gray-300" 1 "bg-yellow-300" 2 "bg-blue-300" 3 "bg-green-300"}
+        stz          (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")]
     (cond
       (re-matches #"[!,\/?\.:]" name) [:span (str "" (word :name) " ")]
-      (= name "\n") [:br]
-      (= name "\n\n") [:div [:br]]
-      :else  [:span {:class stz} (str " " (word :name) " ")]
-      ))
-  )
+      (= name "\n")                   [:br]
+      (= name "\n\n")                 [:div [:br]]
+      :else                           [:span {:class stz} (str " " (word :name) " ")]
+      )))
+
+(defn view-current-word
+  "Displays the currently mousedover / clicked on word."
+  []
+  (let [{:keys [name comfort translation]} (<| [::subs/current-word])
+        input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm mt-0 mb-2 dark:bg-gray-700 dark:text-white"
+        ]
+    (when name
+      [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
+       (if (str/blank? translation)
+         ;; --- no translation
+         [:div
+          [:div name]
+          [:input {:class input-stz
+                   :placeholder "Add Translation..."}]]
+
+         ;; --- translation exists:
+         [:div
+          [:div name]
+          [:div.text-sm "• " translation]])
+
+       [:form
+        [:fieldset#comfort-level
+         [:span
+          [:input {:type "radio" :value "Foobar"}]
+          [:span.pl-2 "1"]
+
+          ]
+         ]]
+
+
+
+       ])))
 
 (defn view-article
   []
@@ -112,12 +143,12 @@
     [:div.flex.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex w-2/3  overflow-auto flex-col pb-8 pr-8 border-r" }
       [:div.text-center.mt-10 [page-heading name]]
-      [:div.leading-8.max-w-prose.mx-auto
+      [:div.leading-8.max-w-prose.mx-auto.px-4
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
-                      [view-article-word  word]) word-data)]]
-     [:div {:class "w-1/3"} "Translation area."]
-     ]))
+                      [:span {:on-click #(|> [::events/set-current-word word])}
+                       [view-article-word  word]]) word-data)]]
+     [view-current-word]]))
 
 (defn debug
   []

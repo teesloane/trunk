@@ -20,7 +20,6 @@
  (fn [_ _]
    db/default-db))
 
-
 (rf/reg-event-db
  ::navigate
  (fn [db [_ new-route]]
@@ -39,6 +38,12 @@
        (assoc :current-article data)
        (assoc :current-view "article")
        (assoc :loading? false))))
+
+(rf/reg-event-db
+ ::set-current-word
+ (fn [db [_ data]]
+   (-> db
+       (assoc :current-word data))))
 
 (rf/reg-event-fx
  (shared-events :articles-fetch)
