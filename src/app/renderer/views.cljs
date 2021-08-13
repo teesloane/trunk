@@ -63,7 +63,8 @@
   []
   (let [input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm my-2 dark:bg-gray-700 dark:text-white"
         form         (r/atom {:article "" :title "" :source ""})
-        update-form  (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
+        update-form  (fn [event k]
+                       (swap! form assoc k (-> event .-target .-value)))]
     (fn []
       [container
        [:div.flex.flex-col {:key "view-article-list"}
@@ -106,45 +107,52 @@
 (defn view-current-word
   "Displays the currently mousedover / clicked on word."
   []
-  (let [{:keys [name
-                comfort
-                translation]} (<| [::subs/current-word])
+  (let [{:keys [name comfort translation]} (<| [::subs/current-word])
         input-stz             "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-sm mt-8 mb-8 dark:bg-gray-700 dark:text-white"
         radio-btns            {0 ["New" "text-gray-500"]
                                1 ["Hard" "text-red-500"]
                                2 ["Medium" "text-yellow-500"]
                                3 ["Easy" "text-green-500"]
                                4 ["Ignore" "text-black"]}
+        form                  (r/atom {:radio comfort :translation "" })
+        update-form           (fn [event k]
+                                (prn (int (-> event .-target .-value)))
+                                (if (= k :radio)
+                                  (swap! form assoc :radio (int (-> event .-target .-value)))
+                                  (swap! form assoc k (-> event .-target .-value)))
+                                (prn @form))]
 
-        form        (r/atom {:radio comfort :translation "" })
-        update-form (fn [event k] (swap! form assoc k (-> event .-target .-value)))]
-    (when name
-      [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
-       [:div.text-2xl.mb-2 name]
-       (if (str/blank? translation)
-         ;; --- no translation
-         [:div
-          [:input {:class       input-stz
-                   :placeholder "Add Translation..."}]]
+      (if name
+        [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
+         [:div.text-2xl.mb-2 name]
+         (if (str/blank? translation)
+           ;; --- no translation
+           [:div
+            [:input {:class       input-stz
+                     :placeholder "Add Translation..."}]]
 
-         ;; --- translation exists:
-         [:div
-          [:div name]
-          [:div.text-sm "• " translation]])
+           ;; --- translation exists:
+           [:div
+            [:div name]
+            [:div.text-sm "• " translation]])
 
-       ;; radio button
-       [:div.flex
-        (for [[btn-int btn-data] radio-btns
-              :let               [[btn-name btn-bg] btn-data]]
-          [:span.flex.justify-between.items-center.mr-2
-           [:input {:id btn-name
-                    :type "radio"
-                    :value comfort
-                    :name "group-1"
-                    :checked (= (@form :radio) btn-int)
-                    :on-change #(update-form %1 :radio)}]
-           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
-           ])]])))
+         ;; radio button
+         [:div.flex
+          (prn @form)
+          (for [[btn-int btn-data] radio-btns
+                :let               [[btn-name btn-bg] btn-data]]
+            [:span.flex.justify-between.items-center.mr-2
+             [:input {:id        btn-name
+                      :type      "radio"
+                      :value     btn-int
+                      :name      "group-1"
+                      :checked   (= (@form :radio) btn-int)
+                      :on-change #(update-form %1 :radio)}]
+             [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
+             ])]]
+        ;; -- no word selected yet.
+        [:div ""])
+      ))
 
 (defn view-article
   []
