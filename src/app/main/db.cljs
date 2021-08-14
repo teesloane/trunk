@@ -62,7 +62,7 @@
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
-                            (words-get-for-article (js->clj row :keywordize-keys true) cb)))))
+                            (words-get-for-article row cb)))))
 
 (defn- insert-article
   "Takes a word string and creates a new article entry for it.
@@ -123,7 +123,7 @@
   (let [query  "SELECT * FROM words WHERE word_id = ?"
         params (array word_id)]
     (.get db query params (fn [err row]
-                            (cb (js->clj row :keywordize-keys true))))))
+                            (cb row))))
 
 (defn word-update
   [data cb]

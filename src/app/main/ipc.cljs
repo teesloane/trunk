@@ -5,9 +5,11 @@
             ))
 
 (defn reply!
-  "Sends data back to renderer from IPC back end."
+  "Sends data back to renderer from IPC back end.
+  Data going over ipc MUST be in JS, so it is converted here.
+  "
   [electron-event event-name data]
-  (js/electron-event.reply (name event-name) data))
+  (js/electron-event.reply (name event-name) (clj->js data)))
 
 (def ipcHandlers
   {
