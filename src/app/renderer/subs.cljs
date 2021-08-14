@@ -22,11 +22,10 @@
 (rf/reg-sub
  ::current-word
  (fn [db]
+   (prn "fetching current-word")
    (db :current-word)))
 
 
 ;; -- loading subs --
 ;;
-(rf/reg-sub ::loading? (fn [db]
-                         (prn "loading computed!")
-                         (-> db :loading?)))
+(rf/reg-sub ::loading? (fn [db] (-> db :loading?)))

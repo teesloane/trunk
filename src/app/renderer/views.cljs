@@ -4,7 +4,8 @@
    [app.shared.ipc-events :refer [shared-events]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [re-frame.core :as rf]))
 
 
 (defn view-nav
@@ -107,56 +108,57 @@
 (defn view-current-word
   "Displays the currently mousedover / clicked on word."
   []
-  (let [{:keys [name comfort translation]} (<| [::subs/current-word])
+  (let [current-word (rf/subscribe [::subs/current-word]) ;; can't use <| here.
+        {:keys [translation comfort]} @current-word
         input-stz             "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-sm mt-8 mb-8 dark:bg-gray-700 dark:text-white"
         radio-btns            {0 ["New" "text-gray-500"]
                                1 ["Hard" "text-red-500"]
                                2 ["Medium" "text-yellow-500"]
                                3 ["Easy" "text-green-500"]
                                4 ["Ignore" "text-black"]}
-        form                  (r/atom {:radio comfort :translation "" })
+        form                  (r/atom {:radio comfort :translation ""})
         update-form           (fn [event k]
-                                (prn (int (-> event .-target .-value)))
                                 (if (= k :radio)
                                   (swap! form assoc :radio (int (-> event .-target .-value)))
-                                  (swap! form assoc k (-> event .-target .-value)))
-                                (prn @form))]
+                                  (swap! form assoc k (-> event .-target .-value))))]
+    ;; ----
+    (fn []
+      [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
+       [:div.text-2xl.mb-2 (@current-word :name)]
+       [:div (@form :radio)]
+       (if (str/blank? (@current-word :translation))
+         ;; --- no translation
+         [:div
+          [:input {:class       input-stz
+                   :placeholder "Add Translation..."}]]
 
-      (if name
-        [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
-         [:div.text-2xl.mb-2 name]
-         (if (str/blank? translation)
-           ;; --- no translation
-           [:div
-            [:input {:class       input-stz
-                     :placeholder "Add Translation..."}]]
+         ;; --- translation exists:
+         [:div
+          [:div name]
+          [:div.text-sm "• " translation]])
 
-           ;; --- translation exists:
-           [:div
-            [:div name]
-            [:div.text-sm "• " translation]])
-
-         ;; radio button
-         [:div.flex
-          (prn @form)
-          (for [[btn-int btn-data] radio-btns
-                :let               [[btn-name btn-bg] btn-data]]
-            [:span.flex.justify-between.items-center.mr-2
-             [:input {:id        btn-name
-                      :type      "radio"
-                      :value     btn-int
-                      :name      "group-1"
-                      :checked   (= (@form :radio) btn-int)
-                      :on-change #(update-form %1 :radio)}]
-             [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
-             ])]]
+       ;; radio button
+       [:div.flex
+        (for [[btn-int btn-data] radio-btns
+              :let               [[btn-name btn-bg] btn-data
+                                  _ (prn (@form :radio) btn-int)
+                                  ]]
+          [:span.flex.justify-between.items-center.mr-2
+           [:input {:id        btn-name
+                    :type      "radio"
+                    :value     btn-int
+                    :name      "group-1"
+                    :checked   (= (@form :radio) btn-int)
+                    :on-change #(update-form %1 :radio)}]
+           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
+           ])]]))
         ;; -- no word selected yet.
-        [:div ""])
-      ))
+      )
 
 (defn view-article
   []
   (let [current-article (<| [::subs/current-article])
+        current-word (<| [::subs/current-word])
         {:keys [name source original word-data]} current-article]
     [:div.flex.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex w-2/3  overflow-auto flex-col pb-8 pr-8 border-r" }
@@ -166,7 +168,8 @@
                       ^{:key (str word "-" index)}
                       [:span {:on-click #(|> [::events/set-current-word word])}
                        [view-article-word  word]]) word-data)]]
-     [view-current-word]]))
+     (when current-word [view-current-word ])
+     ]))
 
 (defn debug
   []
