@@ -49,12 +49,16 @@
 (rf/reg-event-db
  (shared-events :word-updated)
  (fn [db [_ data]]
-   (prn "word-updated return result is " data)
-   (-> db
-       (assoc :loading? false)
-       (assoc :current-word data)
-       )
-   ))
+   (prn "we are in word-updated")
+   (let [word-data (-> db :current-article :word-data)
+         new-word-data (map (fn [curr-word]
+                              (if (= (:word_id curr-word) (:word_id data)) data curr-word)
+                              ) word-data)]
+
+     (-> db
+         (assoc :loading? false)
+         (assoc :current-word data)
+         (assoc-in [:current-article :word-data] new-word-data)))))
 
 (rf/reg-event-db
  ::set-current-word
@@ -108,15 +112,15 @@
    (shared-events :articles-received)
    (fn [event data] (|> [(shared-events :articles-received) data]))
 
-
    (shared-events :article-received)
    (fn [event data]
      (|> [(shared-events :article-received) data]))
 
+   ; FIXME: for some reason we are not reaching here.
    (shared-events :word-updated)
    (fn [event data]
+     (prn "we are here")
      (|> [(shared-events :word-updated) data]))
-
 
    })
 

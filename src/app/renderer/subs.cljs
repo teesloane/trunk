@@ -22,7 +22,6 @@
 (rf/reg-sub
  ::current-word
  (fn [db]
-   (prn "fetching current-word")
    (db :current-word)))
 
 

@@ -32,7 +32,6 @@
    (shared-events :word-update)
    (fn [event data]
      (db/word-update data (fn [data]
-                            (println "db update result is " data)
                             (reply! event (shared-events :word-updated) data))))
 
    (shared-events :wipe-db!)
@@ -49,7 +48,6 @@
 (def existing-events (atom []))
 (defn init
   []
-  (prn "--------- existing handlers are " @existing-events)
   (doseq [[key handler] ipcHandlers]
 
     ;; check if the event handler exists before adding it.
