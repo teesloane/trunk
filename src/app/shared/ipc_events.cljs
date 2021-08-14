@@ -10,6 +10,8 @@
    :article-created   ::article-created
    :article-fetch     ::article-fetch
    :article-received  ::article-received
+   :word-update       ::word-update
+   :word-updated      ::word-updated
 
    :wipe-db! ::wipe-db!
    })

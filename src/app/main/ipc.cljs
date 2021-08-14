@@ -28,14 +28,32 @@
                      (fn [data]
                        (reply! event (shared-events :article-received) data))))
 
+
+   (shared-events :word-update)
+   (fn [event data]
+     (db/word-update data (fn [data]
+                            (println "db update result is " data)
+                            (reply! event (shared-events :word-updated) data))))
+
    (shared-events :wipe-db!)
    (fn [event data] (db/wipe!))
 
 
    })
 
+;; dev mode:
+;; Hot-reloading with shadow-cljs seems to re-run event `on` handlers
+;; can't seem to use ipcMain.eventNames() to check what exists
+;; (like in ipcRenderer.eventNames) so I'm storing them in an atom to check if
+;; they exist before running the on.
+(def existing-events (atom []))
 (defn init
   []
+  (prn "--------- existing handlers are " @existing-events)
   (doseq [[key handler] ipcHandlers]
-    (.on ipcMain (name key)
-         (fn [event args] (handler event (js->clj args :keywordize-keys true))))))
+
+    ;; check if the event handler exists before adding it.
+    (when-not (some #{key} @existing-events)
+      (swap! existing-events conj key)
+      (.on ipcMain (name key)
+           (fn [event args] (handler event (js->clj args :keywordize-keys true)))))))

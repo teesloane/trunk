@@ -39,6 +39,23 @@
        (assoc :current-view "article")
        (assoc :loading? false))))
 
+(rf/reg-event-fx
+ (shared-events :word-update)
+ (fn [cofx event]
+   {:db (assoc (cofx :db) :loading? true)
+    ::ipc-send! event
+    }))
+
+(rf/reg-event-db
+ (shared-events :word-updated)
+ (fn [db [_ data]]
+   (prn "word-updated return result is " data)
+   (-> db
+       (assoc :loading? false)
+       (assoc :current-word data)
+       )
+   ))
+
 (rf/reg-event-db
  ::set-current-word
  (fn [db [_ data]]
@@ -91,9 +108,16 @@
    (shared-events :articles-received)
    (fn [event data] (|> [(shared-events :articles-received) data]))
 
+
    (shared-events :article-received)
    (fn [event data]
      (|> [(shared-events :article-received) data]))
+
+   (shared-events :word-updated)
+   (fn [event data]
+     (|> [(shared-events :word-updated) data]))
+
+
    })
 
 (defn ipc-init

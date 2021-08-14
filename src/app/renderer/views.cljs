@@ -4,6 +4,7 @@
    [app.shared.ipc-events :refer [shared-events]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]
+   [app.renderer.components :refer [button]]
    [clojure.string :as str]
    [re-frame.core :as rf]))
 
@@ -88,9 +89,9 @@
           :on-change   #(update-form %1 :article)
           :rows        8
           :placeholder "Paste article here..."}]
-        [:button {:class    "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded shadow"
-                  :on-click #(|> [(shared-events :article-create) @form])
-                  } "Submit"]]])))
+        [button {:on-click #(|> [(shared-events :article-create) @form])
+                 :text "Submit"
+                 }]]])))
 
 (defn view-article-word
   "how single words are styled based on their familiarity/comfort."
@@ -116,16 +117,16 @@
                                2 ["Medium" "text-yellow-500"]
                                3 ["Easy" "text-green-500"]
                                4 ["Ignore" "text-black"]}
-        form                  (r/atom {:radio comfort :translation ""})
+        form                  (r/atom @current-word)
         update-form           (fn [event k]
-                                (if (= k :radio)
-                                  (swap! form assoc :radio (int (-> event .-target .-value)))
+                                (if (= k :comfort)
+                                  (swap! form assoc :comfort (int (-> event .-target .-value)))
                                   (swap! form assoc k (-> event .-target .-value))))]
     ;; ----
     (fn []
-      [:div {:class "mt-10 flex flex-col w-1/4 mx-auto"}
+      [:div {:class "mt-10 flex flex-col mx-auto px-2"}
        [:div.text-2xl.mb-2 (@current-word :name)]
-       [:div (@form :radio)]
+       [:div (@form :comfort)]
        (if (str/blank? (@current-word :translation))
          ;; --- no translation
          [:div
@@ -140,18 +141,22 @@
        ;; radio button
        [:div.flex
         (for [[btn-int btn-data] radio-btns
-              :let               [[btn-name btn-bg] btn-data
-                                  _ (prn (@form :radio) btn-int)
-                                  ]]
-          [:span.flex.justify-between.items-center.mr-2
+              :let               [[btn-name btn-bg] btn-data]]
+          [:span.flex.justify-between.items-center.mr-2 {:key btn-int}
            [:input {:id        btn-name
                     :type      "radio"
                     :value     btn-int
                     :name      "group-1"
-                    :checked   (= (@form :radio) btn-int)
-                    :on-change #(update-form %1 :radio)}]
+                    :checked   (= (@form :comfort) btn-int)
+                    :on-change #(update-form %1 :comfort)}]
            [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
-           ])]]))
+           ])]
+
+       ;; submit update
+       [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]
+
+
+       ]))
         ;; -- no word selected yet.
       )
 
@@ -168,7 +173,8 @@
                       ^{:key (str word "-" index)}
                       [:span {:on-click #(|> [::events/set-current-word word])}
                        [view-article-word  word]]) word-data)]]
-     (when current-word [view-current-word ])
+     [:div {:class "flex w-1/3"}
+      (when current-word [view-current-word ])]
      ]))
 
 (defn debug

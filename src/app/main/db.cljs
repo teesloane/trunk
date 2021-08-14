@@ -118,6 +118,20 @@
                   ;; TODO error handling.
                   (insert-article data cb))))
 
+(defn word-get
+  [word_id cb]
+  (let [query  "SELECT * FROM words WHERE word_id = ?"
+        params (array word_id)]
+    (.get db query params (fn [err row]
+                            (cb (js->clj row :keywordize-keys true))))))
+
+(defn word-update
+  [data cb]
+  (let [{:keys [word_id translation comfort] } data
+        sql    "UPDATE words SET comfort = ?, translation = ? WHERE word_id = ?"
+        params (array comfort translation word_id)]
+    (.run db sql params (fn [err] (word-get word_id cb)))))
+
 (defn init
   []
   (.exec db db-seed
