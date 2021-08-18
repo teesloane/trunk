@@ -4,20 +4,11 @@
    [app.shared.ipc-events :refer [shared-events]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]
-   [app.renderer.components :refer [button]]
+   [app.renderer.components :refer [button toast] :as component]
    [clojure.string :as str]
    [re-frame.core :as rf]))
 
 
-(defn view-nav
-  []
-  (let [nav! (fn [route] (|> [::events/navigate route]))]
-    [:nav.w-full.bg-gray-200.text-xs.dark:bg-black.dark:text-gray-50
-     [:div.inline-flex.p-2
-      [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-l
-       {:on-click #(nav! "article-list")} "Articles"]
-      [:button.bg-gray-700.hover:bg-gray-700.text-white.font-bold.py-1.px-2.rounded-r
-       {:on-click #(nav! "article-create")} " +"]]]))
 
 (defn loading-wheel
   "Bottom right absolute position loading whee."
@@ -30,36 +21,43 @@
       [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
       [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]]))
 
-(defn container
-  "This needs to have it's react-keys resolved."
-  [children]
-  [:div {:class "mt-24 flex flex-col w-8/12 mx-auto"}
-   children])
 
 (defn page-heading
   [text]
   [:h2.text-2xl.mb-2 text])
 
+(defn view-article-list-empty-state
+  []
+  [component/container
+   [:div "You don't have any articles yet!"]]
+  )
+
 (defn view-article-list
   []
   (|> [(shared-events :articles-fetch) nil])
   (fn []
-    (let [stz      {:class "table-cell border-b border-gray-100 py-2"}
+    (let [table-stz      {:class "table-cell border-b border-gray-100 py-2 w-1/2"}
           articles (<| [::subs/articles]  )
-          nav! (fn [_ article]
-                 (|> [(shared-events :article-fetch) article]))]
-      [container
-       [:div {:key "view-article-list"} ;; keep react happy.
-        [:div.text-center [page-heading "Your articles"]]
-        [:div.table.w-full.pt-8
-         [:div.table-row
-          [:div.font-bold stz "Article title"]
-          [:div.font-bold stz "Excerpt"]]
-         (when articles
-           (map-indexed (fn [idx article]
-                          [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
-                           [:div stz (article :name)]
-                           [:div.max-w-xs.truncate stz (article :original)]]) articles))]]])))
+          nav!     (fn [_ article]
+                     (|> [(shared-events :article-fetch) article]))]
+      (if (empty? articles)
+        [component/empty-state
+         [:div.text-center.text-gray-400
+          [:div "You haven't made any articles yet."]
+          [:div
+           [:span "Click " [:span.font-bold.text-gray-700 "\"Create Article\""] [:span " above to get started."]]]]]
+        [component/container
+         [:div {:key "view-article-list"} ;; keep react happy.
+          [:div.text-center [page-heading "Your articles"]]
+          [:div.table.w-full.pt-8
+           [:div.table-row
+            [:div.font-bold table-stz "Article title"]
+            [:div.font-bold table-stz "Excerpt"]]
+           (when articles
+             (map-indexed (fn [idx article]
+                            [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
+                             [:div table-stz (article :name)]
+                             [:div.max-w-xs.truncate table-stz (article :original)]]) articles))]]]))))
 
 (defn view-article-create
   []
@@ -68,7 +66,7 @@
         update-form  (fn [event k]
                        (swap! form assoc k (-> event .-target .-value)))]
     (fn []
-      [container
+      [component/container
        [:div.flex.flex-col {:key "view-article-list"}
         [:div.text-center.mb-8 [page-heading "Create a new article"]]
         [:input
@@ -95,102 +93,96 @@
 
 (defn view-article-word
   "how single words are styled based on their familiarity/comfort."
-  [word]
+  [{:keys [word current-word]}]
   (let [{:keys [name comfort _translation ]} word
         comfort-col  {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-black"}
-        stz          (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")]
+        stz          (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
     (cond
-      (re-matches #"[!,\/?\.:]" name) [:span (str "" (word :name) " ")]
-      (= name "\n")                   [:br]
-      (= name "\n\n")                 [:div [:br]]
-      :else                           [:span {:class stz} (str " " (word :name) " ")]
-      )))
+      (re-matches #"[!,\/?\.:]" name)
+      [:span (str "" (word :name) " ")] ; punctuaiton
+
+      (= name "\n")
+      [:br]
+
+      (= name "\n\n")
+      [:div [:br]]
+
+      :else
+      [:span.relative
+                                        ; the word itself
+       [:span {:class stz} (str " " (word :name) " ")]
+                                        ; the active indicator
+       (when (= word current-word)
+         [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
+          [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))
 
 (defn view-current-word
   "Displays the currently mousedover / clicked on word."
-  []
-  (let [current-word (rf/subscribe [::subs/current-word]) ;; can't use <| here.
-        {:keys [translation comfort]} @current-word
-        input-stz             "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-sm mt-8 mb-8 dark:bg-gray-700 dark:text-white"
+  [{:keys [current-word form]}]
+  (let [input-stz             "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"
         radio-btns            {0 ["New" "text-gray-500"]
                                1 ["Hard" "text-red-500"]
                                2 ["Medium" "text-yellow-500"]
                                3 ["Easy" "text-green-500"]
-                               4 ["Ignore" "text-black"]}
-        form                  (r/atom @current-word)
-        update-form           (fn [event k]
-                                (if (= k :comfort)
-                                  (swap! form assoc :comfort (int (-> event .-target .-value)))
-                                  (swap! form assoc k (-> event .-target .-value))))]
-    ;; ----
-    (fn []
-      [:div {:class "mt-10 flex flex-col mx-auto px-2"}
-       [:div.text-2xl.mb-2 (@current-word :name)]
-       [:div (@form :comfort)]
-       (if (str/blank? (@current-word :translation))
-         ;; --- no translation
-         [:div
-          [:input {:class       input-stz
-                   :placeholder "Add Translation..."}]]
+                               4 ["Ignore" "text-black"]}]
+    [:div {:class "w-full p-8 flex flex-col mx-auto"}
+     [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
+     [:div {:class "w-full"}
+      [:input {:class       input-stz
+               :placeholder "Add Translation..."
+               :default-value (current-word :translation)
+               :value (@form :translation)
+               :on-change (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
-         ;; --- translation exists:
-         [:div
-          [:div name]
-          [:div.text-sm "• " translation]])
+      ;; radio button
+      [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
+       (for [[btn-int btn-data] radio-btns
+             :let               [[btn-name btn-bg] btn-data]]
+         [:span.flex.xl:justify-between.items-center.mr-2 {:key btn-int}
+          [:input {:id        btn-name
+                   :type      "radio"
+                   :value     btn-int
+                   :name      "group-1"
+                   :checked   (= (@form :comfort) btn-int)
+                   :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
+          [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
-       ;; radio button
-       [:div.flex
-        (for [[btn-int btn-data] radio-btns
-              :let               [[btn-name btn-bg] btn-data]]
-          [:span.flex.justify-between.items-center.mr-2 {:key btn-int}
-           [:input {:id        btn-name
-                    :type      "radio"
-                    :value     btn-int
-                    :name      "group-1"
-                    :checked   (= (@form :comfort) btn-int)
-                    :on-change #(update-form %1 :comfort)}]
-           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} btn-name]
-           ])]
-
-       ;; submit update
-       [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]
-
-
-       ]))
-        ;; -- no word selected yet.
-      )
+      ;; submit update
+      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]]))
 
 (defn view-article
   []
-  (let [current-article (<| [::subs/current-article])
-        current-word (<| [::subs/current-word])
-        {:keys [name source original word-data]} current-article]
-    [:div.flex.overflow-y-auto.flex-1
-     [:article {:key "view-article" :class "flex w-2/3  overflow-auto flex-col pb-8 pr-8 border-r" }
-      [:div.text-center.mt-10 [page-heading name]]
+  (let [current-article          (<| [::subs/current-article])
+        current-word             (<| [::subs/current-word])
+        form                     (r/atom current-word)
+        {:keys [name word-data]} current-article]
+    [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
+     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r" }
+      [:div.text-center.mb-10 [page-heading name]]
       [:div.leading-8.max-w-prose.mx-auto.px-4
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
-                      [:span {:on-click #(|> [::events/set-current-word word])}
-                       [view-article-word  word]]) word-data)]]
-     [:div {:class "flex w-1/3"}
-      (when current-word [view-current-word ])]
-     ]))
+                      [:span {:on-click #(|> [::events/set-current-word {:word word :index index}])}
+                       [view-article-word  {:word word :current-word current-word}]]) word-data)]]
+     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative "}
+      (when current-word [view-current-word {:current-word current-word :form form}])]]))
 
 (defn debug
   []
-  [:div.flex.bg-gray-800.bg-opacity-100.fixed.bottom-0.p-2.rounded-sm
-   [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white
+  [:div.flex.fixed.bottom-0.p-2.rounded-sm
+   [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.bg-opacity-25.hover:text-white
     {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]])
 
 (defn main-panel []
-  (let [current-view (<| [::subs/current-view])]
+  (let [current-view (<| [::subs/current-view])
+        toast-msg        (<| [::subs/toast])]
     [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen
      ;; fixed pos things
      [debug]
      [loading-wheel]
+     [component/toast toast-msg]
      ;; normal stuff.
-     [view-nav]
+     [component/nav]
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]

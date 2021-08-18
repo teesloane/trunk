@@ -6,6 +6,8 @@
   [o]
   (js/console.log (js/JSON.stringify o nil 4)))
 
+(def log (.-log js/console))
+
 
 (defn seq->sql-placeholder
   [seq]
@@ -27,3 +29,16 @@
     (vec res)))
 
 
+(defn is-punctuation-or-newline?
+  "Check's if a string is a punctuation item(s) or newline(s)."
+  [s]
+  (if (nil? s)
+    false
+    (not (nil? (re-matches  #"[,!.\"\'?\-\n]*" s)))))
+
+
+;; -- db functionality selector things?
+
+(defn curr-word-view-open?
+  [{:keys [current-word current-view]}]
+  (and current-word (= current-view "article")))

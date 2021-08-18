@@ -4,27 +4,11 @@
 
 (def <| (comp deref rf/subscribe))
 
-(rf/reg-sub
- ::current-view
- (fn [db]
-   (:current-view db)))
+;; Top level subs
 
-(rf/reg-sub
- ::articles
- (fn [db]
-   (:articles db)))
-
-(rf/reg-sub
- ::current-article
- (fn [db]
-   (db :current-article)))
-
-(rf/reg-sub
- ::current-word
- (fn [db]
-   (db :current-word)))
-
-
-;; -- loading subs --
-;;
-(rf/reg-sub ::loading? (fn [db] (-> db :loading?)))
+(rf/reg-sub ::current-view    (fn [db] (:current-view db)))
+(rf/reg-sub ::articles        (fn [db] (:articles db)))
+(rf/reg-sub ::current-article (fn [db] (db :current-article)))
+(rf/reg-sub ::current-word    (fn [db] (db :current-word)))
+(rf/reg-sub ::loading?        (fn [db] (-> db :loading?)))
+(rf/reg-sub ::toast           (fn [db] (-> db :toast)))

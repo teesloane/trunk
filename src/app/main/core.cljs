@@ -4,6 +4,7 @@
             [app.main.db :as db]
             [app.main.ipc :as ipc]))
 
+(enable-console-print!)
 (def main-window (atom nil))
 
 (defn init-browser
