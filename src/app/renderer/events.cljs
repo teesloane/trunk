@@ -93,9 +93,11 @@
 
 (rf/reg-event-fx
  :key-pressed-num
- (fn [{:keys [db]} _]
-   nil
-   ))
+ (fn [{:keys [db]} event]
+   (let [last-key         (-> event last last)
+         key->comfort-val {49 0 50 1 51 2 52 3 53 4}]
+     (when (u/curr-word-view-open? db)
+       {:db (assoc-in db [:current-word :comfort] (get key->comfort-val (last-key :keyCode)))}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 

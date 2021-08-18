@@ -112,7 +112,7 @@
                                         ; the word itself
        [:span {:class stz} (str " " (word :name) " ")]
                                         ; the active indicator
-       (when (= word current-word)
+       (when (= (dissoc word :comfort) (dissoc current-word :comfort))
          [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
           [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))
 
