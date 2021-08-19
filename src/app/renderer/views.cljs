@@ -4,12 +4,7 @@
    [app.shared.ipc-events :refer [shared-events]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.renderer.events :as events :refer [ |> ]]
-   [app.renderer.components :refer [button toast] :as component]
-   [clojure.string :as str]
-   [re-frame.core :as rf]
-   [app.shared.util :as u]))
-
-
+   [app.renderer.components :refer [button toast] :as component]))
 
 (defn loading-wheel
   "Bottom right absolute position loading whee."
@@ -26,12 +21,6 @@
 (defn page-heading
   [text]
   [:h2.text-2xl.mb-2 text])
-
-(defn view-article-list-empty-state
-  []
-  [component/container
-   [:div "You don't have any articles yet!"]]
-  )
 
 (defn view-article-list
   []
@@ -88,34 +77,8 @@
           :on-change   #(update-form %1 :article)
           :rows        8
           :placeholder "Paste article here..."}]
-        [button {:on-click #(|> [(shared-events :article-create) @form])
-                 :text "Submit"
-                 }]]])))
-
-(defn view-article-word
-  "how single words are styled based on their familiarity/comfort."
-  [{:keys [word current-word]}]
-  (let [{:keys [name comfort _translation ]} word
-        comfort-col  {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
-        stz          (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
-    (cond
-      (re-matches #"[!,\/?\.:]" name)
-      [:span (str "" (word :name) " ")] ; punctuaiton
-
-      (= name "\n")
-      [:br]
-
-      (= name "\n\n")
-      [:div [:br]]
-
-      :else
-      [:span.relative
-                                        ; the word itself
-       [:span {:class stz} (str " " (word :name) " ")]
-                                        ; the active indicator
-       (when (= (dissoc word :comfort) (dissoc current-word :comfort))
-         [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
-          [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))
+        [component/button {:on-click #(|> [(shared-events :article-create) @form])
+                           :text "Submit"}]]])))
 
 (defn view-current-word
   "Displays the currently mousedover / clicked on word."
@@ -155,6 +118,7 @@
   []
   (let [current-article          (<| [::subs/current-article])
         current-word             (<| [::subs/current-word])
+        current-word-idx         (<| [::subs/current-word-idx])
         form                     (r/atom current-word)
         {:keys [name word-data]} current-article]
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
@@ -164,7 +128,11 @@
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
                       [:span {:on-click #(|> [::events/set-current-word {:word word :index index}])}
-                       [view-article-word  {:word word :current-word current-word}]]) word-data)]]
+                       [component/article-word
+                        {:word             word
+                         :current-word     current-word
+                         :index            index
+                         :current-word-idx current-word-idx}]]) word-data)]]
      [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative "}
       (when current-word [view-current-word {:current-word current-word :form form}])]]))
 
@@ -188,5 +156,5 @@
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
        "article"        [view-article]
-       nil              [view-article]
+       nil              [view-article-list]
        )]))

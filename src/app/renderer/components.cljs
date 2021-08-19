@@ -1,6 +1,7 @@
 (ns app.renderer.components
   (:require
-   [app.renderer.events :as events :refer [ |> ]])
+   [app.renderer.events :as events :refer [ |> ]]
+   [app.shared.util :as u])
   )
 
 (defn button
@@ -27,7 +28,6 @@
    [:div.my-4 "Trunk logo"]
    [:div children]])
 
-
 (defn nav-link
   [{:keys [on-click text]}]
   [:button.bg-gray-700.hover:bg-gray-500.text-white.font-bold.py-1.px-2.mr-4
@@ -39,5 +39,24 @@
     [:nav.w-full.bg-gray-900.text-xs.dark:bg-black.dark:text-gray-50
      [:div.inline-flex.p-2
       [nav-link {:on-click #(nav! "article-list") :text "Read"}]
-      [nav-link {:on-click #(nav! "article-create") :text "Create Article"}]
-      ]]))
+      [nav-link {:on-click #(nav! "article-create") :text "Create Article"}]]]))
+
+(defn article-word
+  "how single words are styled based on their familiarity/comfort."
+  [{:keys [word current-word index current-word-idx]}]
+  (let [{:keys [name comfort _translation ]} word
+        comfort-col   {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
+        stz           (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
+    (cond
+      (re-matches #"[!,\/?\.:]" name) [:span (str "" (word :name) " ")] ; punctuaiton
+      (= name "\n")                   [:br]
+      (= name "\n\n")                 [:div [:br]]
+      :else
+      [:span.relative
+       [:span {:class stz} (str " " (word :name) " ")]
+       ;; the active indicator
+       (when (and (= (dissoc word :comfort) (dissoc current-word :comfort))
+                  (= index current-word-idx)
+                  )
+         [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
+          [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))
