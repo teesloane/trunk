@@ -6,7 +6,8 @@
    [app.renderer.events :as events :refer [ |> ]]
    [app.renderer.components :refer [button toast] :as component]
    [clojure.string :as str]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [app.shared.util :as u]))
 
 
 
@@ -175,7 +176,7 @@
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])
-        toast-msg        (<| [::subs/toast])]
+        toast-msg    (<| [::subs/toast])]
     [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen
      ;; fixed pos things
      [debug]
@@ -187,4 +188,5 @@
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
        "article"        [view-article]
+       nil              [view-article]
        )]))

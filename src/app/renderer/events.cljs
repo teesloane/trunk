@@ -49,13 +49,7 @@
   Also contains logic to prevent moving beyond the beginning and end of an article."
   [dir db]
   ;; check we can move word before starting...
-  (let [{:keys [current-word current-article current-word-idx]} db
-        at-end-of-article?                                      (= current-word-idx (-> current-article :word-data count))
-        at-beginning?                                           (= current-word-idx 0)]
-    (cond
-      (and at-end-of-article? (= dir :right)) db
-      (and at-beginning? (= dir :left))       db
-      :else
+  (let [{:keys [current-word current-article current-word-idx]} db]
       (loop [db                      db
              last-known-word-and-idx nil]
         (let [idx-dir-fn              (case dir :right inc :left dec)
@@ -68,36 +62,43 @@
               next-db                 (-> db
                                           (assoc :current-word next-word)
                                           (assoc :current-word-idx next-word-idx))
+              ;; recur when we are on punctuation; ie, skip punctuation.
               continue-recur          (and (u/is-punctuation-or-newline? (get next-word :name))
-                                           (not (nil? next-word))
-                                           (not at-end-of-article?))]
+                                           (not (nil? next-word)))]
           (if continue-recur
             (recur next-db last-known-word-and-idx)
             (let [[lkw lki] last-known-word-and-idx]
-              {:db (-> db
+              (-> db
                        (assoc :current-word lkw)
-                       (assoc :current-word-idx lki))})))))))
+                       (assoc :current-word-idx lki))))))))
 
 
+;; I don't know why but this doesn't need to return {:db ...}
 (rf/reg-event-fx
  :key-pressed-right
  (fn [{:keys [db]} [event-name data]]
    (let [{:keys [current-word current-view current-article]} db]
-     (when (u/curr-word-view-open? db) (move-word :right db)))))
+     (when (u/curr-word-view-open? db)
+       {:db (move-word :right db)}))))
+
 
 (rf/reg-event-fx
  :key-pressed-left
  (fn [{:keys [db]} [event-name data]]
-   (let [{:keys [current-word current-view]} db]
-     (when (u/curr-word-view-open? db) (move-word :left db)))))
+    (when (u/curr-word-view-open? db)
+      {:db (move-word :left db)})))
 
 (rf/reg-event-fx
  :key-pressed-num
  (fn [{:keys [db]} event]
-   (let [last-key         (-> event last last)
-         key->comfort-val {49 0 50 1 51 2 52 3 53 4}]
+   (let [last-key              (-> event last last)
+         key->comfort-val      {49 0 50 1 51 2 52 3 53 4}
+         current-word          (-> db :current-word)
+         new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))
+         ]
      (when (u/curr-word-view-open? db)
-       {:db (assoc-in db [:current-word :comfort] (get key->comfort-val (last-key :keyCode)))}))))
+       {:db (assoc db :current-word new-word-with-comfort)
+        :fx [[:dispatch [(shared-events :word-update) new-word-with-comfort] ]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
@@ -159,7 +160,7 @@
      {:db (-> (cofx :db)
               (assoc :loading? false)
               (assoc :current-word data)
-              (assoc-in [:current-article :word-data] new-word-data))
+              (assoc-in [:current-article :word-data] (vec new-word-data)))
       :dispatch [::set-toast "Word updated."]
       })))
 
