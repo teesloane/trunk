@@ -96,7 +96,7 @@
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word]}]
   (let [{:keys [name comfort _translation ]} word
-        comfort-col  {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-black"}
+        comfort-col  {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
         stz          (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
     (cond
       (re-matches #"[!,\/?\.:]" name)
