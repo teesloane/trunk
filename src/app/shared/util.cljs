@@ -16,8 +16,6 @@
        (apply array)
        (str/join ",")))
 
-
-
 (defn split-article
   "Splits a string by whitespace and punctuation"
   [string]
@@ -28,6 +26,17 @@
                            (not= s ""))) res)]
     (vec res)))
 
+
+(defn is-punctuation?
+  "NOTE: Eventually punctuation will vary by language...
+  Example, french, usually words will not split on apostraphe
+  J'ai !== J | ai.
+  Eventually each language will need a user configure regex.
+  "
+  [s]
+  (if (nil? s)
+    false
+    (re-matches #"[!,\/?\.:\"()]" s)))
 
 (defn is-punctuation-or-newline?
   "Check's if a string is a punctuation item(s) or newline(s)."

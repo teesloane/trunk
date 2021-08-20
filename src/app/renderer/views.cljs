@@ -112,7 +112,9 @@
           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
       ;; submit update
-      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]]))
+      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]
+
+     ]))
 
 (defn view-article
   []
