@@ -2,7 +2,8 @@
   (:require ["sqlite3" :as sqlite]
             ["fs" :as fs]
             [app.shared.util :as util]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [app.shared.util :as u]))
 
 
 (def db-path "./trunk.db")
@@ -19,6 +20,7 @@
   CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
+    slug TEXT NOT NULL UNIQUE,
     comfort INTEGER DEFAULT 0,
     translation TEXT
   );
@@ -91,12 +93,14 @@
               (if (empty? words)
                 (cb word-ids)
                 (let [[frst & rst] words
-                      query        "SELECT word_id FROM words WHERE name = ?"
-                      vals         (array frst)
+                      slug-word    (u/slug-word frst)
+                      query        "SELECT word_id FROM words WHERE slug = ?"
+                      vals         (array slug-word)
                       ]
 
                   (.get db query vals
                         (fn [err res]
+                          (prn "res is existingadlkj fword: " err res)
                           (get-word-ids-recursive rst (conj word-ids (.-word_id ^js res)) cb))))))]
       ;; Launch it off 🎯!
       (get-word-ids-recursive words word-ids insert-new-article))))
@@ -105,16 +109,17 @@
   "Takes a string representing a new article, and breaks it into chunks.
   Then insert ALL words into the `words` table, if they don't already exist."
   [word-str cb]
-  (let [words       (util/split-article word-str)
-        placeholder (util/seq->sql-placeholder words)
-        vals        (apply array words)
-        queryWords  (str "INSERT OR IGNORE INTO words(name) VALUES " placeholder)]
+  (let [words        (util/split-article word-str)
+        placeholders (str/join ", " (map (fn [w] "(?, ?)") words)) ;; this is annoying
+        vals         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
+        queryWords   (str "INSERT OR IGNORE INTO words(name, slug) VALUES " placeholders)]
     (.run db queryWords vals cb)))
 
 (defn article-create
   [data cb]
   (insert-words (data :article)
                 (fn [err]
+                  (prn "error is " err)
                   ;; TODO error handling.
                   (insert-article data cb))))
 

@@ -51,3 +51,8 @@
 (defn curr-word-view-open?
   [{:keys [current-word current-view]}]
   (and current-word (= current-view "article")))
+
+(defn slug-word
+  "Makes a word slug-ready for the db."
+  [s]
+  (str/lower-case s))
