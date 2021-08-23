@@ -126,7 +126,7 @@
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r" }
       [:div.text-center.mb-10 [page-heading name]]
-      [:div.leading-8.max-w-prose.mx-auto.px-4
+      [:div.leading-8.mx-auto.px-4
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
                       [:span {:on-click #(|> [::events/set-current-word {:word word :index index}])}
