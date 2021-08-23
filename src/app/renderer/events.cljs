@@ -155,7 +155,16 @@
  (fn [cofx [event-name data]]
    (let [word-data (-> cofx :db :current-article :word-data)
          new-word-data (map (fn [curr-word]
-                              (if (= (:word_id curr-word) (:word_id data)) data curr-word)
+                              (cond
+                                (= (:word_id curr-word) (:word_id data))
+                                data
+
+                                ;; if slug matches, update everything except the "name"
+                                (and (= (:slug curr-word) (:slug data))
+                                     (not= (curr-word :word_id) (data :word_id)))
+                                (assoc data :name (curr-word :name) :word_id (curr-word :word_id))
+
+                                :else curr-word)
                               ) word-data)]
      {:db (-> (cofx :db)
               (assoc :loading? false)

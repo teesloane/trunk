@@ -126,15 +126,15 @@
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r" }
       [:div.text-center.mb-10 [page-heading name]]
-      [:div.leading-8.mx-auto.px-4
+      [:div.leading-8.mx-auto.px-4.flex.flex-wrap
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
-                      [:span {:on-click #(|> [::events/set-current-word {:word word :index index}])}
                        [component/article-word
                         {:word             word
                          :current-word     current-word
+                         :on-click         #(|> [::events/set-current-word {:word word :index index}])
                          :index            index
-                         :current-word-idx current-word-idx}]]) word-data)]]
+                         :current-word-idx current-word-idx}]) word-data)]]
      [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative "}
       (when current-word [view-current-word {:current-word current-word :form form}])]]))
 

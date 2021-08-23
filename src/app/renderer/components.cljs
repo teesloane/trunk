@@ -43,20 +43,26 @@
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
-  [{:keys [word current-word index current-word-idx]}]
+  [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation ]} word
         comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
         stz                                  (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
     (cond
-      (u/is-punctuation? name ) [:span (str "" (word :name) " ")] ; punctuation
-      (= name "\n")                [:br]
-      (= name "\n\n")              [:div [:br]]
+      (u/is-punctuation? name )
+      [:span (str "" (word :name) " ")] ; punctuation
+
+      ;; newlines that are just from textarea...
+      (= name "\n")
+      [:br]
+
+      (= name "\n\n")
+      [:div.w-full [:br]]
+
       :else
-      [:span.relative
+      [:span.relative {:on-click on-click}
        [:span {:class stz} (str " " (word :name) " ")]
        ;; the active indicator
        (when (and (= (dissoc word :comfort) (dissoc current-word :comfort))
-                  (= index current-word-idx)
-                  )
+                  (= index current-word-idx))
          [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
           [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))

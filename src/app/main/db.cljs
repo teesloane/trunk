@@ -15,12 +15,21 @@
   (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
 
 
+;; NOTE: each word has a `slug` which is a lowercased, cleaned
+;; version of the word. This way, if an article has a capitalized version
+;; of a word etc, you can still update multiple version of the word.`
+;;
+;; For example, a word will have `The` and `the` in an article, but they will
+;; both have the slug value of `the`, making it possible to update them both in
+;; an UPDATE! call where slug matches, while at the same time allowing multiple
+;; versions of their actual spelling and ID, making it possible to reconstruct
+;; the word from the delimisted string (word_ids) in the article table.
 (def db-seed "
 
   CREATE TABLE IF NOT EXISTS words (
     word_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
-    slug TEXT NOT NULL UNIQUE,
+    slug TEXT NOT NULL,
     comfort INTEGER DEFAULT 0,
     translation TEXT
   );
@@ -94,9 +103,12 @@
                 (cb word-ids)
                 (let [[frst & rst] words
                       slug-word    (u/slug-word frst)
-                      query        "SELECT word_id FROM words WHERE slug = ?"
-                      vals         (array slug-word)
+                      query        "SELECT word_id FROM words WHERE slug = ? AND name = ?"
+                      vals         (array slug-word frst)
                       ]
+                  (println query)
+                  (println vals)
+                  (println slug-word frst)
 
                   (.get db query vals
                         (fn [err res]
@@ -132,9 +144,9 @@
 
 (defn word-update
   [data cb]
-  (let [{:keys [word_id translation comfort] } data
-        sql    "UPDATE words SET comfort = ?, translation = ? WHERE word_id = ?"
-        params (array comfort translation word_id)]
+  (let [{:keys [word_id translation comfort slug] } data
+        sql    "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
+        params (array comfort translation slug)]
     (.run db sql params (fn [err] (word-get word_id cb)))))
 
 (defn init
