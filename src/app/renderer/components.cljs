@@ -46,10 +46,16 @@
   [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation ]} word
         comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
-        stz                                  (str (comfort-col comfort) " border rounded-sm pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 ")]
+        stz                                  (str (comfort-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
+        is-current-word                      (and (= (dissoc word :comfort) (dissoc current-word :comfort))
+                                                  (= index current-word-idx))
+        ;; this is not working for some reason...
+        stz                                  (if is-current-word
+                                               (str " border-black " stz)
+                                               (str "  " stz))]
     (cond
       (u/is-punctuation? name )
-      [:span (str "" (word :name) " ")] ; punctuation
+      [:span.mr-1 (str "" (word :name) " ")] ; punctuation
 
       ;; newlines that are just from textarea...
       (= name "\n")
@@ -60,9 +66,4 @@
 
       :else
       [:span.relative {:on-click on-click}
-       [:span {:class stz} (str " " (word :name) " ")]
-       ;; the active indicator
-       (when (and (= (dissoc word :comfort) (dissoc current-word :comfort))
-                  (= index current-word-idx))
-         [:span.flex.absolute.h-3.w-3.top-0.right-0.-mt-2.-mr-0
-          [:span.relative.inline-flex.rounded-full.h-3.w-3.bg-indigo-500.opacity-75]])])))
+       [:span {:class stz} (str " " (word :name) " ")]])))
