@@ -39,7 +39,9 @@
     name TEXT,
     source TEXT,
     original TEXT,
-    word_ids TEXT
+    word_ids TEXT,
+    date_created INTEGER,
+    last_opened INTEGER
   );
 
 ")
@@ -76,8 +78,13 @@
                             (words-get-for-article  (js->clj row :keywordize-keys true ) cb)))))
 
 (defn- insert-article
-  "Takes a word string and creates a new article entry for it.
-  NOTE: This happens after `insert-words`!
+
+  "Creating an article involves taking a string, breaking it into a list and then
+  inserting each word into the words table, if it doesn't exist.
+
+  Once `insert-words` has happened, we return to create the article
+  linking the ids of every words in the article into the table's `word_ids` column.
+
   Welcome to the callback swamp!
   "
   [data cb]
@@ -85,19 +92,18 @@
         words                          (util/split-article article)
         word-ids                       []]
 
-    (letfn [;; The function for actually inserting the article. We can't do
-            ;; this until we've gotten all the word_ids for the article to
-            ;; make to compose word_ids
+    (letfn [;; 🔎  Insert the article fn. We do this once we have the word ids.
             (insert-new-article [word-ids-vec]
-              (let [sql-new-article (str "INSERT INTO articles(original, word_ids, name, source) VALUES (?, ?, ?, ?)")
-                    delimited-ids   (str/join "$" word-ids-vec)
-                    vals            (apply array [article delimited-ids title source])]
+              (let [delimited-ids   (str/join "$" word-ids-vec)
+                    sql-new-article (str "INSERT INTO articles(original, word_ids, name, source, date_created)
+                                          VALUES (?, ?, ?, ?, ?)")
+                    vals            (apply array [article delimited-ids title source (js/Date.now)])]
                 ;; once we have inserted the article, in our callback, get the article as well.
                 (.run db sql-new-article vals (fn [err]
                                                 (this-as this
                                                   (article-get (.-lastID ^js this) cb))))))
 
-            ;; recursively get the ids for all the words in the article.
+            ;; 🔎  recursively get the ids for all the words in the article.
             (get-word-ids-recursive [words word-ids cb]
               (if (empty? words)
                 (cb word-ids)
@@ -106,13 +112,8 @@
                       query        "SELECT word_id FROM words WHERE slug = ? AND name = ?"
                       vals         (array slug-word frst)
                       ]
-                  (println query)
-                  (println vals)
-                  (println slug-word frst)
-
                   (.get db query vals
                         (fn [err res]
-                          (prn "res is existingadlkj fword: " err res)
                           (get-word-ids-recursive rst (conj word-ids (.-word_id ^js res)) cb))))))]
       ;; Launch it off 🎯!
       (get-word-ids-recursive words word-ids insert-new-article))))
