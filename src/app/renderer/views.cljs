@@ -1,10 +1,10 @@
 (ns app.renderer.views
   (:require
-   [reagent.core :as r]
-   [app.shared.ipc-events :refer [shared-events]]
+   [app.renderer.components :refer [button] :as component]
+   [app.renderer.events :as events :refer [|>]]
    [app.renderer.subs :as subs :refer [<|]]
-   [app.renderer.events :as events :refer [ |> ]]
-   [app.renderer.components :refer [button toast] :as component]))
+   [app.shared.ipc-events :refer [shared-events]]
+   [reagent.core :as r]))
 
 (defn loading-wheel
   "Bottom right absolute position loading whee."
@@ -17,7 +17,6 @@
       [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
       [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]]))
 
-
 (defn page-heading
   [text]
   [:h2.text-2xl.mb-2 text])
@@ -27,7 +26,7 @@
   (|> [(shared-events :articles-fetch) nil])
   (fn []
     (let [table-stz      {:class "table-cell border-b border-gray-100 py-2 w-1/2"}
-          articles (<| [::subs/articles]  )
+          articles (<| [::subs/articles])
           nav!     (fn [_ article]
                      (|> [(shared-events :article-fetch) article]))]
       (if (empty? articles)
@@ -109,32 +108,34 @@
                    :name      "group-1"
                    :checked   (= (@form :comfort) btn-int)
                    :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-          [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg )} (str btn-name "(" (+ 1 btn-int) ")")]])]
+          [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg)} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
       ;; submit update
-      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]
-
-     ]))
+      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]]))
 
 (defn view-article
+  "Displays a single article."
   []
   (let [current-article          (<| [::subs/current-article])
+        current-article-patched  (merge current-article {:last_opened (js/Date.now)})
         current-word             (<| [::subs/current-word])
         current-word-idx         (<| [::subs/current-word-idx])
         form                     (r/atom current-word)
         {:keys [name word-data]} current-article]
+    ;; Run an article update to patch the "last-opened" value.
+    (|> [(shared-events :article-update) current-article-patched])
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r" }
+     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r"}
       [:div.text-center.mb-10 [page-heading name]]
       [:div.leading-8.px-4.flex.flex-wrap
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
-                       [component/article-word
-                        {:word             word
-                         :current-word     current-word
-                         :on-click         #(|> [::events/set-current-word {:word word :index index}])
-                         :index            index
-                         :current-word-idx current-word-idx}]) word-data)]]
+                      [component/article-word
+                       {:word             word
+                        :current-word     current-word
+                        :on-click         #(|> [::events/set-current-word {:word word :index index}])
+                        :index            index
+                        :current-word-idx current-word-idx}]) word-data)]]
      [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative "}
       (when current-word [view-current-word {:current-word current-word :form form}])]]))
 
@@ -158,5 +159,4 @@
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
        "article"        [view-article]
-       nil              [view-article-list]
-       )]))
+       nil              [view-article-list])]))

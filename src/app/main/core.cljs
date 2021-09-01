@@ -1,8 +1,8 @@
 (ns app.main.core
-  (:require ["electron" :refer [app BrowserWindow]]
-            ["path" :as path]
-            [app.main.db :as db]
-            [app.main.ipc :as ipc]))
+  (:require
+   [app.main.db :as db]
+   [app.main.ipc :as ipc]
+   ["electron" :refer [BrowserWindow app]]))
 
 (enable-console-print!)
 (def main-window (atom nil))
@@ -16,13 +16,9 @@
                      :webPreferences
                      {:nodeIntegration  true
                       :contextIsolation false ;; come back and figure out preload.js someday.
-                      }
-
-                     })))
+                      }})))
   (.loadURL ^js/electron.BrowserWindow @main-window (str "file://" js/__dirname "/public/index.html"))
-  (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil))
-  )
-
+  (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil)))
 
 (defn main
   []

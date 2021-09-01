@@ -1,10 +1,10 @@
 (ns app.main.db
-  (:require ["sqlite3" :as sqlite]
-            ["fs" :as fs]
-            [app.shared.util :as util]
-            [clojure.string :as str]
-            [app.shared.util :as u]))
-
+  (:require
+   [app.shared.util :as u]
+   [clojure.pprint]
+   [clojure.string :as str]
+   ["fs" :as fs]
+   ["sqlite3" :as sqlite]))
 
 (def db-path "./trunk.db")
 (def db (sqlite/Database. db-path))
@@ -13,7 +13,6 @@
 (defn wipe! []
   (println "wip!  called")
   (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
-
 
 ;; NOTE: each word has a `slug` which is a lowercased, cleaned
 ;; version of the word. This way, if an article has a capitalized version
@@ -68,14 +67,13 @@
                           (recurse xs (conj out (js->clj row))))))))]
       (recurse words-orig []))))
 
-
 (defn article-get
   "Fetches an article, and computes the `:word-data` for it."
   [id cb]
   (let [query  "SELECT * FROM articles WHERE article_id = ?"
         params (array id)]
     (.get db query params (fn [err row]
-                            (words-get-for-article  (js->clj row :keywordize-keys true ) cb)))))
+                            (words-get-for-article  (js->clj row :keywordize-keys true) cb)))))
 
 (defn- insert-article
 
@@ -89,7 +87,7 @@
   "
   [data cb]
   (let [{:keys [article title source]} data
-        words                          (util/split-article article)
+        words                          (u/split-article article)
         word-ids                       []]
 
     (letfn [;; 🔎  Insert the article fn. We do this once we have the word ids.
@@ -101,7 +99,7 @@
                 ;; once we have inserted the article, in our callback, get the article as well.
                 (.run db sql-new-article vals (fn [err]
                                                 (this-as this
-                                                  (article-get (.-lastID ^js this) cb))))))
+                                                         (article-get (.-lastID ^js this) cb))))))
 
             ;; 🔎  recursively get the ids for all the words in the article.
             (get-word-ids-recursive [words word-ids cb]
@@ -110,8 +108,7 @@
                 (let [[frst & rst] words
                       slug-word    (u/slug-word frst)
                       query        "SELECT word_id FROM words WHERE slug = ? AND name = ?"
-                      vals         (array slug-word frst)
-                      ]
+                      vals         (array slug-word frst)]
                   (.get db query vals
                         (fn [err res]
                           (get-word-ids-recursive rst (conj word-ids (.-word_id ^js res)) cb))))))]
@@ -122,19 +119,32 @@
   "Takes a string representing a new article, and breaks it into chunks.
   Then insert ALL words into the `words` table, if they don't already exist."
   [word-str cb]
-  (let [words        (util/split-article word-str)
+  (let [words        (u/split-article word-str)
         placeholders (str/join ", " (map (fn [w] "(?, ?)") words)) ;; this is annoying
         vals         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
         queryWords   (str "INSERT OR IGNORE INTO words(name, slug) VALUES " placeholders)]
     (.run db queryWords vals cb)))
 
 (defn article-create
+  "TODO: combine this with insert-article and insert-words?"
   [data cb]
   (insert-words (data :article)
                 (fn [err]
-                  (prn "error is " err)
                   ;; TODO error handling.
                   (insert-article data cb))))
+
+(defn article-update
+  "Article update wholesale patches a new article into an existing one; ie,
+  the entire `article` map is taken from the frontend and put into the db
+  regardless of what has changed.
+  Takes a object of values to update an article by."
+  [data cb]
+  (let [sql     "UPDATE articles SET name = $name, source = $source, original = $original, word_ids = $word_ids, date_created = $date_created, last_opened = $last_opened"
+        columns (dissoc data :word-data :article_id) ;; num of coulmns must match num of placeholders in sql statement.
+        params  (u/map->js-obj->sql columns)]
+    (.run db sql params (fn [err _]
+                          (println err) ;; TODO: column error out of range.
+                          (article-get (data :article_id) cb)))))
 
 (defn word-get
   [word_id cb]
@@ -145,7 +155,7 @@
 
 (defn word-update
   [data cb]
-  (let [{:keys [word_id translation comfort slug] } data
+  (let [{:keys [word_id translation comfort slug]} data
         sql    "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
         params (array comfort translation slug)]
     (.run db sql params (fn [err] (word-get word_id cb)))))
@@ -153,9 +163,8 @@
 (defn init
   []
   (.exec db db-seed
-        (fn [err]
-          (when err
-            (throw (js/Error. (str "Failed db" err)))))))
-
+         (fn [err]
+           (when err
+             (throw (js/Error. (str "Failed db" err)))))))
 
 ;; FIXME: when do I run "db.close()"?

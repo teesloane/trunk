@@ -56,3 +56,13 @@
   "Makes a word slug-ready for the db."
   [s]
   (str/lower-case s))
+
+
+(defn map->js-obj->sql
+  "Convert a clojure map into a suitable object for sqlite queries."
+  [m]
+  (->> m
+       (map (fn [[k v]] [(str "$" (name k)) v]))
+       (into {})
+       (clj->js)))
+

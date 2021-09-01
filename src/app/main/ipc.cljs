@@ -30,6 +30,10 @@
                      (fn [data]
                        (reply! event (shared-events :article-received) data))))
 
+   (shared-events :article-update)
+   (fn [event data]
+     (db/article-update data (fn [data]
+                               (reply! event (shared-events :article-updated) data))))
 
    (shared-events :word-update)
    (fn [event data]

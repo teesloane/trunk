@@ -1,9 +1,9 @@
 (ns app.renderer.events
   (:require
-   [re-frame.core :as rf]
    [app.renderer.db :as db]
    [app.shared.ipc-events :refer [shared-events]]
-   [app.shared.util :as u]))
+   [app.shared.util :as u]
+   [re-frame.core :as rf]))
 
 (def |> re-frame.core/dispatch)
 
@@ -30,14 +30,12 @@
  ::set-toast
  (fn [cofx [event-name data]]
    {:db (assoc (cofx :db) :toast data)
-    :dispatch-later [{:ms 4000 :dispatch [::remove-toast]}]
-    }))
+    :dispatch-later [{:ms 4000 :dispatch [::remove-toast]}]}))
 
 (rf/reg-event-fx
  ::remove-toast
  (fn [cofx [event-name data]]
    {:db (assoc (cofx :db) :toast "")}))
-
 
 ;; -- Key press handling -------------------------------------------------------
 ;;
@@ -50,28 +48,27 @@
   [dir db]
   ;; check we can move word before starting...
   (let [{:keys [current-word current-article current-word-idx]} db]
-      (loop [db                      db
-             last-known-word-and-idx nil]
-        (let [idx-dir-fn              (case dir :right inc :left dec)
-              next-word-idx           (-> db :current-word-idx idx-dir-fn)
-              next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
-              last-known-word-and-idx (if (or (nil? next-word)
-                                              (u/is-punctuation-or-newline? (get next-word :name)))
-                                        [current-word current-word-idx]
-                                        [next-word next-word-idx])
-              next-db                 (-> db
-                                          (assoc :current-word next-word)
-                                          (assoc :current-word-idx next-word-idx))
+    (loop [db                      db
+           last-known-word-and-idx nil]
+      (let [idx-dir-fn              (case dir :right inc :left dec)
+            next-word-idx           (-> db :current-word-idx idx-dir-fn)
+            next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
+            last-known-word-and-idx (if (or (nil? next-word)
+                                            (u/is-punctuation-or-newline? (get next-word :name)))
+                                      [current-word current-word-idx]
+                                      [next-word next-word-idx])
+            next-db                 (-> db
+                                        (assoc :current-word next-word)
+                                        (assoc :current-word-idx next-word-idx))
               ;; recur when we are on punctuation; ie, skip punctuation.
-              continue-recur          (and (u/is-punctuation-or-newline? (get next-word :name))
-                                           (not (nil? next-word)))]
-          (if continue-recur
-            (recur next-db last-known-word-and-idx)
-            (let [[lkw lki] last-known-word-and-idx]
-              (-> db
-                       (assoc :current-word lkw)
-                       (assoc :current-word-idx lki))))))))
-
+            continue-recur          (and (u/is-punctuation-or-newline? (get next-word :name))
+                                         (not (nil? next-word)))]
+        (if continue-recur
+          (recur next-db last-known-word-and-idx)
+          (let [[lkw lki] last-known-word-and-idx]
+            (-> db
+                (assoc :current-word lkw)
+                (assoc :current-word-idx lki))))))))
 
 ;; I don't know why but this doesn't need to return {:db ...}
 (rf/reg-event-fx
@@ -81,12 +78,11 @@
      (when (u/curr-word-view-open? db)
        {:db (move-word :right db)}))))
 
-
 (rf/reg-event-fx
  :key-pressed-left
  (fn [{:keys [db]} [event-name data]]
-    (when (u/curr-word-view-open? db)
-      {:db (move-word :left db)})))
+   (when (u/curr-word-view-open? db)
+     {:db (move-word :left db)})))
 
 (rf/reg-event-fx
  :key-pressed-num
@@ -94,11 +90,10 @@
    (let [last-key              (-> event last last)
          key->comfort-val      {49 0 50 1 51 2 52 3 53 4}
          current-word          (-> db :current-word)
-         new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))
-         ]
+         new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
      (when (u/curr-word-view-open? db)
        {:db (assoc db :current-word new-word-with-comfort)
-        :fx [[:dispatch [(shared-events :word-update) new-word-with-comfort] ]]}))))
+        :fx [[:dispatch [(shared-events :word-update) new-word-with-comfort]]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
@@ -128,12 +123,22 @@
    {::ipc-send! event}))
 
 (rf/reg-event-fx
+ (shared-events :article-update)
+ (fn [_ event]
+   {::ipc-send! event}))
+
+(rf/reg-event-fx
+ (shared-events :article-updated)
+ (fn [{:keys [db]} [_ data]]
+   {:db db} ;; TODO return the data into current article.
+   ))
+
+(rf/reg-event-fx
  (shared-events :article-created)
  (fn [{:keys [db]} [_ data]]
    {:db (assoc db :current-article data)
     :fx [[:dispatch [::set-toast "Article created."]]
-         [:dispatch [::navigate "article-list"]]]
-    }))
+         [:dispatch [::navigate "article-list"]]]}))
 
 (rf/reg-event-db
  (shared-events :articles-received)
@@ -164,14 +169,12 @@
                                      (not= (curr-word :word_id) (data :word_id)))
                                 (assoc data :name (curr-word :name) :word_id (curr-word :word_id))
 
-                                :else curr-word)
-                              ) word-data)]
+                                :else curr-word)) word-data)]
      {:db (-> (cofx :db)
               (assoc :loading? false)
               (assoc :current-word data)
               (assoc-in [:current-article :word-data] (vec new-word-data)))
-      :dispatch [::set-toast "Word updated."]
-      })))
+      :dispatch [::set-toast "Word updated."]})))
 
 (rf/reg-event-db
  ::set-current-word
@@ -181,7 +184,6 @@
          (assoc :current-word word)
          (assoc :current-word-idx index)))))
 
-
 ;; -- DEBUG THINGS -------------------------------------------------------------
 
 (rf/reg-event-fx
@@ -189,7 +191,6 @@
  (fn [_ event]
    {::ipc-send! event
     :dispatch [::initialize-db]}))
-
 
 ;; -- Registered Effects -------------------------------------------------------
 
@@ -201,6 +202,7 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
+;; TODO - could refactor this to be built from a list.
 (defonce ipcHandlers
   {(shared-events :article-created)
    (fn [event data]
@@ -209,15 +211,18 @@
    (shared-events :articles-received)
    (fn [event data] (|> [(shared-events :articles-received) data]))
 
+   ;; LEAVING OFF: patch that into the db.
+   (shared-events :article-updated)
+   (fn [event data]
+     (|> [(shared-events :article-updated) data]))
+
    (shared-events :article-received)
    (fn [event data]
      (|> [(shared-events :article-received) data]))
 
    (shared-events :word-updated)
    (fn [event data]
-     (|> [(shared-events :word-updated) data]))
-
-   })
+     (|> [(shared-events :word-updated) data]))})
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers
@@ -232,4 +237,3 @@
              (fn [event args]
                (println "[ipcRenderer ->]: " key)
                (handler event (js->clj args :keywordize-keys true))))))))
-
