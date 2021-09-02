@@ -30,10 +30,10 @@
                      (fn [data]
                        (reply! event (s-ev :article-received) data))))
 
-   (s-ev :article-update)
-   (fn [event data]
-     (db/article-update data (fn [data]
-                               (reply! event (s-ev :article-updated) data))))
+   ;; (s-ev :article-update)
+   ;; (fn [event data]
+   ;;   (db/article-update data (fn [data]
+   ;;                             (reply! event (s-ev :article-updated) data))))
 
    (s-ev :word-update)
    (fn [event data]

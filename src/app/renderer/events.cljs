@@ -111,13 +111,14 @@
       (fn [_ event]
         {::ipc-send! event}))
 
-(r-fx (s-ev :article-update)
-      (fn [_ event]
-        {::ipc-send! event}))
+;; Not being used yet.
+;; (r-fx (s-ev :article-update)
+;;       (fn [_ event]
+;;         {::ipc-send! event}))
 
-(r-fx (s-ev :article-updated)
-      (fn [{:keys [db]} [_ data]]
-        {:db (assoc db :current-article data)}))
+;; (r-fx (s-ev :article-updated)
+;;       (fn [{:keys [db]} [_ data]]
+;;         {:db (assoc db :current-article data)}))
 
 (r-fx (s-ev :article-created)
       (fn [{:keys [db]} [_ data]]
@@ -191,9 +192,10 @@
    (s-ev :articles-received)
    (fn [_ data] (|> [(s-ev :articles-received) data]))
 
-   (s-ev :article-updated)
-   (fn [_ data]
-     (|> [(s-ev :article-updated) data]))
+   ;; Not in use yet.
+   ;; (s-ev :article-updated)
+   ;; (fn [_ data]
+   ;;   (|> [(s-ev :article-updated) data]))
 
    (s-ev :article-received)
    (fn [_ data]

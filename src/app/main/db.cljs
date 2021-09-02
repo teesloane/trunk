@@ -11,7 +11,7 @@
 
 (defn db-del!  [] (.unlinkSync fs db-path))
 (defn wipe! []
-  (println "wip!  called")
+  (println "wipe!  called")
   (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
 
 ;; NOTE: each word has a `slug` which is a lowercased, cleaned
@@ -68,14 +68,17 @@
       (recurse words-orig []))))
 
 
-;; TODO: update "last-opened" before actually fetching article.
 (defn article-get
-  "Fetches an article, and computes the `:word-data` for it."
+  "Fetches an article, and computes the `:word-data` for it. Sets `last_opened` value before fetching."
   [id cb]
-  (let [query  "SELECT * FROM articles WHERE article_id = ?"
-        params (array id)]
-    (.get db query params (fn [err row]
-                            (words-get-for-article  (js->clj row :keywordize-keys true) cb)))))
+  (let [q1-sql    "UPDATE articles SET last_opened = ? WHERE article_id = ?"
+        q1-params (array (js/Date.now) id)
+        q2-sql    "SELECT * FROM articles WHERE article_id = ?"
+        q2-params (array id)]
+    (.run db q1-sql q1-params
+          (fn [err]
+            (.get db q2-sql q2-params (fn [err row]
+                                    (words-get-for-article  (js->clj row :keywordize-keys true) cb)))))))
 
 (defn- insert-article
 
@@ -135,18 +138,19 @@
                   ;; TODO error handling.
                   (insert-article data cb))))
 
-(defn article-update
-  "Article update wholesale patches a new article into an existing one; ie,
-  the entire `article` map is taken from the frontend and put into the db
-  regardless of what has changed.
-  Takes a object of values to update an article by."
-  [data cb]
-  (let [sql     "UPDATE articles SET name = $name, source = $source, original = $original, word_ids = $word_ids, date_created = $date_created, last_opened = $last_opened"
-        columns (dissoc data :word-data :article_id) ;; num of coulmns must match num of placeholders in sql statement.
-        params  (u/map->js-obj->sql columns)]
-    (.run db sql params (fn [err _]
-                          (println err) ;; TODO: column error out of range.
-                          (article-get (data :article_id) cb)))))
+;; This isn't really being used yet:
+;; (defn article-update
+;;   "Article update wholesale patches a new article into an existing one; ie,
+;;   the entire `article` map is taken from the frontend and put into the db
+;;   regardless of what has changed.
+;;   Takes a object of values to update an article by."
+;;   [data cb]
+;;   (let [sql     "UPDATE articles SET name = $name, source = $source, original = $original, word_ids = $word_ids, date_created = $date_created"
+;;         columns (dissoc data :word-data :article_id, :last_opened) ;; num of coulmns must match num of placeholders in sql statement.
+;;         params  (u/map->js-obj->sql columns)]
+;;     (.run db sql params (fn [err _]
+;;                           (println err) ;; TODO: column error out of range.
+;;                           (article-get (data :article_id) cb)))))
 
 (defn word-get
   [word_id cb]
