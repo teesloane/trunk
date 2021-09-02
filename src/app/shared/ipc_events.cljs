@@ -9,8 +9,6 @@
    :article-created             ::article-created
    :article-fetch               ::article-fetch
    :article-update              ::article-update
-   :article-update-last-opened  ::article-update-last-opened
-   :article-updated-last-opened ::article-updated-last-opened
    :article-updated             ::article-updated
    :article-received            ::article-received
    :word-update                 ::word-update

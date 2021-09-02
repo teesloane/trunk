@@ -115,14 +115,6 @@
       (fn [_ event]
         {::ipc-send! event}))
 
-(r-fx (s-ev :article-update-last-opened)
-      (fn [_ event]
-        {::ipc-send! event}))
-
-(r-fx (s-ev :article-updated-last-opened)
-      (fn [{:keys [db]} _]
-        {:db db}))
-
 (r-fx (s-ev :article-updated)
       (fn [{:keys [db]} [_ data]]
         {:db (assoc db :current-article data)}))
@@ -202,10 +194,6 @@
    (s-ev :article-updated)
    (fn [_ data]
      (|> [(s-ev :article-updated) data]))
-
-   (s-ev :article-updated-last-opened)
-   (fn [_ data]
-     (|> [(s-ev :article-updated-last-opened) data]))
 
    (s-ev :article-received)
    (fn [_ data]

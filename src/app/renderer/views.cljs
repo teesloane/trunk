@@ -117,12 +117,10 @@
   "Displays a single article."
   []
   (let [current-article          (<| [::subs/current-article])
-        current-article-patched  (merge current-article {:last_opened (js/Date.now)})
         current-word             (<| [::subs/current-word])
         current-word-idx         (<| [::subs/current-word-idx])
         form                     (r/atom current-word)
         {:keys [name word-data]} current-article]
-    (|> [(s-ev :article-update-last-opened) current-article-patched]) ;; set the last-opened property
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 md:border-r"}
       [:div.text-center.mb-10 [page-heading name]]

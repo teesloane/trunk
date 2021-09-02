@@ -35,12 +35,6 @@
      (db/article-update data (fn [data]
                                (reply! event (s-ev :article-updated) data))))
 
-
-   ;; No-op reply!, as it causes infinite loops with re-frame
-   (s-ev :article-update-last-opened)
-   (fn [event data]
-     (db/article-update data #(reply! event (s-ev :article-updated-last-opened) nil)))
-
    (s-ev :word-update)
    (fn [event data]
      (db/word-update data (fn [data]

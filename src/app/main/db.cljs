@@ -67,6 +67,8 @@
                           (recurse xs (conj out (js->clj row))))))))]
       (recurse words-orig []))))
 
+
+;; TODO: update "last-opened" before actually fetching article.
 (defn article-get
   "Fetches an article, and computes the `:word-data` for it."
   [id cb]
