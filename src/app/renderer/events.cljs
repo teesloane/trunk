@@ -6,6 +6,8 @@
    [re-frame.core :as rf]))
 
 (def |> re-frame.core/dispatch)
+(def r-db rf/reg-event-db)
+(def r-fx rf/reg-event-fx)
 
 (defn send!
   "This is how we send data to the ipc back end.
@@ -14,28 +16,24 @@
   (let [ipcRenderer (.. (js/require "electron") -ipcRenderer)
         _           (.send ipcRenderer (name channel) (clj->js data))]))
 
-(rf/reg-event-db
- ::initialize-db
- (fn [_ _]
-   db/default-db))
+(r-db ::initialize-db
+      (fn [_ _]
+        db/default-db))
 
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
 
-(rf/reg-event-db
- ::navigate
- (fn [db [_ new-route]]
-   (assoc db :current-view new-route)))
+(r-db ::navigate
+      (fn [db [_ new-route]]
+        (assoc db :current-view new-route)))
 
-(rf/reg-event-fx
- ::set-toast
- (fn [cofx [event-name data]]
-   {:db (assoc (cofx :db) :toast data)
-    :dispatch-later [{:ms 4000 :dispatch [::remove-toast]}]}))
+(r-fx ::set-toast
+      (fn [cofx [_ data]]
+        {:db (assoc (cofx :db) :toast data)
+         :dispatch-later [{:ms 4000 :dispatch [::remove-toast]}]}))
 
-(rf/reg-event-fx
- ::remove-toast
- (fn [cofx [event-name data]]
-   {:db (assoc (cofx :db) :toast "")}))
+(r-fx ::remove-toast
+      (fn [cofx _]
+        {:db (assoc (cofx :db) :toast "")}))
 
 ;; -- Key press handling -------------------------------------------------------
 ;;
@@ -70,143 +68,124 @@
                 (assoc :current-word lkw)
                 (assoc :current-word-idx lki))))))))
 
-;; I don't know why but this doesn't need to return {:db ...}
-(rf/reg-event-fx
- :key-pressed-right
- (fn [{:keys [db]} [_ _]]
-   (when (u/curr-word-view-open? db)
-     {:db (move-word :right db)})))
+(r-fx :key-pressed-right
+      (fn [{:keys [db]} [_ _]]
+        (when (u/curr-word-view-open? db)
+          {:db (move-word :right db)})))
 
-(rf/reg-event-fx
- :key-pressed-left
- (fn [{:keys [db]} [_ _]]
-   (when (u/curr-word-view-open? db)
-     {:db (move-word :left db)})))
+(r-fx :key-pressed-left
+      (fn [{:keys [db]} [_ _]]
+        (when (u/curr-word-view-open? db)
+          {:db (move-word :left db)})))
 
-(rf/reg-event-fx
- :key-pressed-num
- (fn [{:keys [db]} event]
-   (let [last-key              (-> event last last)
-         key->comfort-val      {49 0 50 1 51 2 52 3 53 4}
-         current-word          (-> db :current-word)
-         new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
-     (when (u/curr-word-view-open? db)
-       {:db (assoc db :current-word new-word-with-comfort)
-        :fx [[:dispatch [(s-ev :word-update) new-word-with-comfort]]]}))))
+(r-fx :key-pressed-num
+      (fn [{:keys [db]} event]
+        (let [last-key              (-> event last last)
+              key->comfort-val      {49 0 50 1 51 2 52 3 53 4}
+              current-word          (-> db :current-word)
+              new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
+          (when (u/curr-word-view-open? db)
+            {:db (assoc db :current-word new-word-with-comfort)
+             :fx [[:dispatch [(s-ev :word-update) new-word-with-comfort]]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
-(rf/reg-event-fx
- (s-ev :article-fetch)
- (fn [cofx event]
-   {:db (assoc (cofx :db) :loading? true)
-    ::ipc-send! event}))
+(r-fx (s-ev :article-fetch)
+      (fn [cofx event]
+        {:db (assoc (cofx :db) :loading? true)
+         ::ipc-send! event}))
 
-(rf/reg-event-db
- (s-ev :article-received)
- (fn [db [_ data]]
-   (-> db
-       (assoc :current-article data)
-       (assoc :current-view "article")
-       (assoc :loading? false))))
+(r-db (s-ev :article-received)
+      (fn [db [_ data]]
+        (-> db
+            (assoc :current-article data)
+            (assoc :current-view "article")
+            (assoc :loading? false))))
 
-(rf/reg-event-fx
- (s-ev :articles-fetch)
- (fn [{:keys [db]} event]
-   {:db         (assoc db :loading? true)
-    ::ipc-send! event}))
+(r-fx (s-ev :articles-fetch)
+      (fn [{:keys [db]} event]
+        {:db         (assoc db :loading? true)
+         ::ipc-send! event}))
 
-(rf/reg-event-fx
- (s-ev :article-create)
- (fn [_ event]
-   {::ipc-send! event}))
+(r-fx (s-ev :article-create)
+      (fn [_ event]
+        {::ipc-send! event}))
 
-(rf/reg-event-fx
- (s-ev :article-update)
- (fn [_ event]
-   {::ipc-send! event}))
+(r-fx (s-ev :article-update)
+      (fn [_ event]
+        {::ipc-send! event}))
 
-(rf/reg-event-fx
- (s-ev :article-update-last-opened)
- (fn [_ event]
-   {::ipc-send! event}))
+(r-fx (s-ev :article-update-last-opened)
+      (fn [_ event]
+        {::ipc-send! event}))
 
-(rf/reg-event-fx
- (s-ev :article-updated-last-opened)
- (fn [{:keys [db]} _]
-   {:db db}))
+(r-fx (s-ev :article-updated-last-opened)
+      (fn [{:keys [db]} _]
+        {:db db}))
 
-(rf/reg-event-fx
- (s-ev :article-updated)
- (fn [{:keys [db]} [_ data]]
-   {:db (assoc db :current-article data)}))
+(r-fx (s-ev :article-updated)
+      (fn [{:keys [db]} [_ data]]
+        {:db (assoc db :current-article data)}))
 
-(rf/reg-event-fx
- (s-ev :article-created)
- (fn [{:keys [db]} [_ data]]
-   {:db (assoc db :current-article data)
-    :fx [[:dispatch [::set-toast "Article created."]]
-         [:dispatch [::navigate "article-list"]]]}))
+(r-fx (s-ev :article-created)
+      (fn [{:keys [db]} [_ data]]
+        {:db (assoc db :current-article data)
+         :fx [[:dispatch [::set-toast "Article created."]]
+              [:dispatch [::navigate "article-list"]]]}))
 
-(rf/reg-event-db
- (s-ev :articles-received)
- (fn [db [_ data]]
-   (-> db
-       (assoc :articles data)
-       (assoc :loading?  false))))
+(r-db (s-ev :articles-received)
+      (fn [db [_ data]]
+        (-> db
+            (assoc :articles data)
+            (assoc :loading?  false))))
 
 ;; -- Word(s) - CRUD -----------------------------------------------------------
 
-(rf/reg-event-fx
- (s-ev :word-update)
- (fn [cofx event]
-   {:db (assoc (cofx :db) :loading? true)
-    ::ipc-send! event}))
+(r-fx (s-ev :word-update)
+      (fn [cofx event]
+        {:db (assoc (cofx :db) :loading? true)
+         ::ipc-send! event}))
 
-(rf/reg-event-fx
- (s-ev :word-updated)
- (fn [cofx [event-name data]]
-   (let [word-data (-> cofx :db :current-article :word-data)
-         new-word-data (map (fn [curr-word]
-                              (cond
-                                (= (:word_id curr-word) (:word_id data))
-                                data
+(r-fx (s-ev :word-updated)
+      (fn [cofx [event-name data]]
+        (let [word-data (-> cofx :db :current-article :word-data)
+              new-word-data (map (fn [curr-word]
+                                   (cond
+                                     (= (:word_id curr-word) (:word_id data))
+                                     data
 
                                 ;; if slug matches, update everything except the "name"
-                                (and (= (:slug curr-word) (:slug data))
-                                     (not= (curr-word :word_id) (data :word_id)))
-                                (assoc data :name (curr-word :name) :word_id (curr-word :word_id))
+                                     (and (= (:slug curr-word) (:slug data))
+                                          (not= (curr-word :word_id) (data :word_id)))
+                                     (assoc data :name (curr-word :name) :word_id (curr-word :word_id))
 
-                                :else curr-word)) word-data)]
-     {:db (-> (cofx :db)
-              (assoc :loading? false)
-              (assoc :current-word data)
-              (assoc-in [:current-article :word-data] (vec new-word-data)))
-      :dispatch [::set-toast "Word updated."]})))
+                                     :else curr-word)) word-data)]
+          {:db (-> (cofx :db)
+                   (assoc :loading? false)
+                   (assoc :current-word data)
+                   (assoc-in [:current-article :word-data] (vec new-word-data)))
+           :dispatch [::set-toast "Word updated."]})))
 
-(rf/reg-event-db
- ::set-current-word
- (fn [db [_ data]]
-   (let [{:keys [word index]} data]
-     (-> db
-         (assoc :current-word word)
-         (assoc :current-word-idx index)))))
+(r-db ::set-current-word
+      (fn [db [_ data]]
+        (let [{:keys [word index]} data]
+          (-> db
+              (assoc :current-word word)
+              (assoc :current-word-idx index)))))
 
 ;; -- DEBUG THINGS -------------------------------------------------------------
 
-(rf/reg-event-fx
- (s-ev :wipe-db!)
- (fn [_ event]
-   {::ipc-send! event
-    :dispatch [::initialize-db]}))
+(r-fx (s-ev :wipe-db!)
+      (fn [_ event]
+        {::ipc-send! event
+         :dispatch [::initialize-db]}))
 
 ;; -- Registered Effects -------------------------------------------------------
 
-(rf/reg-fx
- ::ipc-send!
- (fn [[event-key payload]]
-   (println "[ipcRenderer <-]: " event-key)
-   (send! event-key (clj->js payload))))
+(rf/reg-fx ::ipc-send!
+           (fn [[event-key payload]]
+             (println "[ipcRenderer <-]: " event-key)
+             (send! event-key (clj->js payload))))
 
 ;; -- IPC Event registrations --------------------------------------------------
 
