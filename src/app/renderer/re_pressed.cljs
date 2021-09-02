@@ -16,7 +16,7 @@
 (def modifier-keys #{16 ;; shift
                      17 ;; ctrl
                      18 ;; alt
-                     91 ;; windows (i.e. meta) ... TODO: apple key?
+                     91 ;; windows (i.e. meta) ...
                      })
 
 ;; Util ------------------------------------------------------------------------
