@@ -1,7 +1,7 @@
 (ns app.renderer.events
   (:require
    [app.renderer.db :as db]
-   [app.shared.ipc-events :refer [shared-events]]
+   [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]
    [re-frame.core :as rf]))
 
@@ -73,14 +73,13 @@
 ;; I don't know why but this doesn't need to return {:db ...}
 (rf/reg-event-fx
  :key-pressed-right
- (fn [{:keys [db]} [event-name data]]
-   (let [{:keys [current-word current-view current-article]} db]
-     (when (u/curr-word-view-open? db)
-       {:db (move-word :right db)}))))
+ (fn [{:keys [db]} [_ _]]
+   (when (u/curr-word-view-open? db)
+     {:db (move-word :right db)})))
 
 (rf/reg-event-fx
  :key-pressed-left
- (fn [{:keys [db]} [event-name data]]
+ (fn [{:keys [db]} [_ _]]
    (when (u/curr-word-view-open? db)
      {:db (move-word :left db)})))
 
@@ -93,18 +92,18 @@
          new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
      (when (u/curr-word-view-open? db)
        {:db (assoc db :current-word new-word-with-comfort)
-        :fx [[:dispatch [(shared-events :word-update) new-word-with-comfort]]]}))))
+        :fx [[:dispatch [(s-ev :word-update) new-word-with-comfort]]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
 (rf/reg-event-fx
- (shared-events :article-fetch)
+ (s-ev :article-fetch)
  (fn [cofx event]
    {:db (assoc (cofx :db) :loading? true)
     ::ipc-send! event}))
 
 (rf/reg-event-db
- (shared-events :article-received)
+ (s-ev :article-received)
  (fn [db [_ data]]
    (-> db
        (assoc :current-article data)
@@ -112,36 +111,45 @@
        (assoc :loading? false))))
 
 (rf/reg-event-fx
- (shared-events :articles-fetch)
+ (s-ev :articles-fetch)
  (fn [{:keys [db]} event]
    {:db         (assoc db :loading? true)
     ::ipc-send! event}))
 
 (rf/reg-event-fx
- (shared-events :article-create)
+ (s-ev :article-create)
  (fn [_ event]
    {::ipc-send! event}))
 
 (rf/reg-event-fx
- (shared-events :article-update)
+ (s-ev :article-update)
  (fn [_ event]
    {::ipc-send! event}))
 
 (rf/reg-event-fx
- (shared-events :article-updated)
+ (s-ev :article-update-last-opened)
+ (fn [_ event]
+   {::ipc-send! event}))
+
+(rf/reg-event-fx
+ (s-ev :article-updated-last-opened)
+ (fn [{:keys [db]} _]
+   {:db db}))
+
+(rf/reg-event-fx
+ (s-ev :article-updated)
  (fn [{:keys [db]} [_ data]]
-   {:db db} ;; TODO return the data into current article.
-   ))
+   {:db (assoc db :current-article data)}))
 
 (rf/reg-event-fx
- (shared-events :article-created)
+ (s-ev :article-created)
  (fn [{:keys [db]} [_ data]]
    {:db (assoc db :current-article data)
     :fx [[:dispatch [::set-toast "Article created."]]
          [:dispatch [::navigate "article-list"]]]}))
 
 (rf/reg-event-db
- (shared-events :articles-received)
+ (s-ev :articles-received)
  (fn [db [_ data]]
    (-> db
        (assoc :articles data)
@@ -150,13 +158,13 @@
 ;; -- Word(s) - CRUD -----------------------------------------------------------
 
 (rf/reg-event-fx
- (shared-events :word-update)
+ (s-ev :word-update)
  (fn [cofx event]
    {:db (assoc (cofx :db) :loading? true)
     ::ipc-send! event}))
 
 (rf/reg-event-fx
- (shared-events :word-updated)
+ (s-ev :word-updated)
  (fn [cofx [event-name data]]
    (let [word-data (-> cofx :db :current-article :word-data)
          new-word-data (map (fn [curr-word]
@@ -187,7 +195,7 @@
 ;; -- DEBUG THINGS -------------------------------------------------------------
 
 (rf/reg-event-fx
- (shared-events :wipe-db!)
+ (s-ev :wipe-db!)
  (fn [_ event]
    {::ipc-send! event
     :dispatch [::initialize-db]}))
@@ -202,27 +210,31 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
-;; TODO - could refactor this to be built from a list.
+;; TODO - could refactor this to be built from a list/partial the first fn that
+;; takes electron event/data
 (defonce ipcHandlers
-  {(shared-events :article-created)
-   (fn [event data]
-     (|> [(shared-events :article-created) data]))
+  {(s-ev :article-created)
+   (fn [_ data]
+     (|> [(s-ev :article-created) data]))
 
-   (shared-events :articles-received)
-   (fn [event data] (|> [(shared-events :articles-received) data]))
+   (s-ev :articles-received)
+   (fn [_ data] (|> [(s-ev :articles-received) data]))
 
-   ;; LEAVING OFF: patch that into the db.
-   (shared-events :article-updated)
-   (fn [event data]
-     (|> [(shared-events :article-updated) data]))
+   (s-ev :article-updated)
+   (fn [_ data]
+     (|> [(s-ev :article-updated) data]))
 
-   (shared-events :article-received)
-   (fn [event data]
-     (|> [(shared-events :article-received) data]))
+   (s-ev :article-updated-last-opened)
+   (fn [_ data]
+     (|> [(s-ev :article-updated-last-opened) data]))
 
-   (shared-events :word-updated)
-   (fn [event data]
-     (|> [(shared-events :word-updated) data]))})
+   (s-ev :article-received)
+   (fn [_ data]
+     (|> [(s-ev :article-received) data]))
+
+   (s-ev :word-updated)
+   (fn [_ data]
+     (|> [(s-ev :word-updated) data]))})
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers

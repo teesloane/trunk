@@ -3,7 +3,7 @@
    [app.renderer.components :refer [button] :as component]
    [app.renderer.events :as events :refer [|>]]
    [app.renderer.subs :as subs :refer [<|]]
-   [app.shared.ipc-events :refer [shared-events]]
+   [app.shared.ipc-events :refer [s-ev]]
    [reagent.core :as r]))
 
 (defn loading-wheel
@@ -23,12 +23,12 @@
 
 (defn view-article-list
   []
-  (|> [(shared-events :articles-fetch) nil])
+  (|> [(s-ev :articles-fetch) nil])
   (fn []
     (let [table-stz      {:class "table-cell border-b border-gray-100 py-2 w-1/2"}
           articles (<| [::subs/articles])
           nav!     (fn [_ article]
-                     (|> [(shared-events :article-fetch) article]))]
+                     (|> [(s-ev :article-fetch) article]))]
       (if (empty? articles)
         [component/empty-state
          [:div.text-center.text-gray-400
@@ -76,7 +76,7 @@
           :on-change   #(update-form %1 :article)
           :rows        8
           :placeholder "Paste article here..."}]
-        [component/button {:on-click #(|> [(shared-events :article-create) @form])
+        [component/button {:on-click #(|> [(s-ev :article-create) @form])
                            :text "Submit"}]]])))
 
 (defn view-current-word
@@ -111,7 +111,7 @@
           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg)} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
       ;; submit update
-      [button {:on-click #(|> [(shared-events :word-update) @form]) :text "Update Word"}]]]))
+      [button {:on-click #(|> [(s-ev :word-update) @form]) :text "Update Word"}]]]))
 
 (defn view-article
   "Displays a single article."
@@ -122,10 +122,9 @@
         current-word-idx         (<| [::subs/current-word-idx])
         form                     (r/atom current-word)
         {:keys [name word-data]} current-article]
-    ;; Run an article update to patch the "last-opened" value.
-    (|> [(shared-events :article-update) current-article-patched])
+    (|> [(s-ev :article-update-last-opened) current-article-patched]) ;; set the last-opened property
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col p-8 md:border-r"}
+     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 md:border-r"}
       [:div.text-center.mb-10 [page-heading name]]
       [:div.leading-8.px-4.flex.flex-wrap
        (map-indexed (fn [index word]
@@ -143,7 +142,7 @@
   []
   [:div.flex.fixed.bottom-0.p-2.rounded-sm
    [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.bg-opacity-25.hover:text-white
-    {:on-click #(|> [(shared-events :wipe-db!)])} "wipe sql-db!"]])
+    {:on-click #(|> [(s-ev :wipe-db!)])} "wipe sql-db!"]])
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])

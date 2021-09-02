@@ -1,7 +1,7 @@
 (ns app.main.ipc
   (:require ["electron" :refer [ipcMain]]
             [app.main.db :as db]
-            [app.shared.ipc-events :refer [shared-events]]
+            [app.shared.ipc-events :refer [s-ev]]
             ))
 
 (defn reply!
@@ -11,38 +11,43 @@
   [electron-event event-name data]
   (js/electron-event.reply (name event-name) (clj->js data)))
 
+
+;; TODO, could loop through a list to create this, or make a partial "handle" func?
 (def ipcHandlers
   {
-   (shared-events :article-create)
+   (s-ev :article-create)
    (fn [event data]
-     (db/article-create data
-                        (fn [data]
-                          (reply! event (shared-events :article-created) data))))
+     (db/article-create data (fn [data] (reply! event (s-ev :article-created) data))))
 
-   (shared-events :articles-fetch)
+   (s-ev :articles-fetch)
    (fn [event data]
      (db/articles-get (fn [data]
-                        (reply! event (shared-events :articles-received) data))))
+                        (reply! event (s-ev :articles-received) data))))
 
-   (shared-events :article-fetch)
+   (s-ev :article-fetch)
    (fn [event data]
      (db/article-get (data :article_id)
                      (fn [data]
-                       (reply! event (shared-events :article-received) data))))
+                       (reply! event (s-ev :article-received) data))))
 
-   (shared-events :article-update)
+   (s-ev :article-update)
    (fn [event data]
      (db/article-update data (fn [data]
-                               (reply! event (shared-events :article-updated) data))))
+                               (reply! event (s-ev :article-updated) data))))
 
-   (shared-events :word-update)
+
+   ;; No-op reply!, as it causes infinite loops with re-frame
+   (s-ev :article-update-last-opened)
+   (fn [event data]
+     (db/article-update data #(reply! event (s-ev :article-updated-last-opened) nil)))
+
+   (s-ev :word-update)
    (fn [event data]
      (db/word-update data (fn [data]
-                            (reply! event (shared-events :word-updated) data))))
+                            (reply! event (s-ev :word-updated) data))))
 
-   (shared-events :wipe-db!)
+   (s-ev :wipe-db!)
    (fn [event data] (db/wipe!))
-
 
    })
 
