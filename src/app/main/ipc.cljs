@@ -19,7 +19,7 @@
    (fn [event data]
      (db/article-create data (fn [data] (reply! event (s-ev :article-created) data))))
 
-   (s-ev :articles-fetch)
+   (s-ev :articles-get)
    (fn [event data]
      (db/articles-get (fn [data]
                         (reply! event (s-ev :articles-received) data))))

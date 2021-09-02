@@ -102,7 +102,7 @@
             (assoc :current-view "article")
             (assoc :loading? false))))
 
-(r-fx (s-ev :articles-fetch)
+(r-fx (s-ev :articles-get)
       (fn [{:keys [db]} event]
         {:db         (assoc db :loading? true)
          ::ipc-send! event}))

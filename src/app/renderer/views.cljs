@@ -23,7 +23,7 @@
 
 (defn view-article-list
   []
-  (|> [(s-ev :articles-fetch) nil])
+  (|> [(s-ev :articles-get) nil])
   (fn []
     (let [table-stz      {:class "table-cell border-b border-gray-100 py-2 w-1/2"}
           articles (<| [::subs/articles])
