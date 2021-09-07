@@ -27,24 +27,31 @@
    [:div children]])
 
 (defn nav-link
-  [{:keys [on-click text]}]
-  [:button.bg-gray-700.hover:bg-gray-500.text-white.font-bold.py-1.px-2.mr-4
-   {:on-click on-click} text])
+  [{:keys [on-click text id current-view]}]
+  (let [active? (= id current-view)]
+    [:button.bg-transparent.border-b.border-opacity-0.hover:border-opacity-100.font-bold.p-3.mr-4
+     {:class    (if active? "border-green-500 border-opacity-100" "")
+      :on-click on-click} text]))
 
 (defn nav
-  []
-  (let [nav! (fn [route] (|> [::events/navigate route]))]
-    [:nav.w-full.bg-gray-900.text-xs.dark:bg-black.dark:text-gray-50
-     [:div.inline-flex.p-2
-      [nav-link {:on-click #(nav! "article-list") :text "Read"}]
-      [nav-link {:on-click #(nav! "article-create") :text "Create Article"}]]]))
+  [{:keys [current-view]}]
+  (let [nav!  (fn [route] (|> [::events/navigate route]))
+        links [{:text "Read" :id "article-list"}
+               {:text "Create Article" :id "article-create"}]]
+    [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
+     [:div.inline-flex
+      (for [l links]
+        [nav-link {:on-click #(nav! (l :id))
+                   :text (l :text)
+                   :current-view current-view
+                   :id (l :id)}])]]))
 
 (defn article
   "Display a single article in the article list view."
   [{:keys [name source original last_opened date_created]}]
   (let [metadata {"Last opened: "  (u/date-unix->readable last_opened)
                   "Date created: " (u/date-unix->readable date_created)}]
-    [:div.mb-8
+    [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow
      [:div.text-xl.py-1 name]
      [:div.text-sm.text-gray-400.hover:text-gray-900
       [:div.flex
@@ -53,8 +60,7 @@
                        [:span k v]
                        (when-not (= (count metadata) (inc idx))
                          [:span.mx-2 "|"])]) metadata)]
-      [:div.py-4.italic (u/trunc-ellipse original 200)]]
-     [:hr]]))
+      [:div.pt-4.italic (u/trunc-ellipse original 200)]]]))
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."

@@ -147,7 +147,7 @@
      [loading-wheel]
      [component/toast toast-msg]
      ;; normal stuff.
-     [component/nav]
+     [component/nav {:current-view current-view}]
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]
