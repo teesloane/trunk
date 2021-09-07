@@ -47,7 +47,7 @@
 
 (defn articles-get
   [callback]
-  (let [sql "SELECT * FROM articles"]
+  (let [sql "SELECT * FROM articles ORDER BY date_created DESC;"]
     (.all db sql (fn [err rows]
                    (callback rows)))))
 
