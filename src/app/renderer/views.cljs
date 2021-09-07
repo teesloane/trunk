@@ -1,6 +1,6 @@
 (ns app.renderer.views
   (:require
-   [app.renderer.components :refer [button] :as component]
+   [app.renderer.components :as component]
    [app.renderer.events :as events :refer [|>]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.shared.ipc-events :refer [s-ev]]
@@ -111,7 +111,7 @@
           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg)} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
       ;; submit update
-      [button {:on-click #(|> [(s-ev :word-update) @form]) :text "Update Word"}]]]))
+      [component/button {:on-click #(|> [(s-ev :word-update) @form]) :text "Update Word"}]]]))
 
 (defn view-article
   "Displays a single article."
