@@ -37,16 +37,12 @@
            [:span "Click " [:span.font-bold.text-gray-700 "\"Create Article\""] [:span " above to get started."]]]]]
         [component/container
          [:div {:key "view-article-list"} ;; keep react happy.
-          [:div.text-center [page-heading "Your articles"]]
-          [:div.table.w-full.pt-8
-           [:div.table-row
-            [:div.font-bold table-stz "Article title"]
-            [:div.font-bold table-stz "Excerpt"]]
-           (when articles
-             (map-indexed (fn [idx article]
-                            [:div.table-row.cursor-pointer {:key idx :on-click #(nav! "article" article)}
-                             [:div table-stz (article :name)]
-                             [:div.max-w-xs.truncate table-stz (article :original)]]) articles))]]]))))
+          [:div.text-center.mb-16 [page-heading "Your articles"]]
+          (when articles
+            (map-indexed (fn [idx article]
+                           [:div.cursor-pointer.mb-4 {:key idx :on-click #(nav! "article" article)}
+                            [component/article article]]
+                           ) articles))]]))))
 
 (defn view-article-create
   []

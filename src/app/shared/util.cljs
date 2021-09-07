@@ -66,3 +66,15 @@
        (into {})
        (clj->js)))
 
+
+(defn trunc
+  [s n]
+  (subs s 0 (min (count s) n)))
+
+(defn trunc-ellipse
+  [s n]
+  (str (trunc s n) "..."))
+
+(defn date-unix->readable
+  [ts]
+  (-> ts js/Date. (.toLocaleDateString)))

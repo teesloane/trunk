@@ -1,8 +1,7 @@
 (ns app.renderer.components
   (:require
-   [app.renderer.events :as events :refer [ |> ]]
-   [app.shared.util :as u])
-  )
+   [app.renderer.events :as events :refer [|>]]
+   [app.shared.util :as u]))
 
 (defn button
   [{:keys [on-click text]}]
@@ -13,8 +12,7 @@
   [msg]
   (let [styles "fixed bottom-0 right-0 mr-4 mb-4 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded-sm shadow"]
     (when-not (= msg "")
-      [:div {:class styles } msg])))
-
+      [:div {:class styles} msg])))
 
 (defn container
   "This needs to have it's react-keys resolved."
@@ -41,10 +39,27 @@
       [nav-link {:on-click #(nav! "article-list") :text "Read"}]
       [nav-link {:on-click #(nav! "article-create") :text "Create Article"}]]]))
 
+(defn article
+  "Display a single article in the article list view."
+  [{:keys [name source original last_opened date_created]}]
+  (let [metadata {"Last opened: "  (u/date-unix->readable last_opened)
+                  "Date created: " (u/date-unix->readable date_created)}]
+    [:div.mb-8
+     [:div.text-xl.py-1 name]
+     [:div.text-sm.text-gray-400.hover:text-gray-900
+      [:div.flex
+       (map-indexed (fn [idx [k v]]
+                      [:div.font-mono.text-xs
+                       [:span k v]
+                       (when-not (= (count metadata) (inc idx))
+                         [:span.mx-2 "|"])]) metadata)]
+      [:div.py-4.italic (u/trunc-ellipse original 200)]]
+     [:hr]]))
+
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word index current-word-idx on-click]}]
-  (let [{:keys [name comfort _translation ]} word
+  (let [{:keys [name comfort _translation]} word
         comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
         stz                                  (str (comfort-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
         is-current-word                      (and (= (dissoc word :comfort) (dissoc current-word :comfort))
@@ -54,7 +69,7 @@
                                                (str " border-black " stz)
                                                (str "  " stz))]
     (cond
-      (u/is-punctuation? name )
+      (u/is-punctuation? name)
       [:span.mr-1 (str "" (word :name) " ")] ; punctuation
 
       ;; newlines that are just from textarea...
