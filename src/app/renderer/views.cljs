@@ -118,9 +118,9 @@
         form                     (r/atom current-word)
         {:keys [name word-data]} current-article]
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 md:border-r"}
+     [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 md:border-r bg-white"}
       [:div.text-center.mb-10 [page-heading name]]
-      [:div.leading-8.px-4.flex.flex-wrap
+      [:div.leading-8.px-4.flex.flex-wrap.max-w-5xl.mx-auto
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}
                       [component/article-word
@@ -141,7 +141,7 @@
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])
         toast-msg    (<| [::subs/toast])]
-    [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen
+    [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen.bg-gray-50
      ;; fixed pos things
      [debug]
      [loading-wheel]
