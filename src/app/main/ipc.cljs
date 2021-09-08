@@ -1,8 +1,9 @@
 (ns app.main.ipc
-  (:require ["electron" :refer [ipcMain]]
-            [app.main.db :as db]
-            [app.shared.ipc-events :refer [s-ev]]
-            ))
+  (:require
+   [app.main.db :as db]
+   [app.shared.ipc-events :refer [s-ev]]
+   [cljs.core.async :refer [<! go]]
+   ["electron" :refer [ipcMain]]))
 
 (defn reply!
   "Sends data back to renderer from IPC back end.
@@ -11,24 +12,27 @@
   [electron-event event-name data]
   (js/electron-event.reply (name event-name) (clj->js data)))
 
-
 ;; TODO, could loop through a list to create this, or make a partial "handle" func?
 (def ipcHandlers
-  {
-   (s-ev :article-create)
+  {(s-ev :article-create)
    (fn [event data]
-     (db/article-create data (fn [data] (reply! event (s-ev :article-created) data))))
+     (go (let [_                (<! (db/<insert-words (data :article)))
+               word-ids-str     (<! (db/<get-word-ids (data :article)))
+               inserted-article (<! (db/<insert-article (merge data {:word_ids word-ids-str})))]
+           (reply! event (s-ev :article-created) inserted-article))))
 
    (s-ev :articles-get)
    (fn [event data]
-     (db/articles-get (fn [data]
-                        (reply! event (s-ev :articles-received) data))))
+     (go (reply! event (s-ev :articles-received) (<! (db/<articles-get)))))
 
-   (s-ev :article-fetch)
+   (s-ev :article-get)
    (fn [event data]
-     (db/article-get (data :article_id)
-                     (fn [data]
-                       (reply! event (s-ev :article-received) data))))
+     (go
+       (let [id              (data :article_id)
+             updated-article (db/<article-update-last-opened id)
+             article-whole   (<! (db/<article-get-by-id id))
+             final-res       (<! (db/<article-attach-words article-whole))]
+         (reply! event (s-ev :article-received) final-res))))
 
    ;; (s-ev :article-update)
    ;; (fn [event data]
@@ -37,13 +41,13 @@
 
    (s-ev :word-update)
    (fn [event data]
-     (db/word-update data (fn [data]
-                            (reply! event (s-ev :word-updated) data))))
+     (go
+       (let [_   (<! (db/<word-update data))
+             res (<! (db/<word-get (data :word_id)))]
+         (reply! event (s-ev :word-updated) res))))
 
    (s-ev :wipe-db!)
-   (fn [event data] (db/wipe!))
-
-   })
+   (fn [event data] (db/wipe!))})
 
 ;; dev mode:
 ;; Hot-reloading with shadow-cljs seems to re-run event `on` handlers

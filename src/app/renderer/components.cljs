@@ -51,12 +51,12 @@
   [{:keys [name source original last_opened date_created]}]
   (let [metadata {"Last opened: "  (u/date-unix->readable last_opened)
                   "Date created: " (u/date-unix->readable date_created)}]
-    [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow
-     [:div.text-xl.py-1 name]
-     [:div.text-sm.text-gray-400.hover:text-gray-900
+    [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
+     [:div.text-xl.py-1.text-black name]
+     [:div.text-sm
       [:div.flex
        (map-indexed (fn [idx [k v]]
-                      [:div.font-mono.text-xs
+                      [:div.text-xs
                        [:span k v]
                        (when-not (= (count metadata) (inc idx))
                          [:span.mx-2 "|"])]) metadata)]

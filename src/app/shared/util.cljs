@@ -26,6 +26,10 @@
                            (not= s ""))) res)]
     (vec res)))
 
+(defn delimit-article
+  "Turns a string of ids into a delimited$by$dollar$sign"
+  [vec-str-ids]
+  (str/join "$" vec-str-ids))
 
 (defn is-punctuation?
   "NOTE: Eventually punctuation will vary by language...

@@ -1,6 +1,7 @@
 (ns app.main.db
   (:require
    [app.shared.util :as u]
+   [cljs.core.async :refer [promise-chan put!]]
    [clojure.pprint]
    [clojure.string :as str]
    ["fs" :as fs]
@@ -45,98 +46,115 @@
 
 ")
 
-(defn articles-get
-  [callback]
-  (let [sql "SELECT * FROM articles ORDER BY date_created DESC;"]
-    (.all db sql (fn [err rows]
-                   (callback rows)))))
+;; -- Helpers --
+;;
 
-(defn- words-get-for-article
-  "Looks at a delimited string and queries for all the words in it.
-  TODO: maybe just combine this with article-get.
-  "
-  [article cb]
-  (let [word-ids   (article :word_ids)
-        words-orig (str/split word-ids "$")]
+
+(defn <sql
+  "Creates a sql operation that returns a channel, allowsing for async/await like syntax.
+  Has been abstracted to handle variety of return types depending on sql op(eration)"
+  [{:keys [sql params op]}]
+  (let [out    (promise-chan)
+        params (apply array params) ;; TODO - if this is not a sequence, handle it?
+        cb     (fn [err res]
+                 (this-as this
+                   (if err
+                     (put! out (ex-info (str "Failed to run async query of type " (name op)) {:error :sql-error :res res}))
+                     ;; TODO nil - nothing coming back.
+                     (cond
+                       (= :insert op) (put! out (.-lastID this))
+                       res            (put! out (js->clj res :keywordize-keys true))
+                       :else          (put! out (js->clj this :keywordize-keys true))))))]
+
+    (case op
+      :all    (.all db sql params cb)
+      :get    (.get db sql params cb)
+      :insert (.run db sql params cb)
+      :run    (.run db sql params cb))
+    out))
+
+(defn <articles-get
+  []
+  (<sql {:op :all :sql "SELECT * FROM articles ORDER BY date_created DESC"}))
+
+;; Look into preparing statements -- less recursion:
+;; https://stackoverflow.com/questions/28803520/does-sqlite3-have-prepared-statements-in-node-js
+(defn <article-attach-words
+  "Split up word_ids in an article, and query for each word. This is/will be slow."
+  [article]
+  (let [word-ids   (get article :word_ids)
+        words-orig (str/split word-ids "$") ;; FIXME: shouldn't this be (u/split-article article)?
+        out-chan   (promise-chan)]
     (letfn [(recurse [words out]
               (if (= (count out) (count words-orig))
-                (cb (clj->js (assoc article :word-data out))) ;; maybe not efficient in the future to use clj->js, could do raw js interop in this fn.
+                (put! out-chan (clj->js (assoc article :word-data out)))
                 (let [[x & xs] words]
                   (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
                         (fn [err row]
                           (recurse xs (conj out (js->clj row))))))))]
-      (recurse words-orig []))))
+      (recurse words-orig []))
+    out-chan))
+
+(defn <article-update-last-opened
+  "Sets the last-opened value of an article."
+  [id]
+  (<sql
+   {:sql    "UPDATE articles SET last_opened = ? WHERE article_id = ?"
+    :op     :run
+    :params [(js/Date.now) id]}))
+
+(defn <article-get-by-id
+  "Fetches an article by id."
+  [id]
+  (<sql
+   {:sql    "SELECT * FROM articles WHERE article_id = ?"
+    :op     :get
+    :params [id]}))
+
+(defn <insert-article
+  "Creates a new article. Requirements:
+  -> words for article are already in words table.
+  -> words from article have been re-queries
+  -> requiriesed words' ids have been made into a delimited string with $."
+  [{:keys [article title source word_ids]}]
+  (<sql {:op     :insert
+         :params [article word_ids title source (js/Date.now)]
+         :sql "INSERT INTO articles(original, word_ids, name, source, date_created) VALUES (?, ?, ?, ?, ?)"}))
 
 
-(defn article-get
-  "Fetches an article, and computes the `:word-data` for it. Sets `last_opened` value before fetching."
-  [id cb]
-  (let [q1-sql    "UPDATE articles SET last_opened = ? WHERE article_id = ?"
-        q1-params (array (js/Date.now) id)
-        q2-sql    "SELECT * FROM articles WHERE article_id = ?"
-        q2-params (array id)]
-    (.run db q1-sql q1-params
-          (fn [err]
-            (.get db q2-sql q2-params (fn [err row]
-                                    (words-get-for-article  (js->clj row :keywordize-keys true) cb)))))))
-
-(defn- insert-article
-
-  "Creating an article involves taking a string, breaking it into a list and then
-  inserting each word into the words table, if it doesn't exist.
-
-  Once `insert-words` has happened, we return to create the article
-  linking the ids of every words in the article into the table's `word_ids` column.
-
-  Welcome to the callback swamp!
-  "
-  [data cb]
-  (let [{:keys [article title source]} data
-        words                          (u/split-article article)
-        word-ids                       []]
-
-    (letfn [;; 🔎  Insert the article fn. We do this once we have the word ids.
-            (insert-new-article [word-ids-vec]
-              (let [delimited-ids   (str/join "$" word-ids-vec)
-                    sql-new-article (str "INSERT INTO articles(original, word_ids, name, source, date_created)
-                                          VALUES (?, ?, ?, ?, ?)")
-                    vals            (apply array [article delimited-ids title source (js/Date.now)])]
-                ;; once we have inserted the article, in our callback, get the article as well.
-                (.run db sql-new-article vals (fn [err]
-                                                (this-as this
-                                                         (article-get (.-lastID ^js this) cb))))))
-
-            ;; 🔎  recursively get the ids for all the words in the article.
-            (get-word-ids-recursive [words word-ids cb]
+(defn <get-word-ids
+  "Before inserting an article, we need to get the id for each word in the db
+  then we can build a delimited string that will get stored under the `word_ids` column"
+  [article-str]
+  (prn "insize get -words ids" article-str)
+  (let [article-str-vec (u/split-article article-str)
+        word-ids        []
+        query           "SELECT word_id FROM words WHERE slug = ? AND name = ?"
+        out-chan        (promise-chan)]
+    ;; Now some recursion...
+    (letfn [(iterate-words [words word-ids cb]
               (if (empty? words)
-                (cb word-ids)
+                (cb word-ids) ;; <1> ;; see 1 below for implementation
                 (let [[frst & rst] words
                       slug-word    (u/slug-word frst)
-                      query        "SELECT word_id FROM words WHERE slug = ? AND name = ?"
                       vals         (array slug-word frst)]
                   (.get db query vals
                         (fn [err res]
-                          (get-word-ids-recursive rst (conj word-ids (.-word_id ^js res)) cb))))))]
-      ;; Launch it off 🎯!
-      (get-word-ids-recursive words word-ids insert-new-article))))
+                          ;; TODO - handle errs - if there is ever an err it should abort.
+                          (iterate-words rst (conj word-ids (.-word_id ^js res)) cb))))))]
+      (iterate-words article-str-vec [] (fn [word-ids] ;; <1>
+                                          (put! out-chan (u/delimit-article word-ids)))))
+    out-chan))
 
-(defn- insert-words
-  "Takes a string representing a new article, and breaks it into chunks.
-  Then insert ALL words into the `words` table, if they don't already exist."
-  [word-str cb]
+(defn <insert-words
+  "Splits a string and inserts each word into the `words` table if it doesn't
+  exist."
+  [word-str]
   (let [words        (u/split-article word-str)
         placeholders (str/join ", " (map (fn [w] "(?, ?)") words)) ;; this is annoying
-        vals         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
+        params         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
         queryWords   (str "INSERT OR IGNORE INTO words(name, slug) VALUES " placeholders)]
-    (.run db queryWords vals cb)))
-
-(defn article-create
-  "TODO: combine this with insert-article and insert-words?"
-  [data cb]
-  (insert-words (data :article)
-                (fn [err]
-                  ;; TODO error handling.
-                  (insert-article data cb))))
+    (<sql {:op :insert :sql queryWords :params params})))
 
 ;; This isn't really being used yet:
 ;; (defn article-update
@@ -152,19 +170,21 @@
 ;;                           (println err) ;; TODO: column error out of range.
 ;;                           (article-get (data :article_id) cb)))))
 
-(defn word-get
-  [word_id cb]
-  (let [query  "SELECT * FROM words WHERE word_id = ?"
-        params (array word_id)]
-    (.get db query params (fn [err row]
-                            (cb row)))))
+;; TODO - keep  working on these.
 
-(defn word-update
-  [data cb]
-  (let [{:keys [word_id translation comfort slug]} data
-        sql    "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
-        params (array comfort translation slug)]
-    (.run db sql params (fn [err] (word-get word_id cb)))))
+(defn <word-get
+  [word_id]
+  (prn "word get called" word_id)
+  (<sql {:op :get
+         :sql "SELECT * FROM words WHERE word_id = ?"
+         :params [word_id]}))
+
+(defn <word-update
+  [data]
+  (let [{:keys [word_id translation comfort slug]} data]
+    (<sql {:op :insert ; it's the same as update anyway for now.
+           :sql "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
+           :params [comfort translation slug]})))
 
 (defn init
   []

@@ -25,10 +25,9 @@
   []
   (|> [(s-ev :articles-get) nil])
   (fn []
-    (let [table-stz      {:class "table-cell border-b border-gray-100 py-2 w-1/2"}
-          articles (<| [::subs/articles])
+    (let [articles (<| [::subs/articles])
           nav!     (fn [_ article]
-                     (|> [(s-ev :article-fetch) article]))]
+                     (|> [(s-ev :article-get) article]))]
       (if (empty? articles)
         [component/empty-state
          [:div.text-center.text-gray-400

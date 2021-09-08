@@ -90,7 +90,7 @@
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
-(r-fx (s-ev :article-fetch)
+(r-fx (s-ev :article-get)
       (fn [cofx event]
         {:db (assoc (cofx :db) :loading? true)
          ::ipc-send! event}))

@@ -7,7 +7,7 @@
    :articles-received ::articles-received
    :article-create    ::article-create
    :article-created   ::article-created
-   :article-fetch     ::article-fetch
+   :article-get     ::article-get
    :article-update    ::article-update
    :article-updated   ::article-updated
    :article-received  ::article-received
