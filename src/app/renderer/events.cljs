@@ -166,6 +166,26 @@
               (assoc :current-word word)
               (assoc :current-word-idx index)))))
 
+
+;; -- Translation Window -------------------------------------------------------
+
+(r-fx (s-ev :t-win-open)
+      (fn [{:keys [db]} event-and-window-data]
+        {:db         (assoc-in db [:t-win :loading?] true)
+         ::ipc-send! event-and-window-data}))
+
+(r-fx (s-ev :t-win-opened)
+      (fn [{:keys [db]} event]
+        {:db (-> db
+                 (assoc-in [:t-win :open?] true)
+                 (assoc-in [:t-win :loading?] false))}))
+
+(r-fx (s-ev :t-win-close)
+      (fn [{:keys [db]} event]
+        {:db         (assoc-in db [:t-win :open?] false)
+         ::ipc-send! event}))
+
+
 ;; -- DEBUG THINGS -------------------------------------------------------------
 
 (r-fx (s-ev :wipe-db!)
@@ -203,7 +223,13 @@
 
    (s-ev :word-updated)
    (fn [_ data]
-     (|> [(s-ev :word-updated) data]))})
+     (|> [(s-ev :word-updated) data]))
+
+   (s-ev :t-win-opened)
+   (fn [_ data]
+     (|> [(s-ev :t-win-opened) data]))
+
+   })
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers

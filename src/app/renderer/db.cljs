@@ -10,4 +10,6 @@
    :current-word     nil
    :loading?         false
    :toast            ""
+   :t-win            {:open?    false
+                      :loading? false}
    })

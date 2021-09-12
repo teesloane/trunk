@@ -77,36 +77,45 @@
 (defn view-current-word
   "Displays the currently mousedover / clicked on word."
   [{:keys [current-word form]}]
-  (let [input-stz             "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"
-        radio-btns            {0 ["New" "text-gray-500"]
-                               1 ["Hard" "text-red-500"]
-                               2 ["Medium" "text-yellow-500"]
-                               3 ["Easy" "text-green-500"]
-                               4 ["Ignore" "text-black"]}]
+  (let [t-win-open? (<| [::subs/t-win-open?]) ;; TODO: leaving off.
+        _           (prn)
+        input-stz   "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"
+        radio-btns  {0 ["New" "text-gray-500"]
+                     1 ["Hard" "text-red-500"]
+                     2 ["Medium" "text-yellow-500"]
+                     3 ["Easy" "text-green-500"]
+                     4 ["Ignore" "text-black"]}]
     [:div {:class "w-full p-8 flex flex-col mx-auto"}
-     [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
-     [:div {:class "w-full"}
-      [:input {:class       input-stz
-               :placeholder "Add Translation..."
-               :default-value (current-word :translation)
-               :value (@form :translation)
-               :on-change (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
+     [:div.static
+      [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
+      [:div {:class "w-full"}
+       [:input {:class         input-stz
+                :placeholder   "Add Translation..."
+                :default-value (current-word :translation)
+                :value         (@form :translation)
+                :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
-      ;; radio button
-      [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
-       (for [[btn-int btn-data] radio-btns
-             :let               [[btn-name btn-bg] btn-data]]
-         [:span.flex.xl:justify-between.items-center.mr-2 {:key btn-int}
-          [:input {:id        btn-name
-                   :type      "radio"
-                   :value     btn-int
-                   :name      "group-1"
-                   :checked   (= (@form :comfort) btn-int)
-                   :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-          [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg)} (str btn-name "(" (+ 1 btn-int) ")")]])]
+       ;; radio button
+       [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
+        (for [[btn-int btn-data] radio-btns
+              :let               [[btn-name btn-bg] btn-data]]
+          [:span.flex.xl:justify-between.items-center.mr-2 {:key btn-int}
+           [:input {:id        btn-name
+                    :type      "radio"
+                    :value     btn-int
+                    :name      "group-1"
+                    :checked   (= (@form :comfort) btn-int)
+                    :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
+           [:label {:for btn-name :class (str "p-0.5 pl-1 " btn-bg)} (str btn-name "(" (+ 1 btn-int) ")")]])]
 
-      ;; submit update
-      [component/button {:on-click #(|> [(s-ev :word-update) @form]) :text "Update Word"}]]]))
+       ;; submit update
+       [component/button
+        {:on-click #(|> [(s-ev :word-update) @form])
+         :text "Update Word"}]]]
+     [component/google-translate-view
+      {:t-win-open? t-win-open?
+       :current-word (current-word :name)
+       }]]))
 
 (defn view-article
   "Displays a single article."
@@ -147,6 +156,10 @@
      [component/toast toast-msg]
      ;; normal stuff.
      [component/nav {:current-view current-view}]
+     ;; if at any time we are not in the view-article, close the translate window if it's open.
+     (when (not= current-view "article") (|> [(s-ev :t-win-close)]))
+
+     ;; Navigate!
      (case current-view
        "article-list"   [view-article-list]
        "article-create" [view-article-create]

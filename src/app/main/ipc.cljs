@@ -2,6 +2,7 @@
   (:require
    [app.main.db :as db]
    [app.shared.ipc-events :refer [s-ev]]
+   [app.main.windows :as windows]
    [cljs.core.async :refer [<! go]]
    ["electron" :refer [ipcMain]]))
 
@@ -47,7 +48,23 @@
          (reply! event (s-ev :word-updated) res))))
 
    (s-ev :wipe-db!)
-   (fn [event data] (db/wipe!))})
+   (fn [event data] (db/wipe!))
+
+
+   ;; -- Translation window
+
+   (s-ev :t-win-open)
+   (fn [event data]
+     (windows/t-win-init data)
+     (reply! event (s-ev :t-win-opened) nil))
+
+   (s-ev :t-win-close)
+   (fn [event data]
+     (windows/t-win-close)
+     (reply! event (s-ev :t-win-closed) nil))
+
+   })
+
 
 ;; dev mode:
 ;; Hot-reloading with shadow-cljs seems to re-run event `on` handlers

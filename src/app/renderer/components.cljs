@@ -1,6 +1,7 @@
 (ns app.renderer.components
   (:require
    [app.renderer.events :as events :refer [|>]]
+   [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]))
 
 (defn button
@@ -88,3 +89,37 @@
       :else
       [:span.relative {:on-click on-click}
        [:span {:class stz} (str " " (word :name) " ")]])))
+
+
+(defn google-translate-view
+  [{:keys [t-win-open? current-word]}]
+
+  (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white hover:bg-gray-100 text-gray-800 border-t border-gray-300 "
+        button-height 33
+        iframe-height 448
+        window-width  js/window.innerWidth
+        window-height js/window.innerHeight
+        ]
+
+    ;; only enable rendering google translate view when there is enough room
+    ;; TODO: checking of window heighto only happens on render,
+    ;; so handle for user resize of window.
+    (when (and (> window-width 1000)
+               (> window-height (+ iframe-height button-height 64)))
+      [:div
+       (if t-win-open?
+         [:div
+          [:div.border-b.absolute.left-0.w-full {:style {:bottom (str (+ iframe-height button-height) "px")}}]
+          [:button {:class    stz
+                    :style    {:height (- button-height 1)}
+                    :on-click #(|> [(s-ev :t-win-close)])}
+           "Close Translations"]]
+         [:button {:class    stz
+                   :on-click #(|> [(s-ev :t-win-open)
+                                   {:width           window-width
+                                    :current-word    current-word
+                                    :height          window-height
+                                    :button-height   button-height
+                                    :containerHeight iframe-height
+                                    :containerWidth  (* 0.4 js/window.innerWidth)}])}
+          "Open Translations"])])))

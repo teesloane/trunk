@@ -2,23 +2,10 @@
   (:require
    [app.main.db :as db]
    [app.main.ipc :as ipc]
-   ["electron" :refer [BrowserWindow app]]))
+   [app.main.windows :as windows]
+   ["electron" :refer [BrowserWindow BrowserView app]]))
 
 (enable-console-print!)
-(def main-window (atom nil))
-
-(defn init-browser
-  []
-  (reset! main-window
-          (BrowserWindow.
-           (clj->js {:width  800
-                     :height 600
-                     :webPreferences
-                     {:nodeIntegration  true
-                      :contextIsolation false ;; come back and figure out preload.js someday.
-                      }})))
-  (.loadURL ^js/electron.BrowserWindow @main-window (str "file://" js/__dirname "/public/index.html"))
-  (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil)))
 
 (defn main
   []
@@ -30,4 +17,4 @@
   (db/init)
   (ipc/init)
 
-  (.on app "ready" init-browser))
+  (.on app "ready" windows/init-browser))
