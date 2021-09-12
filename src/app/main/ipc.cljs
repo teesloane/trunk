@@ -18,7 +18,7 @@
    (fn [event data]
      (go (let [_                (<! (db/<insert-words (data :article)))
                word-ids-str     (<! (db/<get-word-ids (data :article)))
-               inserted-article (<! (db/<insert-article (merge data {:word_ids word-ids-str})))]
+               inserted-article (<! (db/<article-insert (merge data {:word_ids word-ids-str})))]
            (reply! event (s-ev :article-created) inserted-article))))
 
    (s-ev :articles-get)

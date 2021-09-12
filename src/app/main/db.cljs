@@ -112,7 +112,7 @@
     :op     :get
     :params [id]}))
 
-(defn <insert-article
+(defn <article-insert
   "Creates a new article. Requirements:
   -> words for article are already in words table.
   -> words from article have been re-queries
