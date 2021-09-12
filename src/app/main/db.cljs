@@ -15,9 +15,9 @@
   (println "wipe!  called")
   (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
 
-;; NOTE: each word has a `slug` which is a lowercased, cleaned
-;; version of the word. This way, if an article has a capitalized version
-;; of a word etc, you can still update multiple version of the word.`
+;; NOTE: each word has a `slug` which is a lowercased, cleaned version of the
+;; word. This way, if an article has a capitalized version of a word etc, you
+;; can still update multiple version of the word.`
 ;;
 ;; For example, a word will have `The` and `the` in an article, but they will
 ;; both have the slug value of `the`, making it possible to update them both in
@@ -46,25 +46,24 @@
 
 ")
 
-;; -- Helpers --
-;;
-
+;; -- Helpers -----------------------------------------------------------------
 
 (defn <sql
   "Creates a sql operation that returns a channel, allowsing for async/await like syntax.
   Has been abstracted to handle variety of return types depending on sql op(eration)"
   [{:keys [sql params op]}]
   (let [out    (promise-chan)
+        err-text (str "Failed to run async query of type " (name op))
         params (apply array params) ;; TODO - if this is not a sequence, handle it?
         cb     (fn [err res]
                  (this-as this
-                   (if err
-                     (put! out (ex-info (str "Failed to run async query of type " (name op)) {:error :sql-error :res res}))
+                          (if err
+                            (put! out (ex-info err-text {:error :sql-error :res res}))
                      ;; TODO nil - nothing coming back.
-                     (cond
-                       (= :insert op) (put! out (.-lastID this))
-                       res            (put! out (js->clj res :keywordize-keys true))
-                       :else          (put! out (js->clj this :keywordize-keys true))))))]
+                            (cond
+                              (= :insert op) (put! out (.-lastID ^js this))
+                              res            (put! out (js->clj res :keywordize-keys true))
+                              :else          (put! out (js->clj this :keywordize-keys true))))))]
 
     (case op
       :all    (.all db sql params cb)
@@ -72,6 +71,8 @@
       :insert (.run db sql params cb)
       :run    (.run db sql params cb))
     out))
+
+;; -- DB calls -----------------------------------------------------------------
 
 (defn <articles-get
   []
@@ -121,7 +122,6 @@
          :params [article word_ids title source (js/Date.now)]
          :sql "INSERT INTO articles(original, word_ids, name, source, date_created) VALUES (?, ?, ?, ?, ?)"}))
 
-
 (defn <get-word-ids
   "Before inserting an article, we need to get the id for each word in the db
   then we can build a delimited string that will get stored under the `word_ids` column"
@@ -169,8 +169,6 @@
 ;;     (.run db sql params (fn [err _]
 ;;                           (println err) ;; TODO: column error out of range.
 ;;                           (article-get (data :article_id) cb)))))
-
-;; TODO - keep  working on these.
 
 (defn <word-get
   [word_id]
