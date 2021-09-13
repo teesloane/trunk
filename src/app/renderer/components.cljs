@@ -1,6 +1,7 @@
 (ns app.renderer.components
   (:require
    [app.renderer.events :as events :refer [|>]]
+   [app.renderer.subs :as subs :refer [<|]]
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]))
 
@@ -30,22 +31,26 @@
 (defn nav-link
   [{:keys [on-click text id current-view]}]
   (let [active? (= id current-view)]
-    [:button.bg-transparent.border-b.border-opacity-0.hover:border-opacity-100.font-bold.p-3.mr-4
-     {:class    (if active? "border-green-500 border-opacity-100" "")
+    [:button.bg-transparent.border-b.border-opacity-0.hover:border-opacity-75.font-bold.pt-3.pb-2.px-3.mr-4
+     {:class    (if active? "border-blue-400 border-opacity-100" "")
       :on-click on-click} text]))
 
 (defn nav
+  "Display the navigation bar in app."
   [{:keys [current-view]}]
-  (let [nav!  (fn [route] (|> [::events/navigate route]))
-        links [{:text "Read" :id "article-list"}
-               {:text "Create Article" :id "article-create"}]]
+  (let [nav!            (fn [route] (|> [::events/navigate route]))
+        current-article (<| [::subs/current-article])
+        links           [{:text "Read" :id "article-list"}
+                         {:text "Create Article" :id "article-create"}
+                         {:text (get current-article :name) :id "article"}]]
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
      [:div.inline-flex
-      (for [l links]
-        [nav-link {:on-click #(nav! (l :id))
-                   :text (l :text)
+      (for [l links :when l]
+        [nav-link {:on-click     #(nav! (l :id))
+                   :text         (l :text)
                    :current-view current-view
-                   :id (l :id)}])]]))
+                   :id           (l :id)}])]]))
+
 
 (defn article
   "Display a single article in the article list view."
