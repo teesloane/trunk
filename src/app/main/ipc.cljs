@@ -15,6 +15,7 @@
 
 ;; TODO, could loop through a list to create this, or make a partial "handle" func?
 (def ipcHandlers
+  ;; creating a 2500~ word article: 580.027ms
   {(s-ev :article-create)
    (fn [event data]
      (go (let [_                (<! (db/<insert-words (data :article)))
@@ -26,10 +27,12 @@
    (fn [event data]
      (go (reply! event (s-ev :articles-received) (<! (db/<articles-get)))))
 
+   ;; Time to get article with 341 words: 92.222ms
+   ;; Time to get article with 2500~ words: 630.365ms
+   ;; Time to get an article with
    (s-ev :article-get)
    (fn [event data]
-     (go
-       (let [id              (data :article_id)
+     (go (let [id              (data :article_id)
              updated-article (db/<article-update-last-opened id)
              article-whole   (<! (db/<article-get-by-id id))
              final-res       (<! (db/<article-attach-words article-whole))]

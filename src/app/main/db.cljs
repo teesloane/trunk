@@ -172,7 +172,6 @@
 
 (defn <word-get
   [word_id]
-  (prn "word get called" word_id)
   (<sql {:op :get
          :sql "SELECT * FROM words WHERE word_id = ?"
          :params [word_id]}))
