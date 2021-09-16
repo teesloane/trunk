@@ -51,6 +51,9 @@
                    :current-view current-view
                    :id           (l :id)}])]]))
 
+(defn page-heading
+  [text]
+  [:h2.text-2xl.mb-2 text])
 
 (defn article
   "Display a single article in the article list view."
