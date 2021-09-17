@@ -3,7 +3,7 @@
    [app.main.db :as db]
    [app.main.ipc :as ipc]
    [app.main.windows :as windows]
-   ["electron" :refer [BrowserWindow BrowserView app]]))
+   ["electron" :refer [app]]))
 
 (enable-console-print!)
 
