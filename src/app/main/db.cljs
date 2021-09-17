@@ -1,19 +1,10 @@
 (ns app.main.db
   (:require
    [app.shared.util :as u]
-   [cljs.core.async :refer [promise-chan put!]]
-   [clojure.pprint]
-   [clojure.string :as str]
-   ["fs" :as fs]
    ["better-sqlite3" :as sqlite]
-   #_["sqlite3" :as sqlite]))
-
-;; (def db-path "./trunk.db")
-;; (def db (sqlite/Database. db-path))
+   [clojure.string :as str]))
 
 (def db (sqlite. "./trunk.db"))
-
-;; (defn db-del!  [] (.unlinkSync fs db-path))
 
 (defn wipe! []
   (println "wipe!  called")
@@ -52,112 +43,86 @@
 
 ;; -- Helpers -----------------------------------------------------------------
 
-;; (defn <sql
-;;   "Creates a sql operation that returns a channel, allowsing for async/await like syntax.
-;;   Has been abstracted to handle variety of return types depending on sql op(eration)"
-;;   [{:keys [sql params op]}]
-;;   (let [out    (promise-chan)
-;;         err-text (str "Failed to run async query of type " (name op))
-;;         params (apply array params) ;; TODO - if this is not a sequence, handle it?
-;;         cb     (fn [err res]
-;;                  (this-as this
-;;                           (if err
-;;                             (put! out (ex-info err-text {:error :sql-error :res res}))
-;;                      ;; TODO nil - nothing coming back.
-;;                             (cond
-;;                               (= :insert op) (put! out (.-lastID ^js this))
-;;                               res            (put! out (js->clj res :keywordize-keys true))
-;;                               :else          (put! out (js->clj this :keywordize-keys true))))))]
-
-;;     (case op
-;;       :all    (.all db sql params cb)
-;;       :get    (.get db sql params cb)
-;;       :insert (.run db sql params cb)
-;;       :run    (.run db sql params cb))
-;;     out))
+(defn sql
+  [{:keys [stmt params op]}]
+  (let [prepared (.prepare db stmt)
+        params   (apply array params)]
+    (js->clj
+     (case op
+       :all (if params (.all prepared params) (.all prepared))
+       :get (if params (.get prepared params) (.get prepared))
+       :run (if params (.run prepared params) (.run prepared)))
+     :keywordize-keys true)))
 
 ;; -- DB calls -----------------------------------------------------------------
 
-;; (defn <articles-get
-;;   []
-;;   (<sql {:op :all :sql "SELECT * FROM articles ORDER BY date_created DESC"}))
+(defn article-get-by-id
+  [id]
+  (sql {:stmt "SELECT * FROM articles WHERE article_id = ?"
+        :op :get
+        :params [id]}))
 
 (defn articles-get
   []
-  ;; const stmt = db.prepare('SELECT name, age FROM cats');
-  (let [stmt (.prepare db "SELECT * FROM articles ORDER BY date_created DESC")
-        res  (.all stmt)]
-    res))
+  (sql {:stmt "SELECT * FROM articles ORDER BY date_created DESC"
+        :op :all}))
 
-;; Look into preparing statements -- less recursion:
-;; https://stackoverflow.com/questions/28803520/does-sqlite3-have-prepared-statements-in-node-js
-(defn <article-attach-words
-  "Split up word_ids in an article, and query for each word. This is/will be slow."
+(defn article-update-last-opened
+  [id]
+  (sql {:stmt "UPDATE articles SET last_opened = ? WHERE article_ID = ?"
+        :op :run
+        :params [(js/Date.now) id]}))
+
+(defn article-attach-words
   [article]
-  (let [word-ids   (get article :word_ids)
-        words-orig (str/split word-ids "$") ;; FIXME: shouldn't this be (u/split-article article)?
-        out-chan   (promise-chan)]
-    (letfn [(recurse [words out]
-              (if (= (count out) (count words-orig))
-                (put! out-chan (clj->js (assoc article :word-data out)))
-                (let [[x & xs] words]
-                  (.get db "SELECT * FROM words WHERE word_id = ?" (array x)
-                        (fn [err row]
-                          (recurse xs (conj out (js->clj row))))))))]
-      (recurse words-orig []))
-    out-chan))
+  (let [word-ids      (get article :word_ids)
+        words-ids-vec (str/split word-ids "$") ;; FIXME: shouldn't this be (u/split-article article)?
+        words-out     (atom [])]
+    (doseq [word-id words-ids-vec]
+      (let [res (sql {:stmt   "SELECT * FROM words WHERE word_id = ?"
+                      :params [word-id]
+                      :op     :get})]
+        (swap! words-out conj res)))
+    (assoc article :word-data @words-out)))
 
-(defn <article-update-last-opened
-  "Sets the last-opened value of an article."
-  [id]
-  (<sql
-   {:sql    "UPDATE articles SET last_opened = ? WHERE article_id = ?"
-    :op     :run
-    :params [(js/Date.now) id]}))
-
-(defn <article-get-by-id
-  "Fetches an article by id."
-  [id]
-  (<sql
-   {:sql    "SELECT * FROM articles WHERE article_id = ?"
-    :op     :get
-    :params [id]}))
-
-(defn <article-insert
+(defn article-insert
   "Creates a new article. Requirements:
   -> words for article are already in words table.
   -> words from article have been re-queries
   -> requiriesed words' ids have been made into a delimited string with $."
   [{:keys [article title source word_ids]}]
-  (<sql {:op     :insert
-         :params [article word_ids title source (js/Date.now)]
-         :sql "INSERT INTO articles(original, word_ids, name, source, date_created) VALUES (?, ?, ?, ?, ?)"}))
+  (sql {:op     :run
+        :params [article word_ids title source (js/Date.now)]
+        :stmt    "INSERT INTO articles(original, word_ids, name, source, date_created) VALUES (?, ?, ?, ?, ?)"}))
 
-(defn <get-word-ids
+(defn word-get
+  [word_id]
+  (sql {:op :get
+        :stmt "SELECT * FROM words WHERE word_id = ?"
+        :params [word_id]}))
+
+(defn word-update
+  [data]
+  (let [{:keys [translation comfort slug]} data]
+    (sql {:op :run
+          :stmt "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
+          :params [comfort translation slug]})))
+
+(defn words-get-ids-for-article
   "Before inserting an article, we need to get the id for each word in the db
   then we can build a delimited string that will get stored under the `word_ids` column"
   [article-str]
-  (prn "insize get -words ids" article-str)
   (let [article-str-vec (u/split-article article-str)
-        word-ids        []
-        query           "SELECT word_id FROM words WHERE slug = ? AND name = ?"
-        out-chan        (promise-chan)]
-    ;; Now some recursion...
-    (letfn [(iterate-words [words word-ids cb]
-              (if (empty? words)
-                (cb word-ids) ;; <1> ;; see 1 below for implementation
-                (let [[frst & rst] words
-                      slug-word    (u/slug-word frst)
-                      vals         (array slug-word frst)]
-                  (.get db query vals
-                        (fn [err res]
-                          ;; TODO - handle errs - if there is ever an err it should abort.
-                          (iterate-words rst (conj word-ids (.-word_id ^js res)) cb))))))]
-      (iterate-words article-str-vec [] (fn [word-ids] ;; <1>
-                                          (put! out-chan (u/delimit-article word-ids)))))
-    out-chan))
+        word-ids        (atom [])
+        query           "SELECT word_id FROM words WHERE slug = ? AND name = ?"]
+    (doseq [word article-str-vec]
+      (let [res (sql {:op :get
+                      :stmt query
+                      :params [(u/slug-word word) word]})]
+        (swap! word-ids conj (get res :word_id))))
+    (u/delimit-article @word-ids)))
 
-(defn <insert-words
+(defn words-insert
   "Splits a string and inserts each word into the `words` table if it doesn't
   exist."
   [word-str]
@@ -165,34 +130,7 @@
         placeholders (str/join ", " (map (fn [w] "(?, ?)") words)) ;; this is annoying
         params         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
         queryWords   (str "INSERT OR IGNORE INTO words(name, slug) VALUES " placeholders)]
-    (<sql {:op :insert :sql queryWords :params params})))
-
-;; This isn't really being used yet:
-;; (defn article-update
-;;   "Article update wholesale patches a new article into an existing one; ie,
-;;   the entire `article` map is taken from the frontend and put into the db
-;;   regardless of what has changed.
-;;   Takes a object of values to update an article by."
-;;   [data cb]
-;;   (let [sql     "UPDATE articles SET name = $name, source = $source, original = $original, word_ids = $word_ids, date_created = $date_created"
-;;         columns (dissoc data :word-data :article_id, :last_opened) ;; num of coulmns must match num of placeholders in sql statement.
-;;         params  (u/map->js-obj->sql columns)]
-;;     (.run db sql params (fn [err _]
-;;                           (println err) ;; TODO: column error out of range.
-;;                           (article-get (data :article_id) cb)))))
-
-(defn <word-get
-  [word_id]
-  (<sql {:op :get
-         :sql "SELECT * FROM words WHERE word_id = ?"
-         :params [word_id]}))
-
-(defn <word-update
-  [data]
-  (let [{:keys [word_id translation comfort slug]} data]
-    (<sql {:op :insert ; it's the same as update anyway for now.
-           :sql "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
-           :params [comfort translation slug]})))
+    (sql {:op :run :stmt queryWords :params params})))
 
 (defn init
   []

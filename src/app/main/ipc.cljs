@@ -1,9 +1,8 @@
 (ns app.main.ipc
   (:require
    [app.main.db :as db]
-   [app.shared.ipc-events :refer [s-ev]]
    [app.main.windows :as windows]
-   [cljs.core.async :refer [<! go]]
+   [app.shared.ipc-events :refer [s-ev]]
    ["electron" :refer [ipcMain]]))
 
 (defn reply!
@@ -19,46 +18,42 @@
   ;; creating a 2500~ word article: 580.027ms
   {(s-ev :article-create)
    (fn [event data]
-     (go (let [_                (<! (db/<insert-words (data :article)))
-               word-ids-str     (<! (db/<get-word-ids (data :article)))
-               inserted-article (<! (db/<article-insert (merge data {:word_ids word-ids-str})))]
-           (reply! event (s-ev :article-created) inserted-article))))
+     (let [_                (db/words-insert (data :article))
+           word-ids-str     (db/words-get-ids-for-article (data :article))
+           inserted-article (db/article-insert (merge data {:word_ids word-ids-str}))]
+       (reply! event (s-ev :article-created) inserted-article)))
 
    (s-ev :articles-get)
    (fn [event data]
-     (prn (db/articles-get))
-     (reply! event (s-ev :articles-received) (db/articles-get))
+     (let [res (db/articles-get)]
+       (reply! event (s-ev :articles-received) res)))
 
-     #_(go (reply! event (s-ev :articles-received) (<! (db/<articles-get)))))
-
+   ;; BEFORE, on node-sqlite3 (mapbox)
    ;; Time to get article with 341 words: 92.222ms
    ;; Time to get article with 2500~ words: 630.365ms
    ;; Time to get an article with
+   ;; AFTER, on better-sqlite3
+   ;; Time to get article with 341 words: 52.726ms
+   ;; Time to get article with 2500~ words: 251.335ms
    (s-ev :article-get)
    (fn [event data]
-     (go (let [id              (data :article_id)
-             updated-article (db/<article-update-last-opened id)
-             article-whole   (<! (db/<article-get-by-id id))
-             final-res       (<! (db/<article-attach-words article-whole))]
-         (reply! event (s-ev :article-received) final-res))))
-
-   ;; (s-ev :article-update)
-   ;; (fn [event data]
-   ;;   (db/article-update data (fn [data]
-   ;;                             (reply! event (s-ev :article-updated) data))))
+     (let [id            (data :article_id)]
+       (db/article-update-last-opened id)
+       (->> id
+            db/article-get-by-id
+            db/article-attach-words
+            (reply! event (s-ev :article-received)))))
 
    (s-ev :word-update)
    (fn [event data]
-     (go
-       (let [_   (<! (db/<word-update data))
-             res (<! (db/<word-get (data :word_id)))]
-         (reply! event (s-ev :word-updated) res))))
+     (let [_   (db/word-update data)
+           res (db/word-get (data :word_id))]
+       (reply! event (s-ev :word-updated) res)))
 
    (s-ev :wipe-db!)
    (fn [event data] (db/wipe!))
 
-
-   ;; -- Translation window
+;; -- Translation window
 
    (s-ev :t-win-open)
    (fn [event data]
@@ -68,10 +63,7 @@
    (s-ev :t-win-close)
    (fn [event data]
      (windows/t-win-close)
-     (reply! event (s-ev :t-win-closed) nil))
-
-   })
-
+     (reply! event (s-ev :t-win-closed) nil))})
 
 ;; dev mode:
 ;; Hot-reloading with shadow-cljs seems to re-run event `on` handlers
