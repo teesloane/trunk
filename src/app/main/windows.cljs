@@ -30,9 +30,9 @@
              :width  (int containerWidth)
              :height (int containerHeight)}]
   (reset! t-win (BrowserView.))
-  (.setBrowserView @main-window @t-win)
-  (.setBounds @t-win (clj->js pos))
-  (.loadURL (.-webContents @t-win )
+  (.setBrowserView ^BrowserWindow @main-window @t-win)
+  (.setBounds ^BrowserView @t-win (clj->js pos))
+  (.loadURL ^js (.-webContents ^BrowserView @t-win )
             (if current-word
               ;; TODO: make language selectable / dynamic
               (str "https://translate.google.com" "?sl=fr&tl=en&text=" current-word "&op=translate")
@@ -40,6 +40,6 @@
 
 (defn t-win-close
   []
-  (.removeBrowserView @main-window @t-win)
+  (.removeBrowserView ^BrowserWindow @main-window @t-win)
   (reset! t-win nil)
   )
