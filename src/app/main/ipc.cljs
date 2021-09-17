@@ -11,6 +11,7 @@
   Data going over ipc MUST be in JS, so it is converted here.
   "
   [electron-event event-name data]
+  ;; TODO, if event-name isn't around, throw an error.
   (js/electron-event.reply (name event-name) (clj->js data)))
 
 ;; TODO, could loop through a list to create this, or make a partial "handle" func?
@@ -25,7 +26,10 @@
 
    (s-ev :articles-get)
    (fn [event data]
-     (go (reply! event (s-ev :articles-received) (<! (db/<articles-get)))))
+     (prn (db/articles-get))
+     (reply! event (s-ev :articles-received) (db/articles-get))
+
+     #_(go (reply! event (s-ev :articles-received) (<! (db/<articles-get)))))
 
    ;; Time to get article with 341 words: 92.222ms
    ;; Time to get article with 2500~ words: 630.365ms

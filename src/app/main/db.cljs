@@ -5,12 +5,16 @@
    [clojure.pprint]
    [clojure.string :as str]
    ["fs" :as fs]
-   ["sqlite3" :as sqlite]))
+   ["better-sqlite3" :as sqlite]
+   #_["sqlite3" :as sqlite]))
 
-(def db-path "./trunk.db")
-(def db (sqlite/Database. db-path))
+;; (def db-path "./trunk.db")
+;; (def db (sqlite/Database. db-path))
 
-(defn db-del!  [] (.unlinkSync fs db-path))
+(def db (sqlite. "./trunk.db"))
+
+;; (defn db-del!  [] (.unlinkSync fs db-path))
+
 (defn wipe! []
   (println "wipe!  called")
   (.exec db "DELETE FROM words; DELETE FROM articles;" #(println %)))
@@ -48,35 +52,42 @@
 
 ;; -- Helpers -----------------------------------------------------------------
 
-(defn <sql
-  "Creates a sql operation that returns a channel, allowsing for async/await like syntax.
-  Has been abstracted to handle variety of return types depending on sql op(eration)"
-  [{:keys [sql params op]}]
-  (let [out    (promise-chan)
-        err-text (str "Failed to run async query of type " (name op))
-        params (apply array params) ;; TODO - if this is not a sequence, handle it?
-        cb     (fn [err res]
-                 (this-as this
-                          (if err
-                            (put! out (ex-info err-text {:error :sql-error :res res}))
-                     ;; TODO nil - nothing coming back.
-                            (cond
-                              (= :insert op) (put! out (.-lastID ^js this))
-                              res            (put! out (js->clj res :keywordize-keys true))
-                              :else          (put! out (js->clj this :keywordize-keys true))))))]
+;; (defn <sql
+;;   "Creates a sql operation that returns a channel, allowsing for async/await like syntax.
+;;   Has been abstracted to handle variety of return types depending on sql op(eration)"
+;;   [{:keys [sql params op]}]
+;;   (let [out    (promise-chan)
+;;         err-text (str "Failed to run async query of type " (name op))
+;;         params (apply array params) ;; TODO - if this is not a sequence, handle it?
+;;         cb     (fn [err res]
+;;                  (this-as this
+;;                           (if err
+;;                             (put! out (ex-info err-text {:error :sql-error :res res}))
+;;                      ;; TODO nil - nothing coming back.
+;;                             (cond
+;;                               (= :insert op) (put! out (.-lastID ^js this))
+;;                               res            (put! out (js->clj res :keywordize-keys true))
+;;                               :else          (put! out (js->clj this :keywordize-keys true))))))]
 
-    (case op
-      :all    (.all db sql params cb)
-      :get    (.get db sql params cb)
-      :insert (.run db sql params cb)
-      :run    (.run db sql params cb))
-    out))
+;;     (case op
+;;       :all    (.all db sql params cb)
+;;       :get    (.get db sql params cb)
+;;       :insert (.run db sql params cb)
+;;       :run    (.run db sql params cb))
+;;     out))
 
 ;; -- DB calls -----------------------------------------------------------------
 
-(defn <articles-get
+;; (defn <articles-get
+;;   []
+;;   (<sql {:op :all :sql "SELECT * FROM articles ORDER BY date_created DESC"}))
+
+(defn articles-get
   []
-  (<sql {:op :all :sql "SELECT * FROM articles ORDER BY date_created DESC"}))
+  ;; const stmt = db.prepare('SELECT name, age FROM cats');
+  (let [stmt (.prepare db "SELECT * FROM articles ORDER BY date_created DESC")
+        res  (.all stmt)]
+    res))
 
 ;; Look into preparing statements -- less recursion:
 ;; https://stackoverflow.com/questions/28803520/does-sqlite3-have-prepared-statements-in-node-js
