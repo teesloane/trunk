@@ -13,18 +13,18 @@
     (let [loading? (<| [::subs/loading?])
           words    (<| [::subs/words])
           headers  ["Words" "Translation" "Comfort"]
-          th-stz   {:class "text-left p-2 text-blue-400 border"}]
+          th-stz   "text-left p-2 text-blue-400 border"]
       [component/container
-       [:div
+       [:div {:key "word-list"}
         [:div.text-center [component/page-heading "Your Words"]]
         (when-not loading?
           [:table.block.mt-8.table-auto.w-full.bg-white.border
            [:thead.flex.w-full
-            [:tr.border-b.flex.w-full (map #(vec [:th.flex.w-full th-stz %]) headers)]]
+            [:tr.border-b.flex.w-full (map #(vec [:th.flex.w-full {:key % :class th-stz} %]) headers)]]
            [:tbody.overflow-auto.w-full.block {:style {:height "75vh"}}
             (for [word words
                   :let [{:keys [name translation comfort]} word]]
-              [:tr.flex.w-full
+              [:tr.flex.w-full {:key name}
                [:td.flex.w-full.border-r.border-b.p-2 name]
                [:td.flex.w-full.border-r.border-b.p-2 translation]
                [:td.flex.w-full.border-r.border-b.p-2

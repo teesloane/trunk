@@ -17,7 +17,7 @@
      [:div.text-sm
       [:div.flex
        (map-indexed (fn [idx [k v]]
-                      [:div.text-xs
+                      [:div.text-xs {:key k}
                        [:span k v]
                        (when-not (= (count metadata) (inc idx))
                          [:span.mx-2 "|"])]) metadata)]
