@@ -38,7 +38,7 @@
            [:span "Click " [:span.font-bold.text-gray-700 "\"Create Article\""] [:span " above to get started."]]]]]
         [component/container
          [:div {:key "view-article-list"} ;; keep react happy.
-          [:div.text-center.mb-16 [component/page-heading "Your articles"]]
+          [component/page-heading "Your articles"]
           (when articles
             (map-indexed (fn [idx item]
                            [:div.cursor-pointer.mb-4 {:key idx :on-click #(nav! "article" item)}

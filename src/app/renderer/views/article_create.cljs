@@ -8,14 +8,14 @@
 
 (defn view
   []
-  (let [input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border rounded-lg focus:outline-none text-sm my-2 dark:bg-gray-700 dark:text-white"
+  (let [input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-700 dark:text-white"
         form         (r/atom {:article "" :title "" :source ""})
         update-form  (fn [event k]
                        (swap! form assoc k (-> event .-target .-value)))]
     (fn []
       [component/container
        [:div.flex.flex-col {:key "view-article-list"}
-        [:div.text-center.mb-8 [component/page-heading "Create a new article"]]
+        [component/page-heading "Create a new article"]
         [:input
          {:class       input-stz
           :placeholder "Article Title"

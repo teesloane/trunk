@@ -53,7 +53,7 @@
         {:keys [name word-data]} current-article]
     [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
      [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 md:border-r bg-white"}
-      [:div.text-center.mb-10 [component/page-heading name]]
+      [component/page-heading name]
       [:div.leading-8.px-4.flex.flex-wrap.max-w-5xl.mx-auto
        (map-indexed (fn [index word]
                       ^{:key (str word "-" index)}

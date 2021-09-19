@@ -55,7 +55,8 @@
 
 (defn page-heading
   [text]
-  [:h2.text-2xl.mb-2 text])
+  [:div.text-center.mb-16
+   [:h2.text-2xl text]])
 
 
 (defn article-word
