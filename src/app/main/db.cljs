@@ -4,6 +4,9 @@
    ["better-sqlite3" :as sqlite]
    [clojure.string :as str]))
 
+;; const Database = require('better-sqlite3');
+;; const db = new Database('foobar.db', { verbose: console.log });
+
 (def db (sqlite. "./trunk.db"))
 
 (defn wipe! []
@@ -19,6 +22,10 @@
 ;; an UPDATE! call where slug matches, while at the same time allowing multiple
 ;; versions of their actual spelling and ID, making it possible to reconstruct
 ;; the word from the delimisted string (word_ids) in the article table.
+
+;; FIXME: words table needs new columns
+;; TODO - last updated
+;; TODO - last seen
 (def db-seed "
 
   CREATE TABLE IF NOT EXISTS words (
@@ -76,7 +83,7 @@
 (defn article-attach-words
   [article]
   (let [word-ids      (get article :word_ids)
-        words-ids-vec (str/split word-ids "$") ;; FIXME: shouldn't this be (u/split-article article)?
+        words-ids-vec (u/split-delimited-article word-ids)
         words-out     (atom [])]
     (doseq [word-id words-ids-vec]
       (let [res (sql {:stmt   "SELECT * FROM words WHERE word_id = ?"
@@ -100,6 +107,10 @@
   (sql {:op :get
         :stmt "SELECT * FROM words WHERE word_id = ?"
         :params [word_id]}))
+
+(defn words-get
+  []
+  (sql {:op :all :stmt "SELECT * FROM words GROUP BY slug ORDER BY translation DESC"}))
 
 (defn word-update
   [data]

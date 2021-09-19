@@ -8,6 +8,7 @@
 
 (rf/reg-sub ::current-view     (fn [db] (db :current-view)))
 (rf/reg-sub ::articles         (fn [db] (db :articles)))
+(rf/reg-sub ::words            (fn [db] (db :words)))
 (rf/reg-sub ::current-article  (fn [db] (db :current-article)))
 (rf/reg-sub ::current-word     (fn [db] (db :current-word)))
 (rf/reg-sub ::current-word-idx (fn [db] (db :current-word-idx)))

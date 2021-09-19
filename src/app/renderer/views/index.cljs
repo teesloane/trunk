@@ -6,6 +6,7 @@
    [app.renderer.views.article :as article]
    [app.renderer.views.article-create :as article-create]
    [app.renderer.views.article-list :as article-list]
+   [app.renderer.views.words :as words]
    [app.shared.ipc-events :refer [s-ev]]))
 
 (defn loading-wheel
@@ -44,4 +45,5 @@
        "article-list"   [article-list/view]
        "article-create" [article-create/view]
        "article"        [article/view]
+       "words"          [words/view]
        nil              [article-list/view])]))

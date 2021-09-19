@@ -1,6 +1,6 @@
 (ns app.shared.util
-  (:require [clojure.string :as str]))
-
+  (:require
+   [clojure.string :as str]))
 
 (defn print-deep-js
   [o]
@@ -8,6 +8,8 @@
 
 (def log (.-log js/console))
 
+(def comfort-col
+  {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-white"})
 
 (defn seq->sql-placeholder
   [seq]
@@ -19,12 +21,18 @@
 (defn split-article
   "Splits a string by whitespace and punctuation"
   [string]
-  (let [re  #"(\s+|[.,!?:;\"])"
+  (let [re  #"(\s+|[.,!?«»:;—\"])"
         res (str/split string re)
         res (filter (fn [s]
                       (and (not= s " ")
                            (not= s ""))) res)]
     (vec res)))
+
+(split-article "«foo bar ba, bo—»")
+
+(defn split-delimited-article
+  [word-ids]
+  (str/split word-ids "$"))
 
 (defn delimit-article
   "Turns a string of ids into a delimited$by$dollar$sign"
@@ -40,7 +48,7 @@
   [s]
   (if (nil? s)
     false
-    (re-matches #"[!,\/?\.:\"()]" s)))
+    (re-matches #"[!,\/?\.»«—:;\"()]" s)))
 
 (defn is-punctuation-or-newline?
   "Check's if a string is a punctuation item(s) or newline(s)."
@@ -48,7 +56,6 @@
   (if (nil? s)
     false
     (not (nil? (re-matches  #"[,!.\"\'?\-\n]*" s)))))
-
 
 ;; -- db functionality selector things?
 
@@ -61,7 +68,6 @@
   [s]
   (str/lower-case s))
 
-
 (defn map->js-obj->sql
   "Convert a clojure map into a suitable object for sqlite queries."
   [m]
@@ -69,7 +75,6 @@
        (map (fn [[k v]] [(str "$" (name k)) v]))
        (into {})
        (clj->js)))
-
 
 (defn trunc
   [s n]

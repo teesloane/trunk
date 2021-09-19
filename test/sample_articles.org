@@ -1,186 +1,307 @@
 #+TITLE: Sample_articles
 
 
-*  [[https://ici.radio-canada.ca/nouvelle/1815882/quebec-plan-rentree-scolaire-roberge][Québec : une rentrée avec masque dans les aires communes, mais pas en classe]]
+* Compte 1 - First few paragraphs
+Le 24 février 1815, la vigie de Notre-Dame de la Garde signala le trois-mâts le Pharaon, venant de Smyrne, Trieste et Naples.
 
-Le ministre de l'Éducation du Québec, Jean-François Roberge, a fait savoir
-mercredi lors de la présentation du plan du gouvernement en vue de la rentrée
-scolaire 2021-2022 qu'en raison des risques que fait peser le variant Delta, le
-masque devra être porté par les élèves du primaire et du secondaire en certaines
-circonstances.
+Comme d'habitude, un pilote côtier partit aussitôt du port, rasa le château d'If, et alla aborder le navire entre le cap de Morgion et l'île de Rion.
 
-En fait, les élèves pourront évoluer sans masque pour la plus grande partie de
-leur présence à l'école, soit en classe, à l'extérieur et au service de garde.
-Celui-ci sera cependant requis dans les autobus scolaires, où des places seront
-assignées aux élèves, et dans les aires communes.
+Aussitôt, comme d'habitude encore, la plate-forme du fort Saint-Jean s'était couverte de curieux; car c'est toujours une grande affaire à Marseille que l'arrivée d'un bâtiment, surtout quand ce bâtiment, comme le Pharaon, a été construit, gréé, arrimé sur les chantiers de la vieille Phocée, et appartient à un armateur de la ville.
 
-Les autobus et les aires communes sont des endroits où les jeunes se retrouvent
-souvent entassés et au coude-à-coude, a fait valoir le ministre Roberge, ce qui
-requiert plus de précautions, dit-il.
+Cependant ce bâtiment s'avançait; il avait heureusement franchi le détroit que quelque secousse volcanique a creusé entre l'île de Calasareigne et l'île de Jaros; il avait doublé Pomègue, et il s'avançait sous ses trois huniers, son grand foc et sa brigantine, mais si lentement et d'une allure si triste, que les curieux, avec cet instinct qui pressent un malheur, se demandaient quel accident pouvait être arrivé à bord. Néanmoins les experts en navigation reconnaissaient que si un accident était arrivé, ce ne pouvait être au bâtiment lui-même; car il s'avançait dans toutes les conditions d'un navire parfaitement gouverné: son ancre était en mouillage, ses haubans de beaupré décrochés; et près du pilote, qui s'apprêtait à diriger le Pharaon par l'étroite entrée du port de Marseille, était un jeune homme au geste rapide et à l'œil actif, qui surveillait chaque mouvement du navire et répétait chaque ordre du pilote.
 
-Quant aux enseignants, ils ne seront pas obligés de porter le masque en classe
-si une distance de deux mètres avec les élèves est respectée. Il n'est pas non
-plus question pour le moment d'obliger les enseignants à se faire vacciner.
+La vague inquiétude qui planait sur la foule avait particulièrement atteint un des spectateurs de l'esplanade de Saint-Jean, de sorte qu'il ne put attendre l'entrée du bâtiment dans le port; il sauta dans une petite barque et ordonna de ramer au-devant du Pharaon, qu'il atteignit en face de l'anse de la Réserve.
 
-Malgré la crainte d’une résurgence d’éclosions de COVID-19, le ministre Roberge
-a aussi fait savoir que les classes-bulles ne seront pas de mise cette année, ce
-qui permettra le retour des cours à option au secondaire, ainsi que les
-programmes de sport-études, d’arts-études et les activités parascolaires.
+En voyant venir cet homme, le jeune marin quitta son poste à côté du pilote, et vint, le chapeau à la main, s'appuyer à la muraille du bâtiment.
 
-* [[https://ici.radio-canada.ca/nouvelle/1817972/denis-villeneuve-dunes-mostra-venise][Denis Villeneuve aux portes de Dune]]
+C'était un jeune homme de dix-huit à vingt ans, grand, svelte, avec de beaux yeux noirs et des cheveux d'ébène; il y avait dans toute sa personne cet air calme et de résolution particulier aux hommes habitués depuis leur enfance à lutter avec le danger.
 
-Humble et réservé, Denis Villeneuve a frayé son chemin dans le brouhaha
-d'Hollywood depuis le triomphe à l'international avec son film Incendies (2010),
-enchaînant les succès Prisoners (2013), Enemy (2013), Sicario (2015), Arrival
-(2016) et Blade Runner 2049 (2017). À deux semaines de la première mondiale à la
-Mostra de Venise de la première partie de son adaptation du roman Dune, un des
-films les plus attendus de l'année, nous avons discuté pendant trente minutes.
+«Ah! c'est vous, Dantès! cria l'homme à la barque; qu'est-il donc arrivé, et pourquoi cet air de tristesse répandu sur tout votre bord?
 
-Il s'agit sans aucun doute d'un grand moment pour le cinéaste qui depuis un
-jeune âge voue un culte pour ce chef d'orchestre de la science-fiction qu'est
-Frank Herbert.
+—Un grand malheur, monsieur Morrel! répondit le jeune homme, un grand malheur, pour moi surtout: à la hauteur de Civita-Vecchia, nous avons perdu ce brave capitaine Leclère.
 
-"C'est un livre que j'ai dû lire au début de l'adolescence vers 13 ou 14 ans. Ce
-qu'on suit, c'est l'histoire d'un jeune homme qui se cherche, qui définit son
-identité, qui a de la difficulté à négocier avec son héritage génétique,
-familial et politique", explique-t-il. "Cette exploration des névroses, cette
-exploration du joug du passé, des voix intérieures, de comment on est influencé
-par notre éducation, génétiquement aussi, on transporte des douleurs, des
-colères, des générations précédentes. C'est quelque chose qui était présent dans
-Incendies aussi, ce sont des thèmes qui m'inspirent beaucoup."
+—Et le chargement? demanda vivement l'armateur.
 
-Après avoir été inspirée, l'adaptation de Dune a été un marathon longuement
-réfléchi. Il y a trente ans, le cinéaste de Bécancour a participé à l'émission
-La course Europe-Asie qu'il a remportée et pendant laquelle il a visité la
-Jordanie. C'est dans ce pays qu'il a tourné Incendies puis Dune.
+—Il est arrivé à bon port, monsieur Morrel, et je crois que vous serez content sous ce rapport; mais ce pauvre capitaine Leclère....
 
-"J'ai découvert la Jordanie durant la course, je suis allé tourner là-bas.
-J'étais attiré par le désert et à l'époque je voulais faire un film sur les
-Nabatéens, sur l'architecture de Pétra. Quand j'ai découvert cet espace-là et
-quand je suis retourné pour tourner Incendies, je me souviens d'avoir exploré
-des zones et de me dire que si jamais je faisais un film sur Dune, c'est ici que
-je le ferais", raconte-t-il.
+—Que lui est-il donc arrivé? demanda l'armateur d'un air visiblement soulagé; que lui est-il donc arrivé, à ce brave capitaine?
 
-"Ce sont des paysages qui me rappelaient les descriptions de Frank Herbert. Il y
-a une force dans le paysage jordanien. Comme disait un de mes collaborateurs,
-c'est un paysage tellement gigantesque que même si tu es athée tu te mets à
-croire en Dieu." Dune, prise deux
+—Il est mort.
 
-Denis Villeneuve connaît le roman "Dune" presque par coeur. Depuis ses débuts,
-sa vision semble être guidée par la grande phrase clé du roman de Frank
-Herbert : "Je ne connaîtrais pas la peur, car la peur tue l'esprit".
+—Tombé à la mer?
 
-Le Dune de David Lynch sorti 1984 avait laissé Denis Villeneuve sur son appétit,
-même s'il est un grand admirateur du réalisateur américain.
+—Non, monsieur; mort d'une fièvre cérébrale, au milieu d'horribles souffrances.»
 
-"On pourrait y voir un geste d'une immense arrogance de venir faire une autre
-adaptation de ce roman-là après celle de David Lynch. (...) J'ai senti que
-depuis le début, en voyant le film de Lynch, que c'est pas le film que j'avais
-rêvé. Je sentais qu'il y avait de la place pour une autre interprétation. Donc
-c'est juste un geste d'amour envers Frank Herbert", explique-t-il.
+Puis, se retournant vers ses hommes:
 
-Et pour ce geste d'amour, le réalisateur a beaucoup appris de son film Blade
-Runner 2049, un succès critique, mais pas le succès commercial escompté.
+«Holà hé! dit-il, chacun à son poste pour le mouillage!»
 
-"Le film Blade Runner 2049 avait la réputation d'être long et intellectuel.
-Comme réalisateur, on ne m'a pas donné tout l'argent du monde pour faire Dune,
-j'ai dû le faire dans un cadre précis parce que j'étais le gars qui venait de
-faire Blade Runner 2049."
+L'équipage obéit. Au même instant, les huit ou dix matelots qui le composaient s'élancèrent les uns sur les écoutes, les autres sur les bras, les autres aux drisses, les autres aux hallebas des focs, enfin les autres aux cargues des voiles.
 
-    On est aussi bon que le dernier film qu'on a fait dans ce milieu-là. Ça fait
-    partir du jeu.
+Le jeune marin jeta un coup d'œil nonchalant sur ce commencement de manœuvre, et, voyant que ses ordres allaient s'exécuter, il revint à son interlocuteur.
 
-Le Dune de Denis Villeneuve est une adaptation de près de 200 millions de
-dollars mettant en vedette une impressionnante distribution incluant entre
-autres Timothée Chalamet, Rebecca Ferguson et Oscar Isaac.
+«Et comment ce malheur est-il donc arrivé? continua l'armateur, reprenant la conversation où le jeune marin l'avait quittée.
 
-Chargement de l’image
+—Mon Dieu, monsieur, de la façon la plus imprévue: après une longue conversation avec le commandant du port, le capitaine Leclère quitta Naples fort agité; au bout de vingt-quatre heures, la fièvre le prit; trois jours après, il était mort....
 
-Timothée Chalamet et Rebecca Ferguson dans une scène tournée dans le désert de
-Jordanie.
+«Nous lui avons fait les funérailles ordinaires, et il repose, décemment enveloppé dans un hamac, avec un boulet de trente-six aux pieds et un à la tête, à la hauteur de l'île d'El Giglio. Nous rapportons à sa veuve sa croix d'honneur et son épée. C'était bien la peine, continua le jeune homme avec un sourire mélancolique, de faire dix ans la guerre aux Anglais pour en arriver à mourir, comme tout le monde, dans son lit.
 
-Photo : Chiabella James Warner
+—Dame! que voulez-vous, monsieur Edmond, reprit l'armateur qui paraissait se consoler de plus en plus, nous sommes tous mortels, et il faut bien que les anciens fassent place aux nouveaux, sans cela il n'y aurait pas d'avancement; et du moment que vous m'assurez que la cargaison....
 
-La sortie du film a été repoussée à cause de la pandémie et sa mise en marché a
-été maintes fois revue et corrigée. Warner Bros. a décidé en décembre 2020 de
-distribuer Dune aux États-Unis simultanément dans les salles de cinéma et sur
-son site de visionnement en ligne HBO MAX, ce qui a provoqué la colère de Denis
-Villeneuve qui a écrit une lettre ouverte vitriolique dans le magazine Variety.
+—Est en bon état, monsieur Morrel, je vous en réponds. Voici un voyage que je vous donne le conseil de ne point escompter pour 25.000 francs de bénéfice.»
 
-"Je maintiens ma position. L'idée que dans la crise il y a une décision
-unilatérale de sortir toute une série de films simultanément sur grand écran et
-dans un service de streaming, le premier problème est ne pas avoir consulté
-personne. C'est un coup de poignard dans le dos pour moi. Le cinéma est un
-travail d'équipe. Je n'y crois pas du tout à ce modèle-là."
+Puis, comme on venait de dépasser la tour ronde:
 
-"Ça m'a mis en colère et j'ai dit ce qui me semblait juste", ajoute-t-il. "Ce
-qui est dit est vrai. Il n'y avait pas de mauvaise foi. Je dédie ma vie au
-cinéma et le grand écran fait partie du langage".
+«Range à carguer les voiles de hune, le foc et la brigantine! cria le jeune marin; faites penaud!»
 
-    Il n'y a rien de plus touchant que d'être dans une salle de cinéma et de
-    vivre une vague d'émotions, on ne peut pas vivre ça à la maison. Les gens
-    qui vont voir Dune à la maison n'auront pas du tout la même expérience.
+L'ordre s'exécuta avec presque autant de promptitude que sur un bâtiment de guerre.
+* Compte 2 - Full chapter
+Laissons Danglars, aux prises avec le génie de la haine, essayer de souffler contre son camarade quelque maligne supposition à l'oreille de l'armateur, et suivons Dantès, qui, après avoir parcouru la Canebière dans toute sa longueur, prend la rue de Noailles, entre dans une petite maison située du côté gauche des Allées de Meilhan, monte vivement les quatre étages d'un escalier obscur, et, se retenant à la rampe d'une main, comprimant de l'autre les battements de son cœur, s'arrête devant une porte entre baillée, qui laisse voir jusqu'au fond d'une petite chambre.
 
-Tout pour l'amour du cinéma
+Cette chambre était celle qu'habitait le père de Dantès.
 
-Diplômé en cinéma de l'UQAM, Denis Villeneuve a un parcours impressionnant et il
-est parmi es réalisateurs les plus en vue. Il y a trente ans, il remportait La
-Course Europe-Asie, mais pour lui ça fait mille ans.
+La nouvelle de l'arrivée du Pharaon n'était encore parvenue au vieillard, qui s'occupait, monté sur une chaise, à palissader d'une main tremblante quelques capucines mêlées de clématites, qui montaient en grimpant le long du treillage de sa fenêtre.
 
-"Un film c'est comme un autoportrait, comme on se voit à l'adolescence, on voit
-juste les défauts. Donc je revois mes films tranquillement dans le temps",
-explique-t-il. "Pour des raisons techniques j'ai dû revoir Maelström après 20
-ans. C'est la première fois que je pouvais vraiment recevoir le film sans avoir
-toute la charge émotive qui vient avec la fabrication du film. Chaque film
-comporte son lot de déception, de colère, de déception face à soi-même. Ça prend
-du temps avant de pouvoir faire la paix avec ses films."
+Tout à coup il se sentit prendre à bras-le-corps, et une voix bien connue s'écria derrière lui:
 
-Incendies a célébré l'an dernier son dixième anniversaire. Un film qui l'habite
-encore, car Denis Villeneuve ne cesse de réfléchir en images.
+«Mon père, mon bon père!»
 
-Pour expliquer son ascension au firmament d'Hollywood, il nous confie ceci :
-"moi, je fais juste du cinéma! J'en mange, c'est ce que je fais, c'est ma vie"!
+Le vieillard jeta un cri et se retourna; puis, voyant son fils, il se laissa aller dans ses bras, tout tremblant et tout pâle.
 
-    Le cinéma c'est ce qui m'a permis d'être en relation avec le monde. C'est
-    une obsession.
+«Qu'as-tu donc, père? s'écria le jeune homme inquiet; serais-tu malade?
 
-"Mes enfants se moquent de moi parce que tous mes temps libres sont consacrés à
-ça. Donc il y a peut-être un côté compulsif, obsessif qui fait que ça m'a poussé
-là", admet-il. "Le reste il y a eu beaucoup de chance aussi. Dans tout mon
-parcours, il y a eu beaucoup de moments clés. J'ai eu un flair aussi pour
-m'associer aux bonnes personnes." Dune en première mondiale
+—Non, non, mon cher Edmond, mon fils, mon enfant, non; mais je ne t'attendais pas, et la joie, le saisissement de te revoir ainsi à l'improviste... mon Dieu! il me semble que je vais mourir!
 
-Dune sera présenté en première mondiale le 3 septembre à la Mostra de Venise, un
-festival qui a une portée symbolique pour Denis Villeneuve. Il s'y était déjà
-rendu en 2011 pour la sortie de son film Incendies et en 2016 pour son film
-Arrival.
+—Eh bien, remets-toi donc, père! c'est moi, bien moi! On dit toujours que la joie ne fait pas mal, et voilà pourquoi je suis entré ici sans préparation. Voyons, souris-moi, au lieu de me regarder comme tu le fais, avec des yeux égarés. Je reviens et nous allons être heureux.
 
-"Je vais être soulagé quand je vais être assis dans la salle. Les choses
-progressent tellement rapidement et il y a tellement de changements au
-quotidien. Je vais y croire quand je vais être assis là-bas. Je dirais que c'est
-un exercice de lâcher-prise la sortie de ce film. (...) Ça va sortir dans un
-contexte imparfait et j'accepte le fait que c'est la sécurité des gens avant
-tout".
+—Ah! tant mieux, garçon! reprit le vieillard, mais comment allons-nous être heureux? tu ne me quittes donc plus? Voyons, conte-moi ton bonheur.
 
-Denis Villeneuve affirme qu'il n'y a pas de version de quatre ou six heures de
-son film, que celle qui sera aussi présentée au Festival international du film
-de Toronto en septembre et dans les salles de cinéma le 22 octobre sera la
-bonne. On lui souhaite, car Warner Bros. attendra les résultats du box-office
-avant de financer le tournage de la deuxième partie.
+—Que le Seigneur me pardonne, dit le jeune homme, de me réjouir d'un bonheur fait avec le deuil d'une famille! Mais Dieu sait que je n'eusse pas désiré ce bonheur; il arrive, et je n'ai pas la force de m'en affliger: le brave capitaine Leclère est mort, mon père, et il est probable que, par la protection de M. Morrel, je vais avoir sa place. Comprenez-vous, mon père? capitaine à vingt ans! avec cent louis d'appointements et une part dans les bénéfices! n'est-ce pas plus que ne pouvait vraiment l'espérer un pauvre matelot comme moi?
 
-Denis Villeneuve garde la tête froide, concentré sur la sortie de Dune (première
-partie). Pour la suite, on verra. "J'essaie de ne pas trop m'éparpiller. Je suis
-quelqu'un d'assez monomanique. J'essaie de travailler sur un projet à la fois.
-La deuxième partie de Dune sera une priorité. Je commence à travailler sur un
-film sur la vie de Cléopâtre, qui est un projet qui m'habite depuis longtemps.
-C'est un projet que je n'aurais pas osé faire il y a dix ans, mais que
-maintenant j'ai les connaissances techniques pour pouvoir faire le film dont je
-rêve."
+—Oui, mon fils, oui, en effet, dit le vieillard, c'est heureux.
 
-"Il y a le deuxième livre de Dune, Le Messie de Dune, qui pourrait faire un film
-extraordinaire", croit-il. "J'ai toujours vu qu'il pourrait y avoir une
-trilogie, après ça on verra. C'est des années de travail, je ne vois pas aller
-plus loin que ça."
+—Aussi je veux que du premier argent que je toucherai vous ayez une petite maison, avec un jardin pour planter vos clématites, vos capucines et vos chèvrefeuilles.... Mais, qu'as-tu donc, père, on dirait que tu te trouves mal?
 
-Des extraits de cette entrevue seront diffusés le vendredi 20 août au
-Téléjournal avec Patrice Roy et au Téléjournal 22 h de Radio-Canada.
+—Patience, patience! ce ne sera rien.»
+
+Et, les forces manquant au vieillard, il se renversa en arrière.
+
+«Voyons! voyons! dit le jeune homme, un verre de vin, mon père; cela vous ranimera; où mettez-vous votre vin?
+
+—Non, merci, ne cherche pas; je n'en ai pas besoin, dit le vieillard essayant de retenir son fils.
+
+—Si fait, si fait, père, indiquez-moi l'endroit.»
+
+Et il ouvrit deux ou trois armoires.
+
+«Inutile... dit le vieillard, il n'y a plus de vin.
+
+—Comment, il n'y a plus de vin! dit en pâlissant à son tour Dantès, regardant alternativement les joues creuses et blêmes du vieillard et les armoires vides, comment, il n'y a plus de vin! Auriez-vous manqué d'argent, mon père?
+
+—Je n'ai manqué de rien, puisque te voilà, dit le vieillard.
+
+—Cependant, balbutia Dantès en essuyant la sueur qui coulait de son front, cependant je vous avais laissé deux cents francs, il y a trois mois, en partant.
+
+—Oui, oui, Edmond, c'est vrai; mais tu avais oublié en partant une petite dette chez le voisin Caderousse; il me l'a rappelée, en me disant que si je ne payais pas pour toi il irait se faire payer chez M. Morrel. Alors, tu comprends, de peur que cela te fît du tort....
+
+—Eh bien?
+
+—Eh bien, j'ai payé, moi.
+
+—Mais, s'écria Dantès, c'était cent quarante francs que je devais à Caderousse!
+
+—Oui, balbutia le vieillard.
+
+—Et vous les avez donnés sur les deux cent francs que je vous avais laissés?»
+
+Le vieillard fit un signe de tête.
+
+«De sorte que vous avez vécu trois mois avec soixante francs! murmura le jeune homme.
+
+—Tu sais combien il me faut peu de chose, dit le vieillard.
+
+—Oh! mon Dieu, mon Dieu, pardonnez-moi! s'écria Edmond en se jetant à genoux devant le bonhomme.
+
+—Que fais-tu donc?
+
+—Oh! vous m'avez déchiré le cœur.
+
+—Bah! te voilà, dit le vieillard en souriant; maintenant tout est oublié, car tout est bien.
+
+—Oui, me voilà, dit le jeune homme, me voilà avec un bel avenir et un peu d'argent. Tenez, père, dit-il, prenez, prenez, et envoyez chercher tout de suite quelque chose.»
+
+Et il vida sur la table ses poches, qui contenaient une douzaine de pièces d'or, cinq ou six écus de cinq francs et de la menue monnaie.
+
+Le visage du vieux Dantès s'épanouit.
+
+«À qui cela? dit-il.
+
+—Mais, à moi!... à toi!... à nous!... Prends, achète des provisions, sois heureux, demain il y en a d'autres.
+
+—Doucement, doucement, dit le vieillard en souriant; avec ta permission, j'userai modérément de la bourse: on croirait, si l'on me voyait acheter trop de choses à la fois, que j'ai été obligé d'attendre le retour pour les acheter.
+
+—Fais comme tu voudras; mais, avant toutes choses, prends une servante, père; je ne veux pas que tu restes seul. J'ai du café de contrebande et d'excellent tabac dans un petit coffre de la cale, tu l'auras dès demain. Mais chut! voici quelqu'un.
+
+—C'est Caderousse qui aura appris ton arrivée, et qui vient sans doute te faire son compliment de bon retour.
+
+—Bon, encore des lèvres qui disent une chose tandis que le cœur en pense une autre, murmura Edmond; mais, n'importe, c'est un voisin qui nous a rendu service autrefois, qu'il soit le bienvenu.»
+
+En effet, au moment où Edmond achevait la phrase à voix basse, on vit apparaître encadrée par la porte du palier, la tête noire et barbue de Caderousse. C'était un homme de vingt-cinq à vingt-six ans; il tenait à sa main un morceau de drap, qu'en sa qualité de tailleur il s'apprêtait à changer en un revers d'habit.
+
+«Eh! te voilà donc revenu, Edmond? dit-il avec un accent marseillais des plus prononcés et avec un large sourire qui découvrait ses dents blanches comme de l'ivoire.
+
+—Comme vous voyez, voisin Caderousse, et prêt à vous être agréable en quelque chose que ce soit, répondit Dantès en dissimulant mal sa froideur sous cette offre de service.
+
+—Merci, merci; heureusement, je n'ai besoin de rien, et ce sont même quelquefois les autres qui ont besoin de moi. (Dantès fit un mouvement.) Je ne te dis pas cela pour toi, garçon; je t'ai prêté de l'argent, tu me l'as rendu; cela se fait entre bons voisins, et nous sommes quittes.
+
+—On n'est jamais quitte envers ceux qui nous ont obligés, dit Dantès, car lorsqu'on ne leur doit plus l'argent, on leur doit la reconnaissance.
+
+—À quoi bon parler de cela! Ce qui est passé est passé. Parlons de ton heureux retour, garçon. J'étais donc allé comme cela sur le port pour rassortir du drap marron, lorsque je rencontrai l'ami Danglars.
+
+«—Toi, à Marseille?
+
+«—Eh oui, tout de même, me répondit-il.
+
+«—Je te croyais à Smyrne.
+
+«—J'y pourrais être, car j'en reviens.
+
+«—Et Edmond, où est-il donc, le petit?
+
+«—Mais chez son père, sans doute, répondit Danglars; et alors je suis venu, continua Caderousse, pour avoir le plaisir de serrer la main à un ami.
+
+—Ce bon Caderousse, dit le vieillard, il nous aime tant.
+
+—Certainement que je vous aime, et que je vous estime encore, attendu que les honnêtes gens sont rares! Mais il paraît que tu deviens riche, garçon?» continua le tailleur en jetant un regard oblique sur la poignée d'or et d'argent que Dantès avait déposée sur la table.
+
+Le jeune homme remarqua l'éclair de convoitise qui illumina les yeux noirs de son voisin.
+
+«Eh! mon Dieu! dit-il négligemment, cet argent n'est point à moi; je manifestais au père la crainte qu'il n'eût manqué de quelque chose en mon absence, et pour me rassurer, il a vidé sa bourse sur la table. Allons, père, continua Dantès, remettez cet argent dans votre tirelire; à moins que le voisin Caderousse n'en ait besoin à son tour, auquel cas il est bien à son service.
+
+—Non pas, garçon, dit Caderousse, je n'ai besoin de rien, et, Dieu merci l'état nourrit son homme. Garde ton argent, garde: on n'en a jamais de trop; ce qui n'empêche pas que je ne te sois obligé de ton offre comme si j'en profitais.
+
+—C'était de bon cœur, dit Dantès.
+
+—Je n'en doute pas. Eh bien, te voilà donc au mieux avec M. Morrel, câlin que tu es?
+
+—M. Morrel a toujours eu beaucoup de bonté pour moi, répondit Dantès.
+
+—En ce cas, tu as tort de refuser son dîner.
+
+—Comment, refuser son dîner? reprit le vieux Dantès; il t'avait donc invité à dîner?
+
+—Oui, mon père, reprit Edmond en souriant de l'étonnement que causait à son père l'excès de l'honneur dont il était l'objet.
+
+—Et pourquoi donc as-tu refusé, fils? demanda le vieillard.
+
+—Pour revenir plus tôt près de vous, mon père, répondit le jeune homme; j'avais hâte de vous voir.
+
+—Cela l'aura contrarié, ce bon M. Morrel, reprit Caderousse; et quand on vise à être capitaine, c'est un tort que de contrarier son armateur.
+
+—Je lui ai expliqué la cause de mon refus, reprit Dantès, et il l'a comprise, je l'espère.
+
+—Ah! c'est que, pour être capitaine, il faut un peu flatter ses patrons.
+
+—J'espère être capitaine sans cela, répondit Dantès.
+
+—Tant mieux, tant mieux! cela fera plaisir à tous les anciens amis, et je sais quelqu'un là-bas, derrière la citadelle de Saint-Nicolas, qui n'en sera pas fâché.
+
+—Mercédès? dit le vieillard.
+
+—Oui, mon père, reprit Dantès, et, avec permission, maintenant que je vous ai vu, maintenant que je sais que vous vous portez bien et que vous avez tout ce qu'il vous faut, je vous demanderai la permission d'aller faire visite aux Catalans.
+
+—Va, mon enfant, dit le vieux Dantès, et que Dieu te bénisse dans ta femme comme il m'a béni dans mon fils.
+
+—Sa femme! dit Caderousse; comme vous y allez, père Dantès! elle ne l'est pas encore, ce me semble!
+
+—Non; mais, selon toute probabilité, répondit Edmond, elle ne tardera pas à le devenir.
+
+—N'importe, n'importe, dit Caderousse, tu as bien fait de te dépêcher, garçon.
+
+—Pourquoi cela?
+
+—Parce que la Mercédès est une belle fille, et que les belles filles ne manquent pas d'amoureux; celle-là surtout, ils la suivent par douzaines.
+
+—Vraiment, dit Edmond avec un sourire sous lequel perçait une légère nuance d'inquiétude.
+
+—Oh! oui, reprit Caderousse, et de beaux partis même; mais, tu comprends, tu vas être capitaine, on n'aura garde de te refuser, toi!
+
+—Ce qui veut dire, reprit Dantès avec un sourire qui dissimulait mal son inquiétude, que si je n'étais pas capitaine....
+
+—Eh! eh! fit Caderousse.
+
+—Allons, allons, dit le jeune homme, j'ai meilleure opinion que vous des femmes en général, et de Mercédès en particulier, et, j'en suis convaincu, que je sois capitaine ou non, elle me restera fidèle.
+
+—Tant mieux! tant mieux! dit Caderousse, c'est toujours, quand on va se marier, une bonne chose que d'avoir la foi, mais, n'importe; crois-moi, garçon, ne perds pas de temps à aller lui annoncer ton arrivée et à lui faire part de tes espérances.
+
+—J'y vais», dit Edmond.
+
+Il embrassa son père, salua Caderousse d'un signe et sortit. Caderousse resta un instant encore; puis, prenant congé du vieux Dantès, il descendit à son tour et alla rejoindre Danglars, qui l'attendait au coin de la rue Senac.
+
+—Eh bien, dit Danglars, l'as-tu vu?
+
+—Je le quitte, dit Caderousse.
+
+—Et t'a-t-il parlé de son espérance d'être capitaine?
+
+—Il en parle comme s'il l'était déjà.
+
+—Patience! dit Danglars, il se presse un peu trop, ce me semble.
+
+—Dame! il paraît que la chose lui est promise par M. Morrel.
+
+—De sorte qu'il est bien joyeux?
+
+—C'est-à-dire qu'il en est insolent; il m'a déjà fait ses offres de service comme si c'était un grand personnage; il m'a offert de me prêter de l'argent comme s'il était un banquier.
+
+—Et vous avez refusé?
+
+—Parfaitement; quoique j'eusse bien pu accepter, attendu que c'est moi qui lui ai mis à la main les premières pièces blanches qu'il a maniées. Mais maintenant M. Dantès n'aura plus besoin de personne, il va être capitaine.
+
+—Bah! dit Danglars, il ne l'est pas encore.
+
+—Ma foi, ce serait bien fait qu'il ne le fût pas, dit Caderousse, ou sans cela il n'y aura plus moyen de lui parler.
+
+—Que si nous le voulons bien, dit Danglars, il restera ce qu'il est, et peut-être même deviendra moins qu'il n'est.
+
+—Que dis-tu?
+
+—Rien, je me parle à moi-même. Et il est toujours amoureux de la belle Catalane?
+
+—Amoureux fou. Il y est allé; mais ou je me trompe fort, ou il aura du désagrément de ce côté-là.
+
+—Explique-toi.
+
+—À quoi bon?
+
+—C'est plus important que tu ne crois. Tu n'aimes pas Dantès, hein?
+
+—Je n'aime pas les arrogants.
+
+—Eh bien, alors! dis-moi ce que tu sais relativement à la Catalane.
+
+—Je ne sais rien de bien positif; seulement j'ai vu des choses qui me font croire, comme je te l'ai dit, que le futur capitaine aura du désagrément aux environs du chemin des Vieilles-Infirmeries.
+
+—Qu'as-tu vu? allons, dis.
+
+—Eh bien, j'ai vu que toutes les fois que Mercédès vient en ville, elle y vient accompagnée d'un grand gaillard de Catalan à l'œil noir, à la peau rouge, très brun, très ardent, et qu'elle appelle mon cousin.
+
+—Ah! vraiment! et crois-tu que ce cousin lui fasse la cour?
+
+—Je le suppose: que diable peut faire un grand garçon de vingt et un ans à une belle fille de dix-sept?
+
+—Et tu dis que Dantès est allé aux Catalans?
+
+—Il est parti devant moi.
+
+—Si nous allions du même côté, nous nous arrêterions à la Réserve, et, tout en buvant un verre de vin de La Malgue, nous attendrions des nouvelles.
+
+—Et qui nous en donnera?
+
+—Nous serons sur la route, et nous verrons sur le visage de Dantès ce qui se sera passé.
+
+—Allons, dit Caderousse; mais c'est toi qui paies?
+
+—Certainement,» répondit Danglars.
+
+Et tous deux s'acheminèrent d'un pas rapide vers l'endroit indiqué. Arrivés là, ils se firent apporter une bouteille et deux verres. Le père Pamphile venait de voir passer Dantès il n'y avait pas dix minutes. Certains que Dantès était aux Catalans, ils s'assirent sous le feuillage naissant des platanes et des sycomores, dans les branches desquels une bande joyeuse d'oiseaux chantaient un des premiers beaux jours de printemps.

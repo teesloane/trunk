@@ -13,6 +13,8 @@
    :article-received  ::article-received
    :word-update       ::word-update
    :word-updated      ::word-updated
+   :words-get         ::words-get
+   :words-got         ::words-got
    :wipe-db!          ::wipe-db!
 
    ;; twin == translation window

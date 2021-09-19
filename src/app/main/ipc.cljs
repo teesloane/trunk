@@ -44,6 +44,13 @@
             db/article-attach-words
             (reply! event (s-ev :article-received)))))
 
+   ;; -- WORDS HANDLERS ---------------------------
+
+   (s-ev :words-get)
+   (fn [event data]
+     (let [res (db/words-get)]
+       (reply! event (s-ev :words-got) res)))
+
    (s-ev :word-update)
    (fn [event data]
      (let [_   (db/word-update data)

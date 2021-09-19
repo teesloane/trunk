@@ -139,6 +139,18 @@
         {:db (assoc (cofx :db) :loading? true)
          ::ipc-send! event}))
 
+(r-fx (s-ev :words-get)
+      (fn [cofx event]
+        {:db (assoc (cofx :db) :loading? true)
+         ::ipc-send! event}))
+
+(r-fx (s-ev :words-got)
+      (fn [cofx [_ data]]
+        {:db
+         (-> (cofx :db)
+             (assoc :loading? false)
+             (assoc :words data))}))
+
 (r-fx (s-ev :word-updated)
       (fn [cofx [event-name data]]
         (let [word-data (-> cofx :db :current-article :word-data)
@@ -166,7 +178,6 @@
               (assoc :current-word word)
               (assoc :current-word-idx index)))))
 
-
 ;; -- Translation Window -------------------------------------------------------
 
 (r-fx (s-ev :t-win-open)
@@ -184,7 +195,6 @@
       (fn [{:keys [db]} event]
         {:db         (assoc-in db [:t-win :open?] false)
          ::ipc-send! event}))
-
 
 ;; -- DEBUG THINGS -------------------------------------------------------------
 
@@ -225,11 +235,13 @@
    (fn [_ data]
      (|> [(s-ev :word-updated) data]))
 
+   (s-ev :words-got)
+   (fn [_ data]
+     (|> [(s-ev :words-got) data]))
+
    (s-ev :t-win-opened)
    (fn [_ data]
-     (|> [(s-ev :t-win-opened) data]))
-
-   })
+     (|> [(s-ev :t-win-opened) data]))})
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers

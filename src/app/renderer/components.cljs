@@ -19,7 +19,7 @@
 (defn container
   "This needs to have it's react-keys resolved."
   [children]
-  [:div {:class "mt-8 flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto"}
+  [:div {:class "mt-8 flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
    children])
 
 (defn empty-state
@@ -42,6 +42,7 @@
         current-article (<| [::subs/current-article])
         links           [{:text "Read" :id "article-list"}
                          {:text "Create Article" :id "article-create"}
+                         {:text "Words" :id "words"}
                          {:text (get current-article :name) :id "article"}]]
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
      [:div.inline-flex
@@ -75,8 +76,8 @@
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation]} word
-        comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
-        stz                                  (str (comfort-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
+        ;; comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
+        stz                                  (str (u/comfort-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
         is-current-word                      (and (= (dissoc word :comfort) (dissoc current-word :comfort))
                                                   (= index current-word-idx))
         ;; this is not working for some reason...
