@@ -22,11 +22,27 @@
   [:div {:class "mt-8 flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
    children])
 
+(defn trunk-logo
+  [{:keys [width]}]
+  [:img {:src "img/temp_logo.png"
+         :style {:width (or width 64) :height (or width 64)}}])
+
 (defn empty-state
   [children]
   [:div.flex.flex-col.h-screen.justify-center.items-center
-   [:div.my-4 "Trunk logo"]
-   [:div children]])
+   [trunk-logo {:width 64}]
+   [:div.mt-4 children]])
+
+
+(defn empty-state-with-msg
+  [{:keys [top-line bottom-line]
+    :or   {top-line    "You haven't created any articles yet."
+           bottom-line "Click \"Create Article\" above to get started."}}]
+  [empty-state
+   [:div.text-center.text-gray-400
+    [:div top-line]
+    [:div bottom-line]]])
+
 
 (defn nav-link
   [{:keys [on-click text id current-view]}]
@@ -45,13 +61,15 @@
                          {:text "Words" :id "words"}
                          {:text (get current-article :name) :id "article"}]]
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
-     [:div.inline-flex
-      (for [l links :when l]
-        [:div {:key (l :text)}
-         [nav-link {:on-click     #(nav! (l :id))
-                    :text         (l :text)
-                    :current-view current-view
-                    :id           (l :id)}]])]]))
+     [:div.flex.items-center
+      [trunk-logo {:width 24}]
+      [:div.flex.ml-8
+       (for [l links :when l]
+         [:div {:key (l :text)}
+          [nav-link {:on-click     #(nav! (l :id))
+                     :text         (l :text)
+                     :current-view current-view
+                     :id           (l :id)}]])]]]))
 
 (defn page-heading
   [text]

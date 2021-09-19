@@ -31,11 +31,7 @@
           nav!     (fn [_ article]
                      (|> [(s-ev :article-get) article]))]
       (if (empty? articles)
-        [component/empty-state
-         [:div.text-center.text-gray-400
-          [:div "You haven't made any articles yet."]
-          [:div
-           [:span "Click " [:span.font-bold.text-gray-700 "\"Create Article\""] [:span " above to get started."]]]]]
+        [component/empty-state-with-msg]
         [component/container
          [:div {:key "view-article-list"} ;; keep react happy.
           [component/page-heading "Your articles"]
