@@ -28,13 +28,6 @@
      (let [res (db/articles-get)]
        (reply! event (s-ev :articles-received) res)))
 
-   ;; BEFORE, on node-sqlite3 (mapbox)
-   ;; Time to get article with 341 words: 92.222ms
-   ;; Time to get article with 2500~ words: 630.365ms
-   ;; Time to get an article with
-   ;; AFTER, on better-sqlite3
-   ;; Time to get article with 341 words: 52.726ms
-   ;; Time to get article with 2500~ words: 251.335ms
    (s-ev :article-get)
    (fn [event data]
      (let [id            (data :article_id)]
@@ -66,6 +59,11 @@
    (fn [event data]
      (windows/t-win-init data)
      (reply! event (s-ev :t-win-opened) nil))
+
+   (s-ev :t-win-update-word)
+   (fn [event data]
+     (windows/t-win-update-word data)
+     (reply! event (s-ev :t-win-update-word) nil))
 
    (s-ev :t-win-close)
    (fn [event data]

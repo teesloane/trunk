@@ -18,9 +18,12 @@
    :wipe-db!          ::wipe-db!
 
    ;; twin == translation window
-   :t-win-open   ::t-win-open
-   :t-win-opened ::t-win-opened
-   :t-win-close  ::t-win-close
-   :t-win-closed ::t-win-closed
+   :t-win-open         ::t-win-open
+   :t-win-opened       ::t-win-opened
+   :t-win-close        ::t-win-close
+   :t-win-closed       ::t-win-closed
+   :t-win-update-word  ::t-win-update-word
+   :t-win-updated-word ::t-win-updated-word
+
    })
 

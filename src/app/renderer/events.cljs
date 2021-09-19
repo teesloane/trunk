@@ -71,12 +71,16 @@
 (r-fx :key-pressed-right
       (fn [{:keys [db]} [_ _]]
         (when (u/curr-word-view-open? db)
-          {:db (move-word :right db)})))
+          (let [new-db (move-word :right db)]
+            {:db new-db
+             :dispatch [(s-ev :t-win-update-word) (new-db :current-word)]}))))
 
 (r-fx :key-pressed-left
       (fn [{:keys [db]} [_ _]]
         (when (u/curr-word-view-open? db)
-          {:db (move-word :left db)})))
+          (let [new-db (move-word :left db)]
+            {:db new-db
+             :dispatch [(s-ev :t-win-update-word) (new-db :current-word)]}))))
 
 (r-fx :key-pressed-num
       (fn [{:keys [db]} event]
@@ -171,12 +175,15 @@
                    (assoc-in [:current-article :word-data] (vec new-word-data)))
            :dispatch [::set-toast "Word updated."]})))
 
-(r-db ::set-current-word
-      (fn [db [_ data]]
+(r-fx ::set-current-word
+      (fn [{:keys [db]} [_ data]]
         (let [{:keys [word index]} data]
-          (-> db
-              (assoc :current-word word)
-              (assoc :current-word-idx index)))))
+          (let [new-db (-> db
+                           (assoc :current-word word)
+                           (assoc :current-word-idx index))]
+            {:db  new-db
+             :dispatch (when (-> db :t-win :open?)
+                         [(s-ev :t-win-update-word) (new-db :current-word)])}))))
 
 ;; -- Translation Window -------------------------------------------------------
 
@@ -190,6 +197,11 @@
         {:db (-> db
                  (assoc-in [:t-win :open?] true)
                  (assoc-in [:t-win :loading?] false))}))
+
+(r-fx (s-ev :t-win-update-word)
+      (fn [{:keys [db]} event]
+        {:db db
+         ::ipc-send! event}))
 
 (r-fx (s-ev :t-win-close)
       (fn [{:keys [db]} event]
