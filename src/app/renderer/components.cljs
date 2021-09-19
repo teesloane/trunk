@@ -76,14 +76,10 @@
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation]} word
-        ;; comfort-col                          {0 "bg-gray-300" 1 "bg-red-300" 2 "bg-yellow-300" 3 "bg-green-300" 4 "bg-opacity-0 border-0"}
-        stz                                  (str (u/comfort-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
+        stz                                  (str (u/get-comfort-bg-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
         is-current-word                      (and (= (dissoc word :comfort) (dissoc current-word :comfort))
                                                   (= index current-word-idx))
-        ;; this is not working for some reason...
-        stz                                  (if is-current-word
-                                               (str " border-black " stz)
-                                               (str "  " stz))]
+        stz                                  (if is-current-word (str " border-black " stz) (str "  " stz))]
     (cond
       (u/is-punctuation? name)
       [:span.mr-1 (str "" (word :name) " ")] ; punctuation

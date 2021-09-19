@@ -68,19 +68,25 @@
                 (assoc :current-word lkw)
                 (assoc :current-word-idx lki))))))))
 
+(defn- when-t-win-open
+  [new-db]
+  (when (-> new-db :t-win :open?)
+    [(s-ev :t-win-update-word) (new-db :current-word)]))
+
 (r-fx :key-pressed-right
       (fn [{:keys [db]} [_ _]]
         (when (u/curr-word-view-open? db)
           (let [new-db (move-word :right db)]
             {:db new-db
-             :dispatch [(s-ev :t-win-update-word) (new-db :current-word)]}))))
+             :dispatch (when-t-win-open new-db)}))))
+
 
 (r-fx :key-pressed-left
       (fn [{:keys [db]} [_ _]]
         (when (u/curr-word-view-open? db)
           (let [new-db (move-word :left db)]
             {:db new-db
-             :dispatch [(s-ev :t-win-update-word) (new-db :current-word)]}))))
+             :dispatch (when-t-win-open new-db)}))))
 
 (r-fx :key-pressed-num
       (fn [{:keys [db]} event]
@@ -182,8 +188,7 @@
                            (assoc :current-word word)
                            (assoc :current-word-idx index))]
             {:db  new-db
-             :dispatch (when (-> db :t-win :open?)
-                         [(s-ev :t-win-update-word) (new-db :current-word)])}))))
+             :dispatch  (when-t-win-open new-db)}))))
 
 ;; -- Translation Window -------------------------------------------------------
 

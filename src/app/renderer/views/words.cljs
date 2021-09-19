@@ -31,6 +31,6 @@
                [:td.border-r.border-b.p-2
                 [:span.flex.items-center
                  [:span (inc comfort)]
-                 [:span {:class (str "inline-flex rounded-full ml-2 h-2 w-2 border " (u/comfort-col comfort))}]
-                 [:span.text-xs.ml-2.text-gray-400.text-mono "(" (get comfort-labels comfort) ")"]
+                 [:span {:class (str "inline-flex rounded-full ml-2 h-2 w-2 border " (u/get-comfort-bg-col comfort))}]
+                 [:span.text-xs.ml-2.text-gray-400.text-mono "(" (u/get-comfort-level-name comfort) ")"]
                  ]]])]])]])))
