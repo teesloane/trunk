@@ -26,6 +26,8 @@
       (fn [db [_ new-route]]
         (assoc db :current-view new-route)))
 
+(r-db ::noop (fn [db [_ new-route]] db))
+
 (r-fx ::set-toast
       (fn [cofx [_ data]]
         {:db (assoc (cofx :db) :toast data)
@@ -70,8 +72,10 @@
 
 (defn- when-t-win-open
   [new-db]
-  (when (-> new-db :t-win :open?)
-    [(s-ev :t-win-update-word) (new-db :current-word)]))
+  (if (-> new-db :t-win :open?)
+    [(s-ev :t-win-update-word) (new-db :current-word)]
+    [::noop]))
+
 
 (r-fx :key-pressed-right
       (fn [{:keys [db]} [_ _]]

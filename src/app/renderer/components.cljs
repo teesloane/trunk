@@ -47,30 +47,16 @@
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
      [:div.inline-flex
       (for [l links :when l]
-        [nav-link {:on-click     #(nav! (l :id))
-                   :text         (l :text)
-                   :current-view current-view
-                   :id           (l :id)}])]]))
+        [:div {:key (l :text)}
+         [nav-link {:on-click     #(nav! (l :id))
+                    :text         (l :text)
+                    :current-view current-view
+                    :id           (l :id)}]])]]))
 
 (defn page-heading
   [text]
   [:h2.text-2xl.mb-2 text])
 
-(defn article
-  "Display a single article in the article list view."
-  [{:keys [name source original last_opened date_created]}]
-  (let [metadata {"Last opened: "  (u/date-unix->readable last_opened)
-                  "Date created: " (u/date-unix->readable date_created)}]
-    [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
-     [:div.text-xl.py-1.text-black name]
-     [:div.text-sm
-      [:div.flex
-       (map-indexed (fn [idx [k v]]
-                      [:div.text-xs
-                       [:span k v]
-                       (when-not (= (count metadata) (inc idx))
-                         [:span.mx-2 "|"])]) metadata)]
-      [:div.pt-4.italic (u/trunc-ellipse original 200)]]]))
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
