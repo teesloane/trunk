@@ -5,10 +5,7 @@
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]))
 
-(defn button
-  [{:keys [on-click text]}]
-  (let [styles "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded shadow"]
-    [:button {:class styles :on-click on-click} text]))
+
 
 (defn toast
   [msg]
@@ -21,6 +18,30 @@
   [children]
   [:div {:class "mt-8 flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
    children])
+
+(def icons
+  {:chevron-up   "chevron-up.svg"
+   :chevron-down "chevron-down.svg"
+   :check        "check.svg"
+   })
+
+(defn icon
+  ""
+  [{:keys [size icon on-click]}]
+  [:img {:class (if on-click "cursor-pointer" "")
+         :src (str "img/icons/" (get icons icon))
+         :on-click on-click
+         :style    {:width  (or size 32)
+                    :height (or size 32)}}])
+
+(defn button
+  [{:keys [on-click text icon-name icon-size]}]
+  (let [styles "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"]
+    [:button
+     {:class styles :on-click on-click}
+     (if icon-name
+       [:span [icon {:icon icon-name :size (or icon-size 18)}] [:span text]]
+       text)]))
 
 (defn trunk-logo
   [{:keys [width]}]
@@ -65,16 +86,15 @@
       [trunk-logo {:width 24}]
       [:div.flex.ml-8
        (for [l links :when l]
-         [:div {:key (l :text)}
+         ^{:key (l :id)}
           [nav-link {:on-click     #(nav! (l :id))
                      :text         (l :text)
                      :current-view current-view
-                     :id           (l :id)}]])]]]))
+                     :id           (l :id)}])]]]))
 
 (defn page-heading
   [text]
-  [:div.text-center.mb-16
-   [:h2.text-2xl text]])
+  [:div.text-center.mb-8 [:h2.text-2xl text]])
 
 
 (defn article-word

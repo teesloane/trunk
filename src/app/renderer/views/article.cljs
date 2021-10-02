@@ -24,16 +24,17 @@
 
        ;; radio button
        [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
-        (for [[comfort-int comfort-data] u/comfort-text-and-col
-              :let                       [{:keys [name text-col]} comfort-data]]
-          [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
-           [:input {:id        name
-                    :type      "radio"
-                    :value     comfort-int
-                    :name      "group-1"
-                    :checked   (= (@form :comfort) comfort-int)
-                    :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-           [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]])]
+        (doall ;; needed for deref (@) in lazy for loop.
+         (for [[comfort-int comfort-data] u/comfort-text-and-col
+               :let                       [{:keys [name text-col]} comfort-data]]
+           [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
+            [:input {:id        name
+                     :type      "radio"
+                     :value     comfort-int
+                     :name      "group-1"
+                     :checked   (= (@form :comfort) comfort-int)
+                     :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
+            [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
        ;; submit update
        [component/button

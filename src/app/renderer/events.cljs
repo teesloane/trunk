@@ -150,7 +150,7 @@
 
 (r-fx (s-ev :word-update)
       (fn [cofx event]
-        {:db (assoc (cofx :db) :loading? true)
+        {:db (cofx :db) ; (assoc (cofx :db) :loading? true)
          ::ipc-send! event}))
 
 (r-fx (s-ev :words-get)
@@ -165,25 +165,34 @@
              (assoc :loading? false)
              (assoc :words data))}))
 
+(defn update-word-helper
+  "Finds a word in a list of words and updates it"
+  [event-data word-data]
+  (vec
+   (map
+    (fn [curr-word]
+      (cond
+        (= (:word_id curr-word) (:word_id event-data)) event-data
+        ;; if slug matches, update everything except the "name"
+        (and (= (:slug curr-word) (:slug event-data))
+             (not= (curr-word :word_id) (event-data :word_id)))
+        (assoc event-data :name (curr-word :name) :word_id (curr-word :word_id))
+        :else curr-word)) word-data)))
+
 (r-fx (s-ev :word-updated)
-      (fn [cofx [event-name data]]
-        (let [word-data (-> cofx :db :current-article :word-data)
-              new-word-data (map (fn [curr-word]
-                                   (cond
-                                     (= (:word_id curr-word) (:word_id data))
-                                     data
+      (fn [{:keys [db]} [event-name data]]
+        (let [current-article-words (-> db :current-article :word-data)
+              words-view-words      (-> db :words)]
+          {:dispatch [::set-toast "Word updated."]
+           :db       (cond-> db
+                       true                  (assoc :loading? false)
+                       true                  (assoc :current-word data)
 
-                                ;; if slug matches, update everything except the "name"
-                                     (and (= (:slug curr-word) (:slug data))
-                                          (not= (curr-word :word_id) (data :word_id)))
-                                     (assoc data :name (curr-word :name) :word_id (curr-word :word_id))
+                       (db/view-article? db)
+                       (assoc-in [:current-article :word-data] (update-word-helper data current-article-words))
 
-                                     :else curr-word)) word-data)]
-          {:db (-> (cofx :db)
-                   (assoc :loading? false)
-                   (assoc :current-word data)
-                   (assoc-in [:current-article :word-data] (vec new-word-data)))
-           :dispatch [::set-toast "Word updated."]})))
+                       (db/view-words? db)
+                       (assoc :words (update-word-helper data words-view-words)))})))
 
 (r-fx ::set-current-word
       (fn [{:keys [db]} [_ data]]
