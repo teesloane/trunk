@@ -126,7 +126,7 @@
 
   (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white hover:bg-gray-100 text-gray-800 border-t border-gray-300 "
         button-height 33
-        iframe-height 448
+        iframe-height 428
         window-width  js/window.innerWidth
         window-height js/window.innerHeight]
 
@@ -150,42 +150,45 @@
                                     :height          window-height
                                     :button-height   button-height
                                     :containerHeight iframe-height
-                                    :containerWidth  (* 0.4 js/window.innerWidth)}])}
+                                    :containerWidth  (- (* 0.4 js/window.innerWidth) 1)}])}
           "Open Translations"])])))
 
 (defn view-current-word
-  "Displays the currently mousedover / clicked on word."
+  "Displays the currently mousedover / clicked on word for user editing."
   [{:keys [current-word form]}]
-  (let [t-win-open? (<| [::subs/t-win-open?]) ;; TODO: leaving off.
+  (let [t-win-open? (<| [::subs/t-win-open?])
         input-stz   "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"]
-    [:div {:class "w-full p-8 flex flex-col mx-auto"}
-     [:div.static
-      [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
-      [:div {:class "w-full"}
-       [:input {:class         input-stz
-                :placeholder   "Add Translation..."
-                :default-value (current-word :translation)
-                :value         (@form :translation)
-                :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
+    [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l"}
 
-       ;; radio button
-       [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
-        (doall ;; needed for deref (@) in lazy for loop.
-         (for [[comfort-int comfort-data] u/comfort-text-and-col
-               :let                       [{:keys [name text-col]} comfort-data]]
-           [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
-            [:input {:id        name
-                     :type      "radio"
-                     :value     comfort-int
-                     :name      "group-1"
-                     :checked   (= (@form :comfort) comfort-int)
-                     :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-            [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
+     (when current-word
+       [:div {:class "w-full p-8 flex flex-col mx-auto"}
+        [:div.static
+         [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
+         [:div {:class "w-full"}
+          [:input {:class         input-stz
+                   :placeholder   "Add Translation..."
+                   :default-value (current-word :translation)
+                   :value         (@form :translation)
+                   :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
-       ;; submit update
-       [button
-        {:on-click #(|> [(s-ev :word-update) @form])
-         :text     "Update Word"}]]]
-     [google-translate-view
-      {:t-win-open?  t-win-open?
-       :current-word (current-word :name)}]]))
+         ;; radio button
+          [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
+           (doall ;; needed for deref (@) in lazy for loop.
+            (for [[comfort-int comfort-data] u/comfort-text-and-col
+                  :let                       [{:keys [name text-col]} comfort-data]]
+              [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
+               [:input {:id        name
+                        :type      "radio"
+                        :value     comfort-int
+                        :name      "group-1"
+                        :checked   (= (@form :comfort) comfort-int)
+                        :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
+               [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
+
+         ;; submit update
+          [button
+           {:on-click #(|> [(s-ev :word-update) @form])
+            :text     "Update Word"}]]]
+        [google-translate-view
+         {:t-win-open?  t-win-open?
+          :current-word (current-word :name)}]])]))

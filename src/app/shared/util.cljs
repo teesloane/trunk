@@ -8,7 +8,6 @@
 
 (def log (.-log js/console))
 
-
 (def comfort-text-and-col
   {0 {:name "Unknown" :text-col "text-gray-500"   :bg-col "bg-gray-300"}
    1 {:name "Hard"    :text-col "text-red-500"    :bg-col "bg-red-300"}
@@ -101,3 +100,12 @@
 (defn date-unix->readable
   [ts]
   (-> ts js/Date. (.toLocaleDateString)))
+
+
+;; clojure-y things
+
+(defn first? [seq i]
+  (= (first seq) i))
+
+(defn last? [seq i]
+  (= (last seq) i))
