@@ -153,3 +153,40 @@
                                     :containerHeight iframe-height
                                     :containerWidth  (* 0.4 js/window.innerWidth)}])}
           "Open Translations"])])))
+
+(defn view-current-word
+  "Displays the currently mousedover / clicked on word."
+  [{:keys [current-word form]}]
+  (let [t-win-open? (<| [::subs/t-win-open?]) ;; TODO: leaving off.
+        input-stz   "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"]
+    [:div {:class "w-full p-8 flex flex-col mx-auto"}
+     [:div.static
+      [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
+      [:div {:class "w-full"}
+       [:input {:class         input-stz
+                :placeholder   "Add Translation..."
+                :default-value (current-word :translation)
+                :value         (@form :translation)
+                :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
+
+       ;; radio button
+       [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
+        (doall ;; needed for deref (@) in lazy for loop.
+         (for [[comfort-int comfort-data] u/comfort-text-and-col
+               :let                       [{:keys [name text-col]} comfort-data]]
+           [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
+            [:input {:id        name
+                     :type      "radio"
+                     :value     comfort-int
+                     :name      "group-1"
+                     :checked   (= (@form :comfort) comfort-int)
+                     :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
+            [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
+
+       ;; submit update
+       [button
+        {:on-click #(|> [(s-ev :word-update) @form])
+         :text     "Update Word"}]]]
+     [google-translate-view
+      {:t-win-open?  t-win-open?
+       :current-word (current-word :name)}]]))
