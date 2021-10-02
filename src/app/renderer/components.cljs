@@ -5,13 +5,14 @@
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]))
 
-
-
 (defn toast
   [msg]
-  (let [styles "fixed bottom-0 right-0 mr-4 mb-4 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 mt-2 border border-gray-400 rounded-sm shadow"]
-    (when-not (= msg "")
-      [:div {:class styles} msg])))
+  (let [classes "px-4 h-full flex items-center"
+        styles-off {:opacity 0 :transition "opacity 1s ease"}
+        styles-on  {:opacity 1 :transition "opacity 1s ease"}]
+    (if (= msg "")
+      [:div {:class classes :style styles-off} msg]
+      [:div {:class classes :style styles-on} msg])))
 
 (defn container
   "This needs to have it's react-keys resolved."
@@ -22,8 +23,7 @@
 (def icons
   {:chevron-up   "chevron-up.svg"
    :chevron-down "chevron-down.svg"
-   :check        "check.svg"
-   })
+   :check        "check.svg"})
 
 (defn icon
   ""
@@ -54,7 +54,6 @@
    [trunk-logo {:width 64}]
    [:div.mt-4 children]])
 
-
 (defn empty-state-with-msg
   [{:keys [top-line bottom-line]
     :or   {top-line    "You haven't created any articles yet."
@@ -63,7 +62,6 @@
    [:div.text-center.text-gray-400
     [:div top-line]
     [:div bottom-line]]])
-
 
 (defn nav-link
   [{:keys [on-click text id current-view]}]
@@ -77,25 +75,28 @@
   [{:keys [current-view]}]
   (let [nav!            (fn [route] (|> [::events/navigate route]))
         current-article (<| [::subs/current-article])
+        toast-msg       (<| [::subs/toast])
         links           [{:text "Read" :id "article-list"}
                          {:text "Create Article" :id "article-create"}
                          {:text "Words" :id "words"}
                          {:text (get current-article :name) :id "article"}]]
-    [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b.px-4
-     [:div.flex.items-center
-      [trunk-logo {:width 24}]
-      [:div.flex.ml-8
-       (for [l links :when l]
-         ^{:key (l :id)}
+    [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b
+     [:div.flex.items-center {:style {:height "35px"}}
+      [:div.flex.flex-1.items-center
+       [:div.pl-4 [trunk-logo {:width 24}]]
+       [:div.flex.ml-8
+        (for [l links :when l]
+          ^{:key (l :id)}
           [nav-link {:on-click     #(nav! (l :id))
                      :text         (l :text)
                      :current-view current-view
-                     :id           (l :id)}])]]]))
+                     :id           (l :id)}])]]
+
+      [toast toast-msg]]]))
 
 (defn page-heading
   [text]
   [:div.text-center.mb-8 [:h2.text-2xl text]])
-
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
@@ -120,7 +121,6 @@
       [:span.relative {:on-click on-click}
        [:span {:class stz} (str " " (word :name) " ")]])))
 
-
 (defn google-translate-view
   [{:keys [t-win-open? current-word]}]
 
@@ -128,8 +128,7 @@
         button-height 33
         iframe-height 448
         window-width  js/window.innerWidth
-        window-height js/window.innerHeight
-        ]
+        window-height js/window.innerHeight]
 
     ;; only enable rendering google translate view when there is enough room
     ;; TODO: checking of window heighto only happens on render,

@@ -34,7 +34,6 @@
      ;; fixed pos things
      [debug]
      [loading-wheel]
-     [component/toast toast-msg]
      ;; normal stuff.
      [component/nav {:current-view current-view}]
      ;; if at any time we are not in the view-article, close the translate window if it's open.
