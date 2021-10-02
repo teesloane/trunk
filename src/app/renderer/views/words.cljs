@@ -81,7 +81,7 @@
          [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1  bg-white"}
           [component/page-heading "Words read"]
           [:div
-           [:table.block.mt-8.table-auto.w-full.bg-white.border
+           [:table.block.table-auto.w-full.bg-white.border
             [:thead.flex.w-full
              [:tr.border-b.flex.w-full
               ;; table header ---

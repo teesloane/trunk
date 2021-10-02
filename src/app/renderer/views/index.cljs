@@ -34,11 +34,7 @@
      ;; fixed pos things
      [debug]
      [loading-wheel]
-     ;; normal stuff.
      [component/nav {:current-view current-view}]
-     ;; if at any time we are not in the view-article, close the translate window if it's open.
-     (when (not= current-view "article") (|> [(s-ev :t-win-close)]))
-
      ;; Navigate!
      (case current-view
        "article-list"   [article-list/view]

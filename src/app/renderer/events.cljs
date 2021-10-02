@@ -22,9 +22,14 @@
 
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
 
-(r-db ::navigate
-      (fn [db [_ new-route]]
-        (assoc db :current-view new-route)))
+(r-fx ::navigate
+      (fn [{:keys [db]} [_ new-route]]
+        ;; if we're not in `article` or `words` view, hide the translation window
+        (let [should-close-t-window? (not (some #{new-route} '("article words")))]
+          {:db (assoc db :current-view new-route)
+           :dispatch (if should-close-t-window?
+                       [(s-ev :t-win-close)]
+                       [::noop])})))
 
 (r-db ::noop (fn [db [_ new-route]] db))
 
@@ -71,6 +76,7 @@
                 (assoc :current-word-idx lki))))))))
 
 (defn- when-t-win-open
+  "If the translation window is open..."
   [new-db]
   (if (-> new-db :t-win :open?)
     [(s-ev :t-win-update-word) (new-db :current-word)]
@@ -150,7 +156,7 @@
 
 (r-fx (s-ev :word-update)
       (fn [cofx event]
-        {:db (cofx :db) ; (assoc (cofx :db) :loading? true)
+        {:db (cofx :db)
          ::ipc-send! event}))
 
 (r-fx (s-ev :words-get)

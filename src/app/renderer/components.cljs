@@ -157,13 +157,13 @@
   "Displays the currently mousedover / clicked on word for user editing."
   [{:keys [current-word form]}]
   (let [t-win-open? (<| [::subs/t-win-open?])
-        input-stz   "w-full p-1 text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:my-4 dark:bg-gray-700 dark:text-white"]
+        input-stz   "w-full text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:mb-4 dark:bg-gray-700 dark:text-white"]
     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l"}
 
      (when current-word
        [:div {:class "w-full p-8 flex flex-col mx-auto"}
         [:div.static
-         [:div {:class "text-2xl mb-2 w-full"} (current-word :name)]
+         [:div {:class "text-2xl mb-8 w-full"} (current-word :name)]
          [:div {:class "w-full"}
           [:input {:class         input-stz
                    :placeholder   "Add Translation..."
@@ -186,9 +186,9 @@
                [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
          ;; submit update
-          [button
+          [:div.mt-4 [button
            {:on-click #(|> [(s-ev :word-update) @form])
-            :text     "Update Word"}]]]
+            :text     "Update Word"}]]]]
         [google-translate-view
          {:t-win-open?  t-win-open?
           :current-word (current-word :name)}]])]))
