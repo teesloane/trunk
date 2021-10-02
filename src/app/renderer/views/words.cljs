@@ -70,6 +70,7 @@
       (sort-by key #(compare %2 %1) word-list)
       (sort-by key #(compare %1 %2) word-list))))
 
+
 (defn view
   "Render a list of the user's words.
   The list is sortable, and translations are inline-editable
@@ -81,11 +82,12 @@
   []
   (|> [(s-ev :words-get) nil])
   (let [sort-tuple          (r/atom ["ascending" :comfort])
-        handle-update-word  (fn [props new-translation]
-                              (let [new-word (-> props
-                                                 specs/m->word
-                                                 (assoc :translation new-translation))]
-                                (|> [(s-ev :word-update) new-word])))
+        ;; not being used until I get inline editing working again.
+        ;; handle-update-word  (fn [props new-translation]
+        ;;                       (let [new-word (-> props
+        ;;                                          specs/m->word
+        ;;                                          (assoc :translation new-translation))]
+        ;;                         (|> [(s-ev :word-update) new-word])))
         handle-changed-sort (fn [a b]
                               (reset! sort-tuple [a b]))]
 
@@ -118,7 +120,7 @@
                   ;; table body ----
                   [:tbody.overflow-auto.w-full.block {:style {:height "70vh"}}
                    (map-indexed (fn [idx word]
-                                  [word-row (merge word {:on-submit handle-update-word
+                                  [word-row (merge word {; :on-submit handle-update-word
                                                          :sort-tuple sort-tuple
                                                          :key       (str idx)
                                                          :word-idx  idx})]) words)]]])]]))))))
