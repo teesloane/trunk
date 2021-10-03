@@ -7,7 +7,6 @@
    [app.shared.util :as u]
    [reagent.core :as r]))
 
-
 (defn article
   "Display a single article in the article list view."
   [{:keys [article_id]}]
@@ -29,8 +28,7 @@
           [:div.text-xs " Date created: " (u/date-unix->readable date_created)]]
          [:div.text-xs.opacity-50.hover:opacity-100.text-red-800.hover:text-red-500
           {:on-click handle-delete}
-          (case @sure? 0 "Delete" 1 "Sure?")]
-         ]
+          (case @sure? 0 "Delete" 1 "Sure?")]]
         [:div.pt-4.italic (u/trunc-ellipse original 200)]]])))
 
 (defn view
