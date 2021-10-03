@@ -98,8 +98,7 @@
                 ;; table body ----
                 [:tbody.overflow-auto.w-full.block {:style {:height "72vh"}}
                  (map-indexed (fn [idx word]
-                                [word-row (merge word {; :on-submit handle-update-word
-                                                       :sort-tuple sort-tuple
+                                [word-row (merge word {:sort-tuple sort-tuple
                                                        :key        (str idx)
                                                        :word-idx   idx})]) words)]]]]
 

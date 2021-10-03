@@ -63,7 +63,6 @@
     false
     (re-matches #"[!,\/?\.»«—:;\"()]" s)))
 
-
 (defn is-punctuation-or-newline?
   "Check's if a string is a punctuation item(s) or newline(s)."
   [s]
@@ -112,14 +111,15 @@
   (subs s 0 (min (count s) n)))
 
 (defn trunc-ellipse
+  "Truncate a string if it is longer than n, adding `...`"
   [s n]
-  (str (trunc s n) "..."))
+  (if (< (count s) n) s
+      (str (str/trim (trunc s n)) "...")))
 
 (defn date-unix->readable
   [ts]
   (when ts
     (-> ts js/Date. (.toLocaleDateString))))
-
 
 ;; clojure-y things
 
