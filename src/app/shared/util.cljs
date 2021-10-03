@@ -63,12 +63,30 @@
     false
     (re-matches #"[!,\/?\.»«—:;\"()]" s)))
 
+
 (defn is-punctuation-or-newline?
   "Check's if a string is a punctuation item(s) or newline(s)."
   [s]
   (if (nil? s)
     false
-    (not (nil? (re-matches  #"[,!.\"\'?\-\n]*" s)))))
+    (or
+     (not (nil? (is-punctuation? s)))
+     (not (nil? (re-matches  #"[\n]*" s))))))
+
+(defn word?
+  "Checks if is punctuation or starts with a digit before confirming that it is a
+  word We may at some point need to dynamically define this based on user
+  preferences"
+  [w]
+  (let [w (str/trim w)]
+    (not
+     (or
+      (is-punctuation-or-newline? w)
+      (re-matches #".*[0-9].*" w)))))
+
+(defn not-word?
+  [w]
+  (not (word? w)))
 
 ;; -- db functionality selector things?
 

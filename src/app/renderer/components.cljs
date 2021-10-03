@@ -107,15 +107,15 @@
                                                   (= index current-word-idx))
         stz                                  (if is-current-word (str " border-black " stz) (str "  " stz))]
     (cond
-      (u/is-punctuation? name)
-      [:span.mr-1 (str "" (word :name) " ")] ; punctuation
-
       ;; newlines that are just from textarea...
       (= name "\n")
       [:br]
 
       (= name "\n\n")
       [:div.w-full [:br]]
+
+      (not (u/word? name)) ;; anything that's not a word (punctuation, numbers...)
+      [:span.mr-1 (str "" (word :name) " ")]
 
       :else
       [:span.relative {:on-click on-click}

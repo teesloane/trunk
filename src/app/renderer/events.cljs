@@ -59,14 +59,14 @@
             next-word-idx           (-> db :current-word-idx idx-dir-fn)
             next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
             last-known-word-and-idx (if (or (nil? next-word)
-                                            (u/is-punctuation-or-newline? (get next-word :name)))
+                                            (u/not-word? (get next-word :name)))
                                       [current-word current-word-idx]
                                       [next-word next-word-idx])
             next-db                 (-> db
                                         (assoc :current-word next-word)
                                         (assoc :current-word-idx next-word-idx))
               ;; recur when we are on punctuation; ie, skip punctuation.
-            continue-recur          (and (u/is-punctuation-or-newline? (get next-word :name))
+            continue-recur          (and (u/not-word? (get next-word :name))
                                          (not (nil? next-word)))]
         (if continue-recur
           (recur next-db last-known-word-and-idx)

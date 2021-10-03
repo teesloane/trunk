@@ -33,7 +33,8 @@
     name TEXT NOT NULL UNIQUE,
     slug TEXT NOT NULL,
     comfort INTEGER DEFAULT 0,
-    translation TEXT
+    translation TEXT,
+    is_not_a_word BOOLEAN NOT NULL CHECK (is_not_a_word IN (0, 1))
   );
 
   CREATE TABLE IF NOT EXISTS articles (
@@ -49,6 +50,11 @@
 ")
 
 ;; -- Helpers -----------------------------------------------------------------
+
+(defn bool->int
+  [b]
+  (if b 1 0))
+
 
 (defn sql
   [{:keys [stmt params op]}]
@@ -117,7 +123,7 @@
 
 (defn words-get
   []
-  (sql {:op :all :stmt "SELECT * FROM words GROUP BY slug ORDER BY translation DESC"}))
+  (sql {:op :all :stmt "SELECT * FROM words WHERE is_not_a_word = 0 GROUP BY slug ORDER BY comfort DESC"}))
 
 (defn word-update
   [data]
@@ -142,12 +148,21 @@
 
 (defn words-insert
   "Splits a string and inserts each word into the `words` table if it doesn't
-  exist."
+  exist.
+  The sql placeholder is a string with many question marks because we are doing a bulk insert?
+  "
   [word-str]
   (let [words        (u/split-article word-str)
-        placeholders (str/join ", " (map (fn [w] "(?, ?)") words)) ;; this is annoying
-        params         (->> words (map #(vector %1 (u/slug-word %1))) flatten (apply array))
-        queryWords   (str "INSERT OR IGNORE INTO words(name, slug) VALUES " placeholders)]
+        placeholders (str/join ", " (map (fn [w] "(?, ?, ?)") words)) ;; this is annoying
+        params         (->> words
+                            (map (fn [word]
+                                   (vector
+                                    word
+                                    (u/slug-word word)
+                                    (bool->int (not (u/word? word))))))
+                            flatten
+                            (apply array))
+        queryWords   (str "INSERT OR IGNORE INTO words(name, slug, is_not_a_word) VALUES " placeholders)]
     (sql {:op :run :stmt queryWords :params params})))
 
 (defn init
