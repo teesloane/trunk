@@ -8,7 +8,8 @@
 /.nrepl-port
 /.idea
 resources/public/js
-resources/public/css
+# only ignore the tailwind output.
+resources/public/css/site.css
 resources/main.js
 resources/*.js
 

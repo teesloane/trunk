@@ -7,12 +7,10 @@
 
 (defn toast
   [msg]
-  (let [classes "px-4 h-full flex items-center"
-        styles-off {:opacity 0 :transition "opacity 1s ease"}
-        styles-on  {:opacity 1 :transition "opacity 1s ease"}]
+  (let [classes "px-4 h-full flex items-center"]
     (if (= msg "")
-      [:div {:class classes :style styles-off} msg]
-      [:div {:class classes :style styles-on} msg])))
+      [:div {:class (str classes) } msg]
+      [:div {:class (str classes " fade-in-fade-out") } msg])))
 
 (defn container
   "This needs to have it's react-keys resolved."
@@ -156,15 +154,18 @@
 (defn view-current-word
   "Displays the currently mousedover / clicked on word for user editing."
   [{:keys [current-word form]}]
-  (let [t-win-open? (<| [::subs/t-win-open?])
-        input-stz   "w-full text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:mb-4 dark:bg-gray-700 dark:text-white"]
+  (let [t-win-open?   (<| [::subs/t-win-open?])
+        handle-submit (fn [e]
+                        (.preventDefault e)
+                        (|> [(s-ev :word-update) @form]))
+        input-stz     "w-full text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:mb-4 dark:bg-gray-700 dark:text-white"]
     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l"}
 
      (when current-word
        [:div {:class "w-full p-8 flex flex-col mx-auto"}
         [:div.static
          [:div {:class "text-2xl mb-8 w-full"} (current-word :name)]
-         [:div {:class "w-full"}
+         [:form {:class "w-full" :on-submit handle-submit}
           [:input {:class         input-stz
                    :placeholder   "Add Translation..."
                    :default-value (current-word :translation)
@@ -186,9 +187,7 @@
                [:label {:for name :class (str "text-sm p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
          ;; submit update
-          [:div.mt-4 [button
-           {:on-click #(|> [(s-ev :word-update) @form])
-            :text     "Update Word"}]]]]
+          [:div.mt-4 [button {:type "submit" :text "Update Word"}]]]]
         [google-translate-view
          {:t-win-open?  t-win-open?
           :current-word (current-word :name)}]])]))
