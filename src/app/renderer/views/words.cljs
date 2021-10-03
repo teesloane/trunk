@@ -79,7 +79,7 @@
                           {:sort-key :comfort :header-text "Comfort"}]]
         [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
          [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1  bg-white"}
-          [component/page-heading "Words read"]
+          [component/page-heading "Words"]
           [:div
            [:table.block.table-auto.w-full.bg-white.border
             [:thead.flex.w-full

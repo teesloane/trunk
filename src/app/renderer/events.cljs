@@ -82,14 +82,12 @@
     [(s-ev :t-win-update-word) (new-db :current-word)]
     [::noop]))
 
-
 (r-fx :key-pressed-right
       (fn [{:keys [db]} [_ _]]
         (when (u/curr-word-view-open? db)
           (let [new-db (move-word :right db)]
             {:db new-db
              :dispatch (when-t-win-open new-db)}))))
-
 
 (r-fx :key-pressed-left
       (fn [{:keys [db]} [_ _]]
@@ -114,6 +112,19 @@
       (fn [cofx event]
         {:db (assoc (cofx :db) :loading? true)
          ::ipc-send! event}))
+
+(r-fx (s-ev :article-delete)
+      (fn [{:keys [db]} event]
+        {:db         (-> db (assoc :loading? true))
+         :dispatch   [::set-toast "Article deleted."]
+         ::ipc-send! event}))
+
+(r-fx (s-ev :article-deleted)
+      (fn [{:keys [db]} [_ id]]
+        (let [new-articles (filter #(not= (% :article_id) id) (db :articles))]
+          {:db (-> db
+                   (assoc :loading? false)
+                   (assoc :articles new-articles))})))
 
 (r-db (s-ev :article-received)
       (fn [db [_ data]]
@@ -266,6 +277,10 @@
    (s-ev :article-received)
    (fn [_ data]
      (|> [(s-ev :article-received) data]))
+
+   (s-ev :article-deleted)
+   (fn [_ data]
+     (|> [(s-ev :article-deleted) data]))
 
    (s-ev :word-updated)
    (fn [_ data]

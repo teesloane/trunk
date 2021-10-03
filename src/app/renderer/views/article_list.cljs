@@ -1,27 +1,37 @@
 (ns app.renderer.views.article-list
-(:require
- [app.renderer.components :as component]
- [app.renderer.events :as events :refer [|>]]
- [app.renderer.subs :as subs :refer [<|]]
- [app.shared.util :as u]
- [app.shared.ipc-events :refer [s-ev]]))
+  (:require
+   [app.renderer.components :as component]
+   [app.renderer.events :as events :refer [|>]]
+   [app.renderer.subs :as subs :refer [<|]]
+   [app.shared.ipc-events :refer [s-ev]]
+   [app.shared.util :as u]
+   [reagent.core :as r]))
 
 
 (defn article
   "Display a single article in the article list view."
-  [{:keys [name source original last_opened date_created]}]
-  (let [metadata {"Last opened: "  (u/date-unix->readable last_opened)
-                  "Date created: " (u/date-unix->readable date_created)}]
-    [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
-     [:div.text-xl.py-1.text-black name]
-     [:div.text-sm
-      [:div.flex
-       (map-indexed (fn [idx [k v]]
-                      [:div.text-xs {:key k}
-                       [:span k v]
-                       (when-not (= (count metadata) (inc idx))
-                         [:span.mx-2 "|"])]) metadata)]
-      [:div.pt-4.italic (u/trunc-ellipse original 200)]]]))
+  [{:keys [article_id]}]
+  (let [sure?    (r/atom 0)
+        handle-delete (fn [event]
+                        (.stopPropagation event)
+                        (cond
+                          (= 0 @sure?) (reset! sure? 1)
+                          (= 1 @sure?) (|> [(s-ev :article-delete) article_id])))]
+    (fn
+      [{:keys [name original last_opened date_created]}]
+      [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
+       [:div.text-xl.py-1.text-black name]
+       [:div.text-sm
+        [:div.flex.justify-between
+         [:div.flex
+          (when-let [x (u/date-unix->readable last_opened)]
+            [:div.text-xs "Last opened: " x [:span.mx-2 "|"]])
+          [:div.text-xs " Date created: " (u/date-unix->readable date_created)]]
+         [:div.text-xs.opacity-50.hover:opacity-100.text-red-800.hover:text-red-500
+          {:on-click handle-delete}
+          (case @sure? 0 "Delete" 1 "Sure?")]
+         ]
+        [:div.pt-4.italic (u/trunc-ellipse original 200)]]])))
 
 (defn view
   []
@@ -37,5 +47,6 @@
           [component/page-heading "Your articles"]
           (when articles
             (map-indexed (fn [idx item]
-                           [:div.cursor-pointer.mb-4 {:key idx :on-click #(nav! "article" item)}
+                           [:div.cursor-pointer.mb-4
+                            {:key (item :article_id) :on-click #(nav! "article" item)}
                             [article item]]) articles))]]))))

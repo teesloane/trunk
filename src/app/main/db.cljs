@@ -69,6 +69,13 @@
         :op :get
         :params [id]}))
 
+(defn article-delete
+  [id]
+  (sql {:stmt "DELETE FROM articles WHERE article_id = ?"
+        :op :run
+        :params [id]}))
+
+
 (defn articles-get
   []
   (sql {:stmt "SELECT * FROM articles ORDER BY date_created DESC"

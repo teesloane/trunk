@@ -10,6 +10,8 @@
    :article-get       ::article-get
    :article-update    ::article-update
    :article-updated   ::article-updated
+   :article-delete    ::article-delete
+   :article-deleted   ::article-deleted
    :article-received  ::article-received
    :word-update       ::word-update
    :word-updated      ::word-updated
@@ -26,4 +28,3 @@
    :t-win-updated-word ::t-win-updated-word
 
    })
-

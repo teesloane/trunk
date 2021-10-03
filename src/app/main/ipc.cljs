@@ -23,6 +23,12 @@
            inserted-article (db/article-insert (merge data {:word_ids word-ids-str}))]
        (reply! event (s-ev :article-created) inserted-article)))
 
+
+   (s-ev :article-delete)
+   (fn [event id]
+     (let [_ (db/article-delete id)]
+       (reply! event (s-ev :article-deleted) id)))
+
    (s-ev :articles-get)
    (fn [event data]
      (let [res (db/articles-get)]

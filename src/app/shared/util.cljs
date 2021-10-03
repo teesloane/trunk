@@ -99,7 +99,8 @@
 
 (defn date-unix->readable
   [ts]
-  (-> ts js/Date. (.toLocaleDateString)))
+  (when ts
+    (-> ts js/Date. (.toLocaleDateString))))
 
 
 ;; clojure-y things
