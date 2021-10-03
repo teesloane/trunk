@@ -6,7 +6,8 @@
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.specs :as specs]
    [app.shared.util :as u]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [clojure.string :as str]))
 
 (defn cell
   [child]
@@ -17,13 +18,13 @@
   (|> [::events/set-current-word {:word (specs/m->word props) :index idx}]))
 
 (defn word-row
-  [{:keys [name comfort translation idx sort-tuple] :as props}]
+  [{:keys [name comfort translation idx] :as props}]
   (let [comfort-styles (str "inline-flex rounded-full ml-2 h-2 w-2 border "
                             (u/get-comfort-bg-col comfort))]
     [:tr.flex.w-full.cursor-pointer
      {:key      idx :style {:font-size "13px"}
       :on-click #(set-current-word props idx)}
-     [cell [:div.p-1 name]]
+     [cell [:div.p-1 (str/lower-case name)]]
      [cell [:div.p-1 translation]]
      [cell
       [:span.flex.items-center.p-1
@@ -35,9 +36,9 @@
 (defn table-header-cell
   [{:keys [text sort-key sort-tuple handle-changed-sort]}]
   (let [[sort-direction -sort-key] @sort-tuple]
-    [:th.flex.w-full {:class "text-left p-2 text-blue-400 border"}
+    [:th.flex.w-full.text-sm.text-left.p-2.text-gray-700.border
      [:span.flex.items-center
-      [:span text]
+      [:span.text-sm.font-medium text]
       [:span.flex.flex-col.ml-2
        (if (and
             (= sort-key -sort-key)
@@ -63,7 +64,7 @@
   b) the column to sort by: `:name` | `:comfort` | `:translation`."
   []
   (|> [(s-ev :words-get) nil])
-  (let [sort-tuple          (r/atom ["ascending" :comfort])
+  (let [sort-tuple          (r/atom ["descending" :slug])
         handle-changed-sort (fn [a b]
                               (reset! sort-tuple [a b]))]
 
@@ -73,31 +74,33 @@
             current-word (<| [::subs/current-word])
             form         (r/atom current-word)
             words        (sort-words-by @sort-tuple words)
-            headers      [{:sort-key :name :header-text "Words"}
+            headers      [{:sort-key :slug :header-text "Words"}
                           {:sort-key :translation :header-text "Translation"}
                           {:sort-key :comfort :header-text "Comfort"}]]
-        (if (empty? words)
-          [component/empty-state-with-msg]
-          [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-           [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1  bg-white"}
-            [component/page-heading "Words"]
-            [:div
-             [:table.block.table-auto.w-full.bg-white.border
-              [:thead.flex.w-full
-               [:tr.border-b.flex.w-full
-                ;; table header ---
-                (map-indexed (fn [idx header-data]
-                               [table-header-cell {:handle-changed-sort handle-changed-sort
-                                                   :key                 idx
-                                                   :sort-tuple          sort-tuple
-                                                   :sort-key            (:sort-key header-data)
-                                                   :text                (:header-text header-data)}])  headers)]]
-              ;; table body ----
-              [:tbody.overflow-auto.w-full.block {:style {:height "70vh"}}
-               (map-indexed (fn [idx word]
-                              [word-row (merge word {; :on-submit handle-update-word
-                                                     :sort-tuple sort-tuple
-                                                     :key        (str idx)
-                                                     :word-idx   idx})]) words)]]]]
+        (if loading?
+          [component/loading-intercept "Loading all words. This might take a second."]
+          (if (empty? words)
+            [component/empty-state-with-msg]
+            [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
+             [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1 bg-white"}
+              [component/page-heading "Words"]
+              [:div
+               [:table.block.table-auto.w-full.bg-white.border
+                [:thead.flex.w-full
+                 [:tr.border-b.flex.w-full
+                  ;; table header ---
+                  (map-indexed (fn [idx header-data]
+                                 [table-header-cell {:handle-changed-sort handle-changed-sort
+                                                     :key                 idx
+                                                     :sort-tuple          sort-tuple
+                                                     :sort-key            (:sort-key header-data)
+                                                     :text                (:header-text header-data)}])  headers)]]
+                ;; table body ----
+                [:tbody.overflow-auto.w-full.block {:style {:height "72vh"}}
+                 (map-indexed (fn [idx word]
+                                [word-row (merge word {; :on-submit handle-update-word
+                                                       :sort-tuple sort-tuple
+                                                       :key        (str idx)
+                                                       :word-idx   idx})]) words)]]]]
 
-           [component/view-current-word {:current-word current-word :form form}]])))))
+             [component/view-current-word {:current-word current-word :form form}]]))))))
