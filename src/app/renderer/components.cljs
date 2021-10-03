@@ -183,7 +183,7 @@
                         :name      "group-1"
                         :checked   (= (@form :comfort) comfort-int)
                         :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-               [:label {:for name :class (str "p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
+               [:label {:for name :class (str "text-sm p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
          ;; submit update
           [:div.mt-4 [button
