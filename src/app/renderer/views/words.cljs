@@ -74,17 +74,19 @@
                               (reset! sort-tuple [a b]))]
 
     (fn []
-      (let [loading?        (<| [::subs/loading?])
-            words           (<| [::subs/words])
-            current-word    (<| [::subs/current-word])
-            form            (r/atom current-word)
-            words           (sort-words-by @sort-tuple words)
-            headers         [{:sort-key :slug :header-text "Words"}
-                             {:sort-key :translation :header-text "Translation"}
-                             {:sort-key :comfort :header-text "Comfort"}]]
+      (let [loading?     (<| [::subs/loading?])
+            words        (<| [::subs/words])
+            articles     (<| [::subs/articles])
+            current-word (<| [::subs/current-word])
+            form         (r/atom current-word)
+            words        (sort-words-by @sort-tuple words)
+            headers      [{:sort-key :slug :header-text "Words"}
+                          {:sort-key :translation :header-text "Translation"}
+                          {:sort-key :comfort :header-text "Comfort"}]]
         (if loading?
           [component/loading-intercept "Loading all words. This might take a second."]
-          (if (empty? words)
+          ;; we don't check (db :words) because we force it to empty on navigation to avoid flicker
+          (if (empty? articles)
             [component/empty-state-with-msg]
             [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
 
@@ -105,9 +107,9 @@
                 ;; table body ----
                 [:tbody.overflow-auto.w-full.block {:style {:height "72vh"}}
                  (map-indexed (fn [idx word]
-                                [word-row (merge word {:sort-tuple      sort-tuple
-                                                       :current-row     current-row
-                                                       :key             (str idx)
-                                                       :word-idx        idx})]) words)]]]]
+                                [word-row (merge word {:sort-tuple  sort-tuple
+                                                       :current-row current-row
+                                                       :key         (str idx)
+                                                       :word-idx    idx})]) words)]]]]
 
              [component/view-current-word {:current-word current-word :form form}]]))))))

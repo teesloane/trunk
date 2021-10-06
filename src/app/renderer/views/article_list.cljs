@@ -36,15 +36,17 @@
   (|> [(s-ev :articles-get) nil])
   (fn []
     (let [articles (<| [::subs/articles])
+          loading? (<| [::subs/loading?])
           nav!     (fn [_ article]
                      (|> [(s-ev :article-get) article]))]
-      (if (empty? articles)
-        [component/empty-state-with-msg]
-        [component/container
-         [:div {:key "view-article-list"} ;; keep react happy.
-          [component/page-heading "Your articles"]
-          (when articles
-            (map-indexed (fn [idx item]
-                           [:div.cursor-pointer.mb-4
-                            {:key (item :article_id) :on-click #(nav! "article" item)}
-                            [article item]]) articles))]]))))
+      (when-not loading?
+        (if (empty? articles)
+          [component/empty-state-with-msg]
+          [component/container
+           [:div {:key "view-article-list"} ;; keep react happy.
+            [component/page-heading "Your articles"]
+            (when articles
+              (map-indexed (fn [idx item]
+                             [:div.cursor-pointer.mb-4
+                              {:key (item :article_id) :on-click #(nav! "article" item)}
+                              [article item]]) articles))]])))))

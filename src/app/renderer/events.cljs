@@ -26,7 +26,10 @@
       (fn [{:keys [db]} [_ new-route]]
         ;; if we're not in `article` or `words` view, hide the translation window
         (let [should-close-t-window? (not (some #{new-route} '("article words")))]
-          {:db (assoc db :current-view new-route)
+          {:db
+           (cond-> db
+             (= new-route "words") (assoc :words nil) ; empty the words vec. if we are navigating to it.
+             true                  (assoc :current-view new-route))
            :dispatch (if should-close-t-window?
                        [(s-ev :t-win-close)]
                        [::noop])})))
