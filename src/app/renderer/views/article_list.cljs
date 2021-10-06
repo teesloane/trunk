@@ -19,7 +19,7 @@
     (fn
       [{:keys [name original last_opened date_created]}]
       [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
-       [:div.text-xl.py-1.text-black name]
+       [:div.text-xl.py-1.text-black (u/trunc-ellipse name 50)]
        [:div.text-sm
         [:div.flex.justify-between
          [:div.flex

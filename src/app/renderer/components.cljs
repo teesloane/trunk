@@ -81,7 +81,8 @@
         links           [{:text "Read" :id "article-list"}
                          {:text "Create Article" :id "article-create"}
                          {:text "Words" :id "words"}
-                         {:text (get current-article :name) :id "article"}]]
+                         {:text (u/trunc-ellipse (get current-article :name) 25)
+                          :id "article"}]]
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b
      [:div.flex.items-center {:style {:height "35px"}}
       [:div.flex.flex-1.items-center

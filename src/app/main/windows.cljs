@@ -37,8 +37,8 @@
              :width  (int containerWidth)
              :height (int containerHeight)}]
   (reset! t-win (BrowserView.))
-  (.setBrowserView ^BrowserWindow @main-window @t-win)
-  (.setBounds ^BrowserView @t-win (clj->js pos))
+  (.setBrowserView ^js/electron.BrowserWindow @main-window @t-win)
+  (.setBounds ^js/electron.BrowserView @t-win (clj->js pos))
   (go-to-url current-word)))
 
 (defn t-win-update-word
@@ -47,6 +47,5 @@
 
 (defn t-win-close
   []
-  (.removeBrowserView ^BrowserWindow @main-window @t-win)
-  (reset! t-win nil)
-  )
+  (.removeBrowserView ^js/electron.BrowserWindow @main-window @t-win)
+  (reset! t-win nil))

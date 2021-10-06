@@ -1,11 +1,10 @@
 (ns app.renderer.core
   (:require
-   [reagent.dom :as rdom]
-   [re-frame.core :as rf]
    [app.renderer.events :as events]
    [app.renderer.re-pressed :as rp]
-   [app.renderer.views.index :refer [main-panel]]))
-
+   [app.renderer.views.index :refer [main-panel]]
+   [re-frame.core :as rf]
+   [reagent.dom :as rdom]))
 
 (defn ^:dev/after-load start! []
   (rf/dispatch-sync [::events/initialize-db])

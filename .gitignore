@@ -1,4 +1,3 @@
-/public/js
 /node_modules
 /target
 /yarn.lock
@@ -12,6 +11,8 @@ resources/public/js
 resources/public/css/site.css
 resources/main.js
 resources/*.js
+
+releases
 
 .lsp
 

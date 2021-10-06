@@ -8,6 +8,9 @@
 
 (def log (.-log js/console))
 
+(def debug?
+  ^boolean goog.DEBUG)
+
 (def comfort-text-and-col
   {0 {:name "Unknown" :text-col "text-gray-500"   :bg-col "bg-gray-300"}
    1 {:name "Hard"    :text-col "text-red-500"    :bg-col "bg-red-300"}

@@ -2,12 +2,11 @@
   (:require
    [app.shared.util :as u]
    ["better-sqlite3" :as sqlite]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   ["electron" :refer [app]]
+   ["path" :as path]))
 
-;; const Database = require('better-sqlite3');
-;; const db = new Database('foobar.db', { verbose: console.log });
-
-(def db (sqlite. "./trunk.db"))
+(def db (sqlite. (.join path (.getPath app "userData") "trunk.db")))
 
 (defn wipe! []
   (println "wipe!  called")

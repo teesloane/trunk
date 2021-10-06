@@ -7,6 +7,7 @@
    [app.renderer.views.article-create :as article-create]
    [app.renderer.views.article-list :as article-list]
    [app.renderer.views.words :as words]
+   [app.shared.util :as u]
    [app.shared.ipc-events :refer [s-ev]]))
 
 (defn loading-wheel
@@ -28,11 +29,10 @@
     {:on-click #(|> [(s-ev :wipe-db!)])} "wipe sql-db!"]])
 
 (defn main-panel []
-  (let [current-view (<| [::subs/current-view])
-        toast-msg    (<| [::subs/toast])]
+  (let [current-view (<| [::subs/current-view])]
     [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen.bg-gray-50
      ;; fixed pos things
-     [debug]
+     (when u/debug? [debug])
      [loading-wheel]
      [component/nav {:current-view current-view}]
      ;; Navigate!

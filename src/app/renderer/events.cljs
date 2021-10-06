@@ -121,9 +121,14 @@
 
 (r-fx (s-ev :article-deleted)
       (fn [{:keys [db]} [_ id]]
-        (let [new-articles (filter #(not= (% :article_id) id) (db :articles))]
+        (let [new-articles (filter #(not= (% :article_id) id) (db :articles))
+              ;; remove the current article if it was just deleted.
+              current-article (if (= (-> db :current-article :article_id) id)
+                                nil
+                                (db :current-article))]
           {:db (-> db
                    (assoc :loading? false)
+                   (assoc :current-article current-article)
                    (assoc :articles new-articles))})))
 
 (r-db (s-ev :article-received)
