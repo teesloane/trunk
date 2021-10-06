@@ -18,12 +18,16 @@
   (|> [::events/set-current-word {:word (specs/m->word props) :index idx}]))
 
 (defn word-row
-  [{:keys [name comfort translation idx] :as props}]
+  [{:keys [name comfort translation word-idx current-row] :as props}]
   (let [comfort-styles (str "inline-flex rounded-full ml-2 h-2 w-2 border "
-                            (u/get-comfort-bg-col comfort))]
-    [:tr.flex.w-full.cursor-pointer
-     {:key      idx :style {:font-size "13px"}
-      :on-click #(set-current-word props idx)}
+                            (u/get-comfort-bg-col comfort))
+        handle-click   (fn [props word-idx]
+                         (set-current-word props word-idx)
+                         (reset! current-row word-idx))]
+    [:tr
+     {:key      word-idx :style {:font-size "13px"}
+      :class    (str "flex w-full cursor-pointer" (when (= word-idx @current-row) " bg-gray-50"))
+      :on-click #(handle-click props word-idx)}
      [cell [:div.p-1 (str/lower-case name)]]
      [cell [:div.p-1 translation]]
      [cell
@@ -65,23 +69,26 @@
   []
   (|> [(s-ev :words-get) nil])
   (let [sort-tuple          (r/atom ["descending" :slug])
+        current-row         (r/atom nil)
         handle-changed-sort (fn [a b]
                               (reset! sort-tuple [a b]))]
 
     (fn []
-      (let [loading?     (<| [::subs/loading?])
-            words        (<| [::subs/words])
-            current-word (<| [::subs/current-word])
-            form         (r/atom current-word)
-            words        (sort-words-by @sort-tuple words)
-            headers      [{:sort-key :slug :header-text "Words"}
-                          {:sort-key :translation :header-text "Translation"}
-                          {:sort-key :comfort :header-text "Comfort"}]]
+      (let [loading?        (<| [::subs/loading?])
+            words           (<| [::subs/words])
+            current-word    (<| [::subs/current-word])
+            form            (r/atom current-word)
+            words           (sort-words-by @sort-tuple words)
+            headers         [{:sort-key :slug :header-text "Words"}
+                             {:sort-key :translation :header-text "Translation"}
+                             {:sort-key :comfort :header-text "Comfort"}]]
         (if loading?
           [component/loading-intercept "Loading all words. This might take a second."]
           (if (empty? words)
             [component/empty-state-with-msg]
             [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
+
+             (println @current-row)
              [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1 bg-white"}
               [component/page-heading "Words"]
               [:div
@@ -98,8 +105,9 @@
                 ;; table body ----
                 [:tbody.overflow-auto.w-full.block {:style {:height "72vh"}}
                  (map-indexed (fn [idx word]
-                                [word-row (merge word {:sort-tuple sort-tuple
-                                                       :key        (str idx)
-                                                       :word-idx   idx})]) words)]]]]
+                                [word-row (merge word {:sort-tuple      sort-tuple
+                                                       :current-row     current-row
+                                                       :key             (str idx)
+                                                       :word-idx        idx})]) words)]]]]
 
              [component/view-current-word {:current-word current-word :form form}]]))))))
