@@ -1,6 +1,7 @@
 (ns app.main.db
   (:require
    [app.shared.util :as u]
+   [app.shared.specs :as specs]
    ["better-sqlite3" :as sqlite]
    [clojure.string :as str]
    ["electron" :refer [app]]
@@ -124,11 +125,21 @@
   []
   (sql {:op :all :stmt "SELECT * FROM words WHERE is_not_a_word = 0 GROUP BY slug ORDER BY comfort DESC"}))
 
+(defn words-mark-all-known
+  "Receives a list of words and updates their comfort to `known` for all."
+  [words]
+  (let [stmt        (str "UPDATE words SET comfort = " (specs/word-comfort :known) " WHERE slug = ?")
+        sql-update  (.prepare db stmt )
+        insert-many (.transaction db (fn [words]
+                                       (doseq [word words]
+                                         (.run sql-update (word :slug)))))]
+    (insert-many words)))
+
 (defn word-update
   [data]
   (let [{:keys [translation comfort slug]} data]
     (sql {:op :run
-          :stmt "UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
+          :stmt " UPDATE words SET comfort = ?, translation = ? WHERE slug = ?"
           :params [comfort translation slug]})))
 
 (defn words-get-ids-for-article

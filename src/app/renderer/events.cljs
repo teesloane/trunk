@@ -3,7 +3,8 @@
    [app.renderer.db :as db]
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [app.shared.specs :as specs]))
 
 (def |> re-frame.core/dispatch)
 (def r-db rf/reg-event-db)
@@ -190,6 +191,19 @@
              (assoc :loading? false)
              (assoc :words data))}))
 
+(r-fx (s-ev :words-mark-all-known)
+      (fn [cofx [event _]]
+        {:db (-> (cofx :db)
+                 (assoc :loading true))
+         ::ipc-send! [event (-> (cofx :db) :current-article :word-data)]}))
+
+(r-db (s-ev :words-marked-as-known)
+      (fn [db [_ data]]
+        (let [update-words #(map (fn [word] (assoc word :comfort (specs/word-comfort :known))) %)]
+          (-> db
+              (assoc :loading? false)
+              (update-in [:current-article :word-data] update-words)))))
+
 (defn update-word-helper
   "Finds a word in a list of words and updates it"
   [event-data word-data]
@@ -267,40 +281,13 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
-;; TODO - could refactor this to be built from a list/partial the first fn that
-;; takes electron event/data
+(def incoming-handlers [:article-created :articles-received :article-received :article-deleted :words-got :word-updated :words-marked-as-known :t-win-opened])
+;; Loop over the incoming handlers and set them up to dispatch a re-frame events whenever they get triggered by ipcMain.
 (defonce ipcHandlers
-  {(s-ev :article-created)
-   (fn [_ data]
-     (|> [(s-ev :article-created) data]))
-
-   (s-ev :articles-received)
-   (fn [_ data] (|> [(s-ev :articles-received) data]))
-
-   ;; Not in use yet.
-   ;; (s-ev :article-updated)
-   ;; (fn [_ data]
-   ;;   (|> [(s-ev :article-updated) data]))
-
-   (s-ev :article-received)
-   (fn [_ data]
-     (|> [(s-ev :article-received) data]))
-
-   (s-ev :article-deleted)
-   (fn [_ data]
-     (|> [(s-ev :article-deleted) data]))
-
-   (s-ev :word-updated)
-   (fn [_ data]
-     (|> [(s-ev :word-updated) data]))
-
-   (s-ev :words-got)
-   (fn [_ data]
-     (|> [(s-ev :words-got) data]))
-
-   (s-ev :t-win-opened)
-   (fn [_ data]
-     (|> [(s-ev :t-win-opened) data]))})
+  (into {}
+        (map (fn [key]
+               (let [ev-name (get s-ev key)]
+                 [ev-name (fn [_ data] (|> [ev-name data]))])) incoming-handlers)))
 
 (defn ipc-init
   "Load ipcRenderer and loop through defined handlers

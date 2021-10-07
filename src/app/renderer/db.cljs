@@ -1,7 +1,5 @@
 (ns app.renderer.db)
 
-
-
 (def default-db
   {:current-view     "article-list"
    :articles         nil
@@ -12,10 +10,7 @@
    :loading?         true
    :toast            ""
    :t-win            {:open?    false
-                      :loading? false}
-   })
-
-
+                      :loading? false}})
 
 ;; helpers --
 

@@ -56,6 +56,11 @@
            res (db/word-get (data :word_id))]
        (reply! event (s-ev :word-updated) res)))
 
+   (s-ev :words-mark-all-known)
+   (fn [event data]
+     (let [_ (db/words-mark-all-known data)]
+       (reply! event (s-ev :words-marked-as-known) nil)))
+
    (s-ev :wipe-db!)
    (fn [event data] (db/wipe!))
 
