@@ -15,13 +15,20 @@
 (defn container
   "This needs to have it's react-keys resolved."
   [children]
-  [:div {:class "mt-8 flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
+  [:div {:class "flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
    children])
 
 (def icons
   {:chevron-up   "chevron-up.svg"
    :chevron-down "chevron-down.svg"
    :check        "check.svg"})
+
+
+(defn card
+  [{:keys [header]} body]
+  [:div.bg-white.border {:key header}
+   [:div.border-b.px-4.py-2.text-sm.font-bold [:span header]]
+   [:div.p-4 body]])
 
 (defn icon
   ""
@@ -81,6 +88,7 @@
         links           [{:text "Read" :id "article-list"}
                          {:text "Create Article" :id "article-create"}
                          {:text "Words" :id "words"}
+                         {:text "Settings" :id "settings"}
                          {:text (u/trunc-ellipse (get current-article :name) 25)
                           :id "article"}]]
     [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b

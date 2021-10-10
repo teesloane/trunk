@@ -86,11 +86,9 @@
         (if loading?
           [component/loading-intercept "Loading all words. This might take a second."]
           ;; we don't check (db :words) because we force it to empty on navigation to avoid flicker
-          (if (empty? articles)
+          (if (empty? words)
             [component/empty-state-with-msg]
             [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-
-             (println @current-row)
              [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1 bg-white"}
               [component/page-heading "Words"]
               [:div

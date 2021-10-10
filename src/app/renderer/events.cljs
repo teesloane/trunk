@@ -6,6 +6,11 @@
    [re-frame.core :as rf]
    [app.shared.specs :as specs]))
 
+
+
+;; Helpers
+
+;; Shorten some names for easier typing
 (def |> re-frame.core/dispatch)
 (def r-db rf/reg-event-db)
 (def r-fx rf/reg-event-fx)
@@ -16,6 +21,13 @@
   [channel data]
   (let [ipcRenderer (.. (js/require "electron") -ipcRenderer)
         _           (.send ipcRenderer (name channel) (clj->js data))]))
+
+(defn with-lang
+  "Takes an event and wraps it's payload with the db's current languages.
+  Assumes event-data is a map!"
+  [db [event-name event-data]]
+  [event-name (assoc event-data :language (-> db :settings :target-lang))])
+
 
 (r-db ::initialize-db
       (fn [_ _]
@@ -83,7 +95,11 @@
   "If the translation window is open..."
   [new-db]
   (if (-> new-db :t-win :open?)
-    [(s-ev :t-win-update-word) (new-db :current-word)]
+    [(s-ev :t-win-update-word)
+     {:current-word (-> new-db :current-word :name)
+      :target-lang  (-> new-db :settings :target-lang)
+      :native-lang  (-> new-db :settings :native-lang)
+      }]
     [::noop]))
 
 (r-fx :key-pressed-right
@@ -113,9 +129,9 @@
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
 (r-fx (s-ev :article-get)
-      (fn [cofx event]
-        {:db (assoc (cofx :db) :loading? true)
-         ::ipc-send! event}))
+      (fn [{:keys [db]} event]
+        {:db (assoc db :loading? true)
+         ::ipc-send! (with-lang db event)}))
 
 (r-fx (s-ev :article-delete)
       (fn [{:keys [db]} event]
@@ -145,11 +161,11 @@
 (r-fx (s-ev :articles-get)
       (fn [{:keys [db]} event]
         {:db         (assoc db :loading? true)
-         ::ipc-send! event}))
+         ::ipc-send! (with-lang db event)}))
 
 (r-fx (s-ev :article-create)
-      (fn [_ event]
-        {::ipc-send! event}))
+      (fn [{:keys [db]} event]
+        {::ipc-send! (with-lang db event)}))
 
 ;; Not being used yet.
 ;; (r-fx (s-ev :article-update)
@@ -175,14 +191,14 @@
 ;; -- Word(s) - CRUD -----------------------------------------------------------
 
 (r-fx (s-ev :word-update)
-      (fn [cofx event]
-        {:db (cofx :db)
-         ::ipc-send! event}))
+      (fn [{:keys [db]} event]
+        {:db db
+         ::ipc-send! (with-lang db event)}))
 
 (r-fx (s-ev :words-get)
-      (fn [cofx event]
-        {:db (assoc (cofx :db) :loading? true)
-         ::ipc-send! event}))
+      (fn [{:keys [db]} event]
+        {:db (assoc db :loading? true)
+         ::ipc-send! (with-lang db event)}))
 
 (r-fx (s-ev :words-got)
       (fn [cofx [_ data]]
@@ -192,10 +208,10 @@
              (assoc :words data))}))
 
 (r-fx (s-ev :words-mark-all-known)
-      (fn [cofx [event _]]
-        {:db (-> (cofx :db)
+      (fn [{:keys [db]} [event _]]
+        {:db (-> db
                  (assoc :loading true))
-         ::ipc-send! [event (-> (cofx :db) :current-article :word-data)]}))
+         ::ipc-send! [event (-> db :current-article :word-data)]}))
 
 (r-db (s-ev :words-marked-as-known)
       (fn [db [_ data]]
@@ -205,7 +221,7 @@
               (update-in [:current-article :word-data] update-words)))))
 
 (defn update-word-helper
-  "Finds a word in a list of words and updates it"
+  "Finds a word in the re-frame db's list of words and updates it"
   [event-data word-data]
   (vec
    (map
@@ -242,12 +258,45 @@
             {:db  new-db
              :dispatch  (when-t-win-open new-db)}))))
 
+;; -- Settings -----------------------------------------------------------------
+
+(r-fx (s-ev :settings-get)
+      (fn [cofx event]
+        {:db (-> (cofx :db) (assoc :loading? true))
+         ::ipc-send! event}))
+
+(r-fx (s-ev :settings-got)
+      (fn [cofx [event data]]
+        {:db (-> (cofx :db)
+                 (assoc :loading? false)
+                 (assoc :settings data))}))
+
+;; we just patch the whole settings object in
+;; because drilling into it is too annoying with re-frame.
+;;
+(r-fx (s-ev :settings-update)
+      (fn [cofx [event data]]
+        {:db (-> (cofx :db)
+                 (assoc :settings data))
+         ::ipc-send! [event data]}))
+
+(r-fx (s-ev :settings-updated)
+      (fn [{:keys [db]} [event data]]
+        {:db (-> db
+                 (assoc :settings data)
+                 (assoc :current-article nil)
+                 (assoc :loading? false))
+         :dispatch   [::set-toast "Settings updated."]
+         }))
+
 ;; -- Translation Window -------------------------------------------------------
 
 (r-fx (s-ev :t-win-open)
-      (fn [{:keys [db]} event-and-window-data]
+      (fn [{:keys [db]} [event window-data]]
         {:db         (assoc-in db [:t-win :loading?] true)
-         ::ipc-send! event-and-window-data}))
+         ::ipc-send! [event (assoc window-data
+                                   :target-lang (-> db :settings :target-lang)
+                                   :native-lang (-> db :settings :native-lang))]}))
 
 (r-fx (s-ev :t-win-opened)
       (fn [{:keys [db]} event]
@@ -281,11 +330,15 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
-(def incoming-handlers [:article-created :articles-received :article-received :article-deleted :words-got :word-updated :words-marked-as-known :t-win-opened])
+(def incoming-handlers [:article-created :articles-received :article-received :article-deleted
+                        :words-got       :word-updated      :words-marked-as-known
+                        :settings-got    :settings-updated
+                        :t-win-opened])
 ;; Loop over the incoming handlers and set them up to dispatch a re-frame events whenever they get triggered by ipcMain.
 (defonce ipcHandlers
   (into {}
         (map (fn [key]
+               ;; TODO get can fail if the key is not present on s-ev.
                (let [ev-name (get s-ev key)]
                  [ev-name (fn [_ data] (|> [ev-name data]))])) incoming-handlers)))
 

@@ -13,6 +13,10 @@
    :article-delete        ::article-delete
    :article-deleted       ::article-deleted
    :article-received      ::article-received
+   :settings-get          ::settings-get
+   :settings-got          ::settings-got
+   :settings-update       ::settings-update
+   :settings-updated      ::settings-updated
    :word-update           ::word-update
    :word-updated          ::word-updated
    :words-get             ::words-get

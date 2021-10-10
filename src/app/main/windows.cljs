@@ -10,8 +10,8 @@
   []
   (reset! main-window
           (BrowserWindow.
-           (clj->js {:width  800
-                     :height 600
+           (clj->js {:width  1300
+                     :height 800
                      :webPreferences
                      {:nodeIntegration  true
                       :contextIsolation false ;; come back and figure out preload.js someday.
@@ -22,11 +22,12 @@
   (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil)))
 
 (defn go-to-url
-  [current-word]
+  [{:keys [current-word target-lang native-lang]}]
   (.loadURL ^js (.-webContents ^BrowserView @t-win )
-            (if current-word
-              ;; TODO: make language selectable / dynamic
-              (str "https://translate.google.com" "?sl=fr&tl=en&text=" current-word "&op=translate")
+            (if (and current-word target-lang native-lang)
+              (str "https://translate.google.com"
+                   "?sl=" target-lang "&tl=" native-lang
+                   "&text=" current-word "&op=translate")
               "https://translate.google.com")))
 
 (defn t-win-init
@@ -39,11 +40,11 @@
   (reset! t-win (BrowserView.))
   (.setBrowserView ^js/electron.BrowserWindow @main-window @t-win)
   (.setBounds ^js/electron.BrowserView @t-win (clj->js pos))
-  (go-to-url current-word)))
+  (go-to-url (select-keys data [:current-word :target-lang :native-lang]))))
 
 (defn t-win-update-word
   [data]
-  (go-to-url (data :name)))
+  (go-to-url (select-keys data [:current-word :target-lang :native-lang])))
 
 (defn t-win-close
   []

@@ -14,6 +14,7 @@
 (rf/reg-sub ::current-word-idx (fn [db] (db :current-word-idx)))
 (rf/reg-sub ::loading?         (fn [db] (db :loading?)))
 (rf/reg-sub ::toast            (fn [db] (db :toast)))
+(rf/reg-sub ::settings         (fn [db] (db :settings)))
 
 ;; translation window
 (rf/reg-sub ::t-win-loading?   (fn [db] (-> db :t-win :loading?)))

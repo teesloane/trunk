@@ -20,6 +20,14 @@
    :translation nil
    })
 
+(def langs
+  {"french"  "fr"
+   "english" "en"})
+
+(def settings-default
+  {:native-lang (get langs "english")
+   :target-lang (get langs "french")})
+
 (defn m->word
   [m]
   (select-keys m (vec (keys word))))

@@ -18,11 +18,10 @@
   ;; creating a 2500~ word article: 580.027ms
   {(s-ev :article-create)
    (fn [event data]
-     (let [_                (db/words-insert (data :article))
-           word-ids-str     (db/words-get-ids-for-article (data :article))
+     (let [_                (db/words-insert data)
+           word-ids-str     (db/words-get-ids-for-article data)
            inserted-article (db/article-insert (merge data {:word_ids word-ids-str}))]
        (reply! event (s-ev :article-created) inserted-article)))
-
 
    (s-ev :article-delete)
    (fn [event id]
@@ -31,23 +30,22 @@
 
    (s-ev :articles-get)
    (fn [event data]
-     (let [res (db/articles-get)]
+     (let [res (db/articles-get data)]
        (reply! event (s-ev :articles-received) res)))
 
    (s-ev :article-get)
    (fn [event data]
-     (let [id            (data :article_id)]
-       (db/article-update-last-opened id)
-       (->> id
-            db/article-get-by-id
-            db/article-attach-words
-            (reply! event (s-ev :article-received)))))
+     (db/article-update-last-opened data)
+     (->> data
+          db/article-get-by-id
+          db/article-attach-words
+          (reply! event (s-ev :article-received))))
 
    ;; -- WORDS HANDLERS ---------------------------
 
    (s-ev :words-get)
    (fn [event data]
-     (let [res (db/words-get)]
+     (let [res (db/words-get data)]
        (reply! event (s-ev :words-got) res)))
 
    (s-ev :word-update)
@@ -61,10 +59,22 @@
      (let [_ (db/words-mark-all-known data)]
        (reply! event (s-ev :words-marked-as-known) nil)))
 
+   ;; -- Settings
+   (s-ev :settings-get)
+   (fn [event data]
+     (let [settings (db/settings-get)]
+       (reply! event (s-ev :settings-got) settings)))
+
+   (s-ev :settings-update)
+   (fn [event data]
+     (let [updated      (db/settings-update data)
+           new-settings (db/settings-get)]
+       (reply! event (s-ev :settings-updated) new-settings)))
+
    (s-ev :wipe-db!)
    (fn [event data] (db/wipe!))
 
-;; -- Translation window
+   ;; -- Translation window
 
    (s-ev :t-win-open)
    (fn [event data]
@@ -74,7 +84,8 @@
    (s-ev :t-win-update-word)
    (fn [event data]
      (windows/t-win-update-word data)
-     (reply! event (s-ev :t-win-update-word) nil))
+     ;; there is not re-frame handler for t-win-updated-word. not needed yet.
+     (reply! event (s-ev :t-win-updated-word) nil))
 
    (s-ev :t-win-close)
    (fn [event data]

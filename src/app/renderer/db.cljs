@@ -1,7 +1,7 @@
 (ns app.renderer.db)
 
 (def default-db
-  {:current-view     "article-list"
+  {:current-view     "settings"
    :articles         nil
    :words            []
    :current-article  nil
@@ -9,6 +9,7 @@
    :current-word     nil
    :loading?         true
    :toast            ""
+   :settings         nil
    :t-win            {:open?    false
                       :loading? false}})
 
