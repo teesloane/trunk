@@ -120,7 +120,7 @@
     (cond
       ;; newlines that are just from textarea...
       (= name "\n")
-      [:br]
+      [:div.w-full {:style {:height "0px"}}]
 
       (= name "\n\n")
       [:div.w-full [:br]]

@@ -1,8 +1,8 @@
 (ns app.shared.specs)
 
 
-;; these aren't real specs yet; just the shapes of data until spec is (or is not?) added.
-;;
+;; these aren't "real" specs (ie clojure/spec yet; just the shapes of data until
+;; clojure/spec is (or is not?) added.
 
 ;; the word comfort integers as they are reflected in the db.
 (def word-comfort
@@ -22,7 +22,11 @@
 
 (def langs
   {"french"  "fr"
-   "english" "en"})
+   "english" "en"
+   "spanish" "es"
+   "german"  "de"
+   "italian" "it"
+   })
 
 (def settings-default
   {:native-lang (get langs "english")

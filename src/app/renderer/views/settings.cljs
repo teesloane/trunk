@@ -10,8 +10,7 @@
    [re-frame.core :as rf]))
 
 (def settings-tree
-  {
-   ;; "General"            nil
+  {;; "General"            nil
    "Languages"          nil
    ;; "Backup and Restore" nil
    })
@@ -26,10 +25,18 @@
    (let [select-classes "mt-1 mb-2 flex border w-64 py-2"
          swap-key       (fn [option settings-key]
                           (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
-                      (update-settings new-settings)))]
+                            (update-settings new-settings)))]
      [:div.flex.flex-col.md:flex-row
-      [:div.text-sm.md:mr-8
-       [:div "Set your native language:"]
+      [:div {:class "text-sm w-1/2 md:mt-0"}
+       [:div "What language do you want to practice?"]
+       [:select {:class     select-classes
+                 :default-value (@settings :target-lang)
+                 :on-change #(swap-key % :target-lang)}
+        (for [[lang-name lang-code] specs/langs]
+          ^{:key lang-name}
+          [:option {:value lang-code} (str/capitalize lang-name)])]]
+      [:div {:class "text-sm w-1/2"}
+       [:div "What is your native language?"]
        [:select {:class     select-classes
                  :default-value (@settings :native-lang)
                  :on-change #(swap-key % :native-lang)}
@@ -37,21 +44,13 @@
           ^{:key lang-name}
           [:option {:value    lang-code}
            (str/capitalize lang-name)])]]
-
-      [:div.text-sm.mt-8.md:mt-0
-       [:div "Set your target language:"]
-       [:select {:class     select-classes
-                 :default-value (@settings :target-lang)
-                 :on-change #(swap-key % :target-lang)}
-        (for [[lang-name lang-code] specs/langs]
-          ^{:key lang-name}
-          [:option {:value lang-code} (str/capitalize lang-name)])]]])])
+      ])])
 
 (defn sidebar
   [{:keys [current-setting]}]
   [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-48"}
    [:div.font-bold.mb-4.text-lg.px-4 "Settings"]
-   (for [[name val] settings-tree]
+   (for [[name _] settings-tree]
      ^{:key name}
      [:div
       {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
@@ -62,17 +61,13 @@
 (defn view
   []
   (|> [(s-ev :settings-get)])
-  (let [current-setting   (r/atom "Languages")
-        original-settings (<| [::subs/settings])
-        settings          (rf/subscribe [::subs/settings])]
+  (let [current-setting (r/atom "Languages")
+        settings        (rf/subscribe [::subs/settings])]
     (fn []
-      (let []
-        (when @settings
-          [:div.flex.h-full
-           [sidebar {:current-setting current-setting}]
-           [:div {:class "flex flex-col pt-4 w-4/5 p-4 pt-8"}
-            (case @current-setting
-              "Languages" [languages settings]
-
-              [languages settings]
-              )]])))))
+      (when @settings
+        [:div.flex.h-full
+         [sidebar {:current-setting current-setting}]
+         [:div {:class "flex flex-col pt-4 w-full p-4 pt-8"}
+          (case @current-setting
+            "Languages" [languages settings]
+            [languages settings])]]))))

@@ -2,11 +2,9 @@
   (:require
    [app.renderer.db :as db]
    [app.shared.ipc-events :refer [s-ev]]
+   [app.shared.specs :as specs]
    [app.shared.util :as u]
-   [re-frame.core :as rf]
-   [app.shared.specs :as specs]))
-
-
+   [re-frame.core :as rf]))
 
 ;; Helpers
 
@@ -27,7 +25,6 @@
   Assumes event-data is a map!"
   [db [event-name event-data]]
   [event-name (assoc event-data :language (-> db :settings :target-lang))])
-
 
 (r-db ::initialize-db
       (fn [_ _]
@@ -98,8 +95,7 @@
     [(s-ev :t-win-update-word)
      {:current-word (-> new-db :current-word :name)
       :target-lang  (-> new-db :settings :target-lang)
-      :native-lang  (-> new-db :settings :native-lang)
-      }]
+      :native-lang  (-> new-db :settings :native-lang)}]
     [::noop]))
 
 (r-fx :key-pressed-right
@@ -146,17 +142,17 @@
               current-article (if (= (-> db :current-article :article_id) id)
                                 nil
                                 (db :current-article))]
-          {:db (-> db
-                   (assoc :loading? false)
-                   (assoc :current-article current-article)
-                   (assoc :articles new-articles))})))
+          {:db (-> db (assoc :loading? false
+                             :current-article current-article
+                             :articles new-articles))})))
 
 (r-db (s-ev :article-received)
       (fn [db [_ data]]
         (-> db
-            (assoc :current-article data)
-            (assoc :current-view "article")
-            (assoc :loading? false))))
+            (assoc :current-article data
+                   :current-view "article"
+                   :current-word (-> data :word-data first)
+                   :loading? false))))
 
 (r-fx (s-ev :articles-get)
       (fn [{:keys [db]} event]
@@ -166,15 +162,6 @@
 (r-fx (s-ev :article-create)
       (fn [{:keys [db]} event]
         {::ipc-send! (with-lang db event)}))
-
-;; Not being used yet.
-;; (r-fx (s-ev :article-update)
-;;       (fn [_ event]
-;;         {::ipc-send! event}))
-
-;; (r-fx (s-ev :article-updated)
-;;       (fn [{:keys [db]} [_ data]]
-;;         {:db (assoc db :current-article data)}))
 
 (r-fx (s-ev :article-created)
       (fn [{:keys [db]} [_ data]]
@@ -286,8 +273,7 @@
                  (assoc :settings data)
                  (assoc :current-article nil)
                  (assoc :loading? false))
-         :dispatch   [::set-toast "Settings updated."]
-         }))
+         :dispatch   [::set-toast "Settings updated."]}))
 
 ;; -- Translation Window -------------------------------------------------------
 
