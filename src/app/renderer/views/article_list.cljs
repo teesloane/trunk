@@ -20,7 +20,7 @@
                           (= 1 @sure?) (|> [(s-ev :article-delete) article_id])))]
     (fn
       [{:keys [name original last_opened date_created]}]
-      [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
+      [:div.mb-4.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
        [:div.text-md.py-1.text-black (u/trunc-ellipse name 50)]
        [:div.text-sm
         [:div.flex.justify-between
@@ -52,7 +52,7 @@
              [:div {:key "view-article-list"} ;; keep react happy.
               [component/page-heading "Your articles"]
               [:input
-               {:class "mb-2 w-full border p-2 rounded-sm text-sm"
+               {:class "mb-3 w-full border p-2 rounded-sm text-sm"
                 :placeholder "Search articles..."
                 :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
