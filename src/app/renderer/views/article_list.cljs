@@ -5,7 +5,8 @@
    [app.renderer.subs :as subs :refer [<|]]
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [re-frame.core :as rf]))
 
 (defn article
   "Display a single article in the article list view."
@@ -33,20 +34,21 @@
 
 (defn view
   []
-  (|> [(s-ev :articles-get) nil])
-  (fn []
-    (let [articles (<| [::subs/articles])
-          loading? (<| [::subs/loading?])
-          nav!     (fn [_ article]
-                     (|> [(s-ev :article-get) article]))]
-      (when-not loading?
-        (if (empty? articles)
-          [component/empty-state-with-msg]
-          [component/container
-           [:div {:key "view-article-list"} ;; keep react happy.
-            [component/page-heading "Your articles"]
-            (when articles
-              (map-indexed (fn [idx item]
-                             [:div.cursor-pointer.mb-4
-                              {:key (item :article_id) :on-click #(nav! "article" item)}
-                              [article item]]) articles))]])))))
+  (let [search-query (r/atom "")
+        loading?     (rf/subscribe [::subs/loading?])]
+    (fn []
+      (let [articles (<| [::subs/articles])
+            nav!     (fn [_ article] (|> [(s-ev :article-get) article]))]
+        (when-not @loading?
+          (if (empty? articles)
+            [component/empty-state-with-msg]
+            [component/container
+             [:div {:key "view-article-list"} ;; keep react happy.
+              [component/page-heading "Your articles"]
+              [:div "search query: " @search-query]
+              [:input {:value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
+              (when articles
+                (map-indexed (fn [idx item]
+                               [:div.cursor-pointer.mb-4
+                                {:key (item :article_id) :on-click #(nav! "article" item)}
+                                [article item]]) articles))]]))))))

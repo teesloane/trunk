@@ -4,7 +4,7 @@
 (def s-ev
   {
    :articles-get          ::articles-get
-   :articles-received     ::articles-received
+   :articles-got     ::articles-got
    :article-create        ::article-create
    :article-created       ::article-created
    :article-get           ::article-get

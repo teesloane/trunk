@@ -31,7 +31,7 @@
    (s-ev :articles-get)
    (fn [event data]
      (let [res (db/articles-get data)]
-       (reply! event (s-ev :articles-received) res)))
+       (reply! event (s-ev :articles-got) res)))
 
    (s-ev :article-get)
    (fn [event data]

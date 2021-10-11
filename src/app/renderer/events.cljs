@@ -1,12 +1,12 @@
 (ns app.renderer.events
   (:require
    [app.renderer.db :as db]
+   [day8.re-frame.async-flow-fx :as async-flow-fx] ;; this registers the fx; leave in.
    [app.shared.ipc-events :refer [s-ev]]
+   [app.renderer.re-pressed :as rp]
    [app.shared.specs :as specs]
    [app.shared.util :as u]
    [re-frame.core :as rf]))
-
-;; Helpers
 
 ;; Shorten some names for easier typing
 (def |> re-frame.core/dispatch)
@@ -26,9 +26,20 @@
   [db [event-name event-data]]
   [event-name (assoc event-data :language (-> db :settings :target-lang))])
 
-(r-db ::initialize-db
-      (fn [_ _]
-        db/default-db))
+(defn boot-flow
+  "Set up re-frame's async boot of events.
+  see use of: https://github.com/day8/re-frame-async-flow-fx."
+  []
+  {:first-dispatch [(s-ev :settings-get)]              ;; what event kicks things off ?
+   :rules [{:when :seen? :events (s-ev :settings-got) :dispatch [(s-ev :articles-get)]}
+           {:when :seen? :events (s-ev :articles-got) :halt? true}
+           ]})
+(r-fx
+  :boot
+  (fn [_ _]
+    {:db db/default-db
+     :dispatch [::rp/add-keyboard-event-listener "keydown"]
+     :async-flow (boot-flow)})) ;; kick off the async process
 
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
 
@@ -169,7 +180,7 @@
          :fx [[:dispatch [::set-toast "Article created."]]
               [:dispatch [::navigate "article-list"]]]}))
 
-(r-db (s-ev :articles-received)
+(r-db (s-ev :articles-got)
       (fn [db [_ data]]
         (-> db
             (assoc :articles data)
@@ -316,7 +327,7 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
-(def incoming-handlers [:article-created :articles-received :article-received :article-deleted
+(def incoming-handlers [:article-created :articles-got :article-received :article-deleted
                         :words-got       :word-updated      :words-marked-as-known
                         :settings-got    :settings-updated
                         :t-win-opened])
