@@ -1,6 +1,6 @@
 .fade-in-fade-out {
     opacity: 0;
-    animation: fade 3.2s ease;
+    animation: fade 4.5s ease;
 }
 
 @keyframes fade {

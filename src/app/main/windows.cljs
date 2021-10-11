@@ -1,6 +1,6 @@
 (ns app.main.windows
   (:require
-   ["electron" :refer [BrowserWindow BrowserView app]]))
+   ["electron" :refer [BrowserWindow BrowserView app dialog]]))
 
 
 (def main-window (atom nil))
@@ -51,3 +51,11 @@
   []
   (.removeBrowserView ^js/electron.BrowserWindow @main-window @t-win)
   (reset! t-win nil))
+
+
+(defn bkup-db-window?
+  [backup-name]
+  (let [path (.getPath app "desktop")
+        opts (clj->js {:title       "Select save location for Trunk backup"
+                       :defaultPath (str path "/" backup-name)})]
+    (.showSaveDialog dialog opts)))

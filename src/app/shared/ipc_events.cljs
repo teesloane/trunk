@@ -4,7 +4,7 @@
 (def s-ev
   {
    :articles-get          ::articles-get
-   :articles-got     ::articles-got
+   :articles-got          ::articles-got
    :article-create        ::article-create
    :article-created       ::article-created
    :article-get           ::article-get
@@ -17,6 +17,7 @@
    :settings-got          ::settings-got
    :settings-update       ::settings-update
    :settings-updated      ::settings-updated
+   :settings-backup-db    ::settings-backup-db
    :word-update           ::word-update
    :word-updated          ::word-updated
    :words-get             ::words-get
@@ -32,5 +33,9 @@
    :t-win-closed       ::t-win-closed
    :t-win-update-word  ::t-win-update-word
    :t-win-updated-word ::t-win-updated-word
+
+   ;; misc events / generic
+   :ipc-success        ::ipc-success
+   :ipc-error          ::ipc-error
 
    })

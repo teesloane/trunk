@@ -6,11 +6,12 @@
    [app.shared.util :as u]))
 
 (defn toast
-  [msg]
-  (let [classes "px-4 h-full flex items-center"]
-    (if (= msg "")
-      [:div {:class (str classes) } msg]
-      [:div {:class (str classes " fade-in-fade-out") } msg])))
+  [{:keys [type msg]}]
+  (prn "toast rendering " type msg)
+  (let [classes (str "px-4 h-full flex items-center "
+                     (case type :confirmation "text-green-500" :error "text-red-500" ""))]
+    (when-not (empty? msg)
+      [:div {:class (str classes)} msg])))
 
 (defn container
   "This needs to have it's react-keys resolved."
@@ -22,7 +23,6 @@
   {:chevron-up   "chevron-up.svg"
    :chevron-down "chevron-down.svg"
    :check        "check.svg"})
-
 
 (defn card
   [{:keys [header]} body]

@@ -32,14 +32,13 @@
   []
   {:first-dispatch [(s-ev :settings-get)]              ;; what event kicks things off ?
    :rules [{:when :seen? :events (s-ev :settings-got) :dispatch [(s-ev :articles-get)]}
-           {:when :seen? :events (s-ev :articles-got) :halt? true}
-           ]})
-(r-fx
-  :boot
-  (fn [_ _]
-    {:db db/default-db
-     :dispatch [::rp/add-keyboard-event-listener "keydown"]
-     :async-flow (boot-flow)})) ;; kick off the async process
+           {:when :seen? :events (s-ev :articles-got) :halt? true}]})
+
+(r-fx :boot
+      (fn [_ _]
+        {:db db/default-db
+         :dispatch [::rp/add-keyboard-event-listener "keydown"]
+         :async-flow (boot-flow)})) ;; kick off the async process
 
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
 
@@ -60,7 +59,7 @@
 (r-fx ::set-toast
       (fn [cofx [_ data]]
         {:db (assoc (cofx :db) :toast data)
-         :dispatch-later [{:ms 4000 :dispatch [::remove-toast]}]}))
+         :dispatch-later [{:ms 5000 :dispatch [::remove-toast]}]}))
 
 (r-fx ::remove-toast
       (fn [cofx _]
@@ -143,7 +142,7 @@
 (r-fx (s-ev :article-delete)
       (fn [{:keys [db]} event]
         {:db         (-> db (assoc :loading? true))
-         :dispatch   [::set-toast "Article deleted."]
+         :dispatch   [::set-toast {:type :confirmation :msg "Article deleted."}]
          ::ipc-send! event}))
 
 (r-fx (s-ev :article-deleted)
@@ -177,7 +176,7 @@
 (r-fx (s-ev :article-created)
       (fn [{:keys [db]} [_ data]]
         {:db db
-         :fx [[:dispatch [::set-toast "Article created."]]
+         :fx [[:dispatch [::set-toast {:type :confirmation :msg "Article created."}]]
               [:dispatch [::navigate "article-list"]]]}))
 
 (r-db (s-ev :articles-got)
@@ -214,8 +213,8 @@
 (r-db (s-ev :words-marked-as-known)
       (fn [db [_ data]]
         (let [update-words #(->> %
-                                (map (fn [word] (assoc word :comfort (specs/word-comfort :known))))
-                                (into []))]
+                                 (map (fn [word] (assoc word :comfort (specs/word-comfort :known))))
+                                 (into []))]
           (-> db
               (assoc :loading? false)
               (update-in [:current-article :word-data] update-words)))))
@@ -238,7 +237,7 @@
       (fn [{:keys [db]} [event-name data]]
         (let [current-article-words (-> db :current-article :word-data)
               words-view-words      (-> db :words)]
-          {:dispatch [::set-toast "Word updated."]
+          {:dispatch [::set-toast {:type :confirmation :msg "Word updated."}]
            :db       (cond-> db
                        true                  (assoc :loading? false)
                        true                  (assoc :current-word data)
@@ -286,7 +285,12 @@
                  (assoc :settings data)
                  (assoc :current-article nil)
                  (assoc :loading? false))
-         :dispatch   [::set-toast "Settings updated."]}))
+         :dispatch   [::set-toast {:type :confirmation :msg "Settings updated."}]}))
+
+(r-fx (s-ev :settings-backup-db)
+      (fn [{:keys [db]} event]
+        {:db db
+         ::ipc-send! event}))
 
 ;; -- Translation Window -------------------------------------------------------
 
@@ -320,6 +324,18 @@
         {::ipc-send! event
          :dispatch [::initialize-db]}))
 
+(r-fx (s-ev :ipc-success)
+      (fn [{:keys [db]} msg]
+        {:db db
+         :dispatch [::set-toast {:type :confirmation :msg msg}]}))
+
+(r-fx (s-ev :ipc-error)
+      (fn [{:keys [db]} [_ error-data]]
+        (println (error-data :err))
+        {:db
+         (-> db (assoc :loading? false))
+         :dispatch [::set-toast {:type :error :msg (error-data :msg)}]}))
+
 ;; -- Registered Effects -------------------------------------------------------
 
 (rf/reg-fx ::ipc-send!
@@ -329,10 +345,11 @@
 
 ;; -- IPC Event registrations --------------------------------------------------
 
-(def incoming-handlers [:article-created :articles-got :article-received :article-deleted
-                        :words-got       :word-updated      :words-marked-as-known
-                        :settings-got    :settings-updated
-                        :t-win-opened])
+(def incoming-handlers
+  [:article-created :articles-got      :article-received       :article-deleted
+   :words-got       :word-updated      :words-marked-as-known
+   :settings-got    :settings-updated
+   :ipc-error       :ipc-success       :t-win-opened])
 ;; Loop over the incoming handlers and set them up to dispatch a re-frame events whenever they get triggered by ipcMain.
 (defonce ipcHandlers
   (into {}
@@ -352,5 +369,5 @@
       (when-not (some #{key} existingEvents)
         (.on ipcRenderer (name key) ;; convert str to be readable for ipcRenderer.
              (fn [event args]
-               (println "[ipcRenderer ->]: " key)
+               (println "[ipcRenderer ->]: " key args)
                (handler event (js->clj args :keywordize-keys true))))))))

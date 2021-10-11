@@ -12,16 +12,22 @@
 (def settings-tree
   {;; "General"            nil
    "Languages"          nil
-   ;; "Backup and Restore" nil
+   "Backup and Restore" nil
    })
 
 (defn update-settings
   [new]
   (|> [(s-ev :settings-update) new]))
 
+(defn backup-restore
+  [settings]
+  [component/card {:header "Backup your Trunk database"}
+   [component/button {:text "Backup"
+                      :on-click #(|> [(s-ev :settings-backup-db)])}]])
+
 (defn languages
   [settings]
-  [component/card {:header "General Language Settings" :key "foo"}
+  [component/card {:header "General Language Settings" :key "gls"}
    (let [select-classes "mt-1 mb-2 flex border w-64 py-2"
          swap-key       (fn [option settings-key]
                           (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
@@ -47,21 +53,22 @@
       ])])
 
 (defn sidebar
+  "Render the sidebar items; clickable to change current setting branch."
   [{:keys [current-setting]}]
   [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-48"}
    [:div.font-bold.mb-4.text-lg.px-4 "Settings"]
-   (for [[name _] settings-tree]
-     ^{:key name}
-     [:div
-      {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
-                   (if (= @current-setting name) " bg-gray-100 border-opacity-100" " border-opacity-0"))
-       :on-click #(reset! current-setting name)}
-      name])])
+   (doall (for [[name _] settings-tree]
+           ^{:key name}
+             [:div
+              {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
+                           (if (= @current-setting name) " bg-gray-100 border-opacity-100" " border-opacity-0"))
+               :on-click #(reset! current-setting name)}
+              name]))])
 
 (defn view
   []
   (|> [(s-ev :settings-get)])
-  (let [current-setting (r/atom "Languages")
+  (let [current-setting (r/atom "Backup and Restore")
         settings        (rf/subscribe [::subs/settings])]
     (fn []
       (when @settings
@@ -69,5 +76,6 @@
          [sidebar {:current-setting current-setting}]
          [:div {:class "flex flex-col pt-4 w-full p-4 pt-8"}
           (case @current-setting
-            "Languages" [languages settings]
+            "Languages"          [languages settings]
+            "Backup and Restore" [backup-restore settings]
             [languages settings])]]))))
