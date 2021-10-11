@@ -12,6 +12,7 @@
           (BrowserWindow.
            (clj->js {:width  1300
                      :height 800
+                     :minWidth 600
                      :webPreferences
                      {:nodeIntegration  true
                       :contextIsolation false ;; come back and figure out preload.js someday.
