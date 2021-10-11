@@ -19,7 +19,7 @@
     (fn
       [{:keys [name original last_opened date_created]}]
       [:div.mb-8.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
-       [:div.text-xl.py-1.text-black (u/trunc-ellipse name 50)]
+       [:div.text-md.py-1.text-black (u/trunc-ellipse name 50)]
        [:div.text-sm
         [:div.flex.justify-between
          [:div.flex
@@ -29,7 +29,7 @@
          [:div.text-xs.opacity-50.hover:opacity-100.text-red-800.hover:text-red-500
           {:on-click handle-delete}
           (case @sure? 0 "Delete" 1 "Sure?")]]
-        [:div.pt-4.italic (u/trunc-ellipse original 200)]]])))
+        [:div.pt-2.italic (u/trunc-ellipse original 100)]]])))
 
 (defn view
   []
