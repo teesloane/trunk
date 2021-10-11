@@ -8,8 +8,8 @@
    ["fs" :as fs]
    ["path" :as path]))
 
-
-(def db-path (.join path (.getPath app "userData") "trunk.db"))
+(def db-name (if u/debug? "trunk-dev.db" "trunk.db"))
+(def db-path (.join path (.getPath app "userData") db-name))
 (def db (sqlite. db-path))
 
 (defn wipe! []
