@@ -6,7 +6,8 @@
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]
    [reagent.core :as r]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [clojure.string :as str]))
 
 (defn article
   "Display a single article in the article list view."
@@ -36,17 +37,24 @@
   []
   (let [search-query (r/atom "")
         loading?     (rf/subscribe [::subs/loading?])]
+    (when-not @loading? (|> [(s-ev :articles-get) nil]))
     (fn []
       (let [articles (<| [::subs/articles])
+            articles (if-not (empty? @search-query)
+                       (filter (fn [article] (str/includes? (article :name) @search-query)) articles)
+                       articles)
             nav!     (fn [_ article] (|> [(s-ev :article-get) article]))]
         (when-not @loading?
-          (if (empty? articles)
+          (if (and (empty? articles)
+                   (empty? @search-query))
             [component/empty-state-with-msg]
             [component/container
              [:div {:key "view-article-list"} ;; keep react happy.
               [component/page-heading "Your articles"]
-              [:div "search query: " @search-query]
-              [:input {:value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
+              [:input
+               {:class "mb-2 w-full border p-2 rounded-sm text-sm"
+                :placeholder "Search articles..."
+                :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
                 (map-indexed (fn [idx item]
                                [:div.cursor-pointer.mb-4

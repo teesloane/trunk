@@ -176,7 +176,7 @@
 
 (r-fx (s-ev :article-created)
       (fn [{:keys [db]} [_ data]]
-        {:db (assoc db :current-article data)
+        {:db db
          :fx [[:dispatch [::set-toast "Article created."]]
               [:dispatch [::navigate "article-list"]]]}))
 
