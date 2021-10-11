@@ -33,18 +33,17 @@
               {:keys [name word-data]} current-article
               ]
           [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-           [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto flex-col flex-1 p-8 bg-white"}
-            [component/page-heading (u/trunc-ellipse name 50)]
-
+           [:div {:key "view-article" :class "flex  flex-col flex-1 bg-white"}
             ;; metadata and actions
-            [:div.flex.text-xs.px-4.border-b.border-gray-200.pb-4.mb-8.justify-between
+            [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.px-8.py-2
              [:span "Words recognized: " words-known " / " total-words]
              (if (= words-known total-words)
                [:span "All words known!"]
                [:span.cursor-pointer {:on-click handle-mark-all-known}
                 (case @sure-mark? 0 "Mark all known?" 1 "You sure?")])]
 
-            [:div.leading-8.px-4.flex.flex-wrap.max-w-5xl.mx-auto
+            [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white"}
+            [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
              (map-indexed (fn [index word]
                             ^{:key (str word "-" index)}
                             [component/article-word
@@ -52,5 +51,5 @@
                               :current-word     current-word
                               :on-click         #(|> [::events/set-current-word {:word word :index index}])
                               :index            index
-                              :current-word-idx current-word-idx}]) word-data)]]
+                              :current-word-idx current-word-idx}]) word-data)]]]
            [component/view-current-word {:current-word current-word :form form}]])))))

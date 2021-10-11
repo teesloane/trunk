@@ -213,7 +213,9 @@
 
 (r-db (s-ev :words-marked-as-known)
       (fn [db [_ data]]
-        (let [update-words #(map (fn [word] (assoc word :comfort (specs/word-comfort :known))) %)]
+        (let [update-words #(->> %
+                                (map (fn [word] (assoc word :comfort (specs/word-comfort :known))))
+                                (into []))]
           (-> db
               (assoc :loading? false)
               (update-in [:current-article :word-data] update-words)))))
