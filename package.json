@@ -1,6 +1,6 @@
 {
-  "name": "trunk",
-  "version": "1.0.0",
+  "name": "Trunk",
+  "version": "0.0.1",
   "description": "",
   "productName": "Trunk",
   "main": "resources/main.js",
@@ -10,13 +10,11 @@
     "build": "shadow-cljs compile main renderer",
     "release-cljs": "shadow-cljs release main renderer",
     "clean": "rm -rf resources/public/js/* && rm -rf target",
-    "release-electron": "npx electron-packager . --out=releases --overwrite --ignore=\"(src*|.git*|.shadow-cljs*|.lsp*|resources/public/js/cljs-runtime*)\"",
-    "release": "npm run release-cljs; npm run release-electron",
+    "release-mac": "npx electron-packager . Trunk --out=releases --icon=resources/public/img/icons/icon.icns --overwrite --ignore=\"(src*|.git*|.shadow-cljs*|.lsp*|resources/public/js/cljs-runtime*)\"",
+    "release": "npm run release-cljs; npm run release-mac",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "The Ice Shelf",
   "devDependencies": {
     "autoprefixer": "^10.3.1",
     "concurrently": "^6.2.0",

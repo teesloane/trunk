@@ -1,0 +1,7 @@
+General notes on building the application
+
+* Icons
+- Icons must be in =*.icns= format.
+- You can convert a =.png= to =.icns= using Preview, provided it is exactly =512px x 512px= (and 300dpi).
+
+
