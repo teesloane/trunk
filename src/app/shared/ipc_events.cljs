@@ -18,6 +18,7 @@
    :settings-update       ::settings-update
    :settings-updated      ::settings-updated
    :settings-backup-db    ::settings-backup-db
+   :settings-restore-db   ::settings-restore-db
    :word-update           ::word-update
    :word-updated          ::word-updated
    :words-get             ::words-get

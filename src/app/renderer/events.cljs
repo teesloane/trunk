@@ -287,10 +287,8 @@
                  (assoc :loading? false))
          :dispatch   [::set-toast {:type :confirmation :msg "Settings updated."}]}))
 
-(r-fx (s-ev :settings-backup-db)
-      (fn [{:keys [db]} event]
-        {:db db
-         ::ipc-send! event}))
+(r-fx (s-ev :settings-backup-db)  (fn [_ event] {::ipc-send! event}))
+(r-fx (s-ev :settings-restore-db) (fn [_ event] {::ipc-send! event}))
 
 ;; -- Translation Window -------------------------------------------------------
 

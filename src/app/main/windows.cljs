@@ -52,10 +52,16 @@
   (.removeBrowserView ^js/electron.BrowserWindow @main-window @t-win)
   (reset! t-win nil))
 
-
 (defn bkup-db-window?
   [backup-name]
   (let [path (.getPath app "desktop")
         opts (clj->js {:title       "Select save location for Trunk backup"
                        :defaultPath (str path "/" backup-name)})]
     (.showSaveDialog dialog opts)))
+
+(defn restore-db-window?
+  []
+  (let [opts (clj->js {:title      "Select a Trunk database backup."
+                       :filters    [{:name "Trunk Database" :extensions ["db"]}]
+                       :properties ["openFile"]})]
+    (.showOpenDialog dialog opts)))

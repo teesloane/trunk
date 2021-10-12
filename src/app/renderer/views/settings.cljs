@@ -21,9 +21,17 @@
 
 (defn backup-restore
   [settings]
-  [component/card {:header "Backup your Trunk database"}
-   [component/button {:text "Backup"
-                      :on-click #(|> [(s-ev :settings-backup-db)])}]])
+  [:div
+   [:div {:class "w-full mr-2"}
+    [component/card {:header "Backup/Export your Trunk database"}
+     [:div.text-sm
+      [:div.mb-4 "Creates a duplicate of the SQLite Trunk database, which you can save to your computer."]
+      [component/button {:text "Backup" :on-click #(|> [(s-ev :settings-backup-db)])}]]]]
+   [:div {:class "w-full mt-4"}
+    [component/card {:header "Restore your Trunk database"}
+     [:div.text-sm
+      [:div.mb-4 "Import a database from a previous backup." [:span.text-red-500.mb-4 " This will overwrite your existing Trunk database."]]
+      [component/button {:text "Restore" :on-click #(|> [(s-ev :settings-restore-db)])}]]]]])
 
 (defn languages
   [settings]
@@ -55,7 +63,7 @@
 (defn sidebar
   "Render the sidebar items; clickable to change current setting branch."
   [{:keys [current-setting]}]
-  [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-48"}
+  [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-64 min-w-max"}
    [:div.font-bold.mb-4.text-lg.px-4 "Settings"]
    (doall (for [[name _] settings-tree]
            ^{:key name}
@@ -74,7 +82,7 @@
       (when @settings
         [:div.flex.h-full
          [sidebar {:current-setting current-setting}]
-         [:div {:class "flex flex-col pt-4 w-full p-4 pt-8"}
+         [:div {:class "flex flex-col pt-4 w-full p-4 pt-8 max-w-screen-lg"}
           (case @current-setting
             "Languages"          [languages settings]
             "Backup and Restore" [backup-restore settings]

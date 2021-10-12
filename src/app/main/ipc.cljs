@@ -102,6 +102,19 @@
                                      (reply! event "Backed up database.")))))))
            (.catch #(reply-err! event "Failed to save file path." %)))))
 
+
+   (s-ev :settings-restore-db)
+   (fn [event data]
+     (-> (windows/restore-db-window?)
+         (.then (fn [res]
+                  (let [selected-path (-> res (goog.object/get "filePaths") (aget 0))]
+                    (.copyFile fs selected-path db/db-path
+                               (fn [err]
+                                 (if err
+                                   (reply-err! event "Failed to restore database.")
+                                   (reply! event "Restored Trunk database.")))))))
+         (.catch #(reply-err! event "Failed to open restore window." %))))
+
    (s-ev :wipe-db!)
    (fn [event data] (db/wipe!))
 
