@@ -329,7 +329,6 @@
 
 (r-fx (s-ev :ipc-error)
       (fn [{:keys [db]} [_ error-data]]
-        (println (error-data :err))
         {:db
          (-> db (assoc :loading? false))
          :dispatch [::set-toast {:type :error :msg (error-data :msg)}]}))
@@ -367,5 +366,5 @@
       (when-not (some #{key} existingEvents)
         (.on ipcRenderer (name key) ;; convert str to be readable for ipcRenderer.
              (fn [event args]
-               (println "[ipcRenderer ->]: " key args)
+               (println "[ipcRenderer ->]: " key)
                (handler event (js->clj args :keywordize-keys true))))))))

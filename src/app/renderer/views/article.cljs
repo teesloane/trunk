@@ -33,16 +33,16 @@
               {:keys [name word-data]} current-article
               ]
           [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-           [:div {:key "view-article" :class "flex  flex-col flex-1 bg-white"}
+           [:div {:key "view-article" :class "flex flex-col flex-1 bg-white dark:bg-gray-800"}
             ;; metadata and actions
-            [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.px-8.py-2
+            [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.px-8.py-2.dark:border-gray-900
              [:span "Words recognized: " words-known " / " total-words]
              (if (= words-known total-words)
                [:span "All words known!"]
                [:span.cursor-pointer {:on-click handle-mark-all-known}
                 (case @sure-mark? 0 "Mark all known?" 1 "You sure?")])]
 
-            [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white"}
+            [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white dark:bg-gray-900"}
             [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
              (map-indexed (fn [index word]
                             ^{:key (str word "-" index)}

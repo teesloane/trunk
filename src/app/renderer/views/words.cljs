@@ -11,7 +11,7 @@
 
 (defn cell
   [child]
-  [:td.flex.w-full.border-r.border-b.items-center.p-1 child])
+  [:td.flex.w-full.border-r.border-b.items-center.p-1.dark:border-gray-700 child])
 
 (defn- set-current-word
   [props idx]
@@ -19,14 +19,14 @@
 
 (defn word-row
   [{:keys [name comfort translation word-idx current-row] :as props}]
-  (let [comfort-styles (str "inline-flex rounded-full ml-2 h-2 w-2 border "
+  (let [comfort-styles (str "inline-flex rounded-full ml-2 h-2 w-2 border dark:border-gray-700 "
                             (u/get-comfort-bg-col comfort))
         handle-click   (fn [props word-idx]
                          (set-current-word props word-idx)
                          (reset! current-row word-idx))]
     [:tr
      {:key      word-idx :style {:font-size "13px"}
-      :class    (str "flex w-full cursor-pointer" (when (= word-idx @current-row) " bg-gray-50"))
+      :class    (str "flex w-full cursor-pointer" (when (= word-idx @current-row) " bg-gray-50 dark:bg-gray-700 "))
       :on-click #(handle-click props word-idx)}
      [cell [:div.p-1 (str/lower-case name)]]
      [cell [:div.p-1 translation]]
@@ -40,7 +40,7 @@
 (defn table-header-cell
   [{:keys [text sort-key sort-tuple handle-changed-sort]}]
   (let [[sort-direction -sort-key] @sort-tuple]
-    [:th.flex.w-full.text-sm.text-left.p-2.text-gray-700.border
+    [:th.flex.w-full.text-sm.text-left.p-2.text-gray-700.border.dark:border-gray-700.dark:text-gray-300
      [:span.flex.items-center
       [:span.text-sm.font-medium text]
       [:span.flex.flex-col.ml-2
@@ -88,13 +88,13 @@
           ;; we don't check (db :words) because we force it to empty on navigation to avoid flicker
           (if (empty? words)
             [component/empty-state-with-msg]
-            [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
-             [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1 bg-white"}
+            [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1.dark:text-gray-200
+             [:article {:key "view-article" :class "flex md:w-3/5 overflow-auto p-8 flex-col flex-1 bg-white dark:bg-gray-900"}
               [component/page-heading "Words"]
               [:div
-               [:table.block.table-auto.w-full.bg-white.border
+               [:table.block.table-auto.w-full.bg-white.border.dark:bg-gray-800.dark:border-gray-700
                 [:thead.flex.w-full
-                 [:tr.border-b.flex.w-full
+                 [:tr.border-b.flex.w-full.dark:border-gray-700.dark:text-gray-300
                   ;; table header ---
                   (map-indexed (fn [idx header-data]
                                  [table-header-cell {:handle-changed-sort handle-changed-sort

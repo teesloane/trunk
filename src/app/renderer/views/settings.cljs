@@ -36,40 +36,38 @@
 (defn languages
   [settings]
   [component/card {:header "General Language Settings" :key "gls"}
-   (let [select-classes "mt-1 mb-2 flex border w-64 py-2"
+   (let [select-classes "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white"
          swap-key       (fn [option settings-key]
                           (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
                             (update-settings new-settings)))]
      [:div.flex.flex-col.md:flex-row
       [:div {:class "text-sm w-1/2 md:mt-0"}
        [:div "What language do you want to practice?"]
-       [:select {:class     select-classes
-                 :default-value (@settings :target-lang)
-                 :on-change #(swap-key % :target-lang)}
+       [component/select {:default-value (@settings :target-lang) :on-change #(swap-key % :target-lang)}
         (for [[lang-name lang-code] specs/langs]
           ^{:key lang-name}
           [:option {:value lang-code} (str/capitalize lang-name)])]]
       [:div {:class "text-sm w-1/2"}
        [:div "What is your native language?"]
-       [:select {:class     select-classes
-                 :default-value (@settings :native-lang)
-                 :on-change #(swap-key % :native-lang)}
+       [component/select
+        {:default-value (@settings :native-lang)
+         :on-change     #(swap-key % :native-lang)}
         (for [[lang-name lang-code] specs/langs]
           ^{:key lang-name}
-          [:option {:value    lang-code}
+          [:option {:value lang-code}
            (str/capitalize lang-name)])]]
       ])])
 
 (defn sidebar
   "Render the sidebar items; clickable to change current setting branch."
   [{:keys [current-setting]}]
-  [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-64 min-w-max"}
+  [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-64 min-w-max dark:bg-gray-800 dark:border-gray-700"}
    [:div.font-bold.mb-4.text-lg.px-4 "Settings"]
    (doall (for [[name _] settings-tree]
            ^{:key name}
              [:div
               {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
-                           (if (= @current-setting name) " bg-gray-100 border-opacity-100" " border-opacity-0"))
+                           (if (= @current-setting name) " bg-gray-100 border-opacity-100 dark:bg-gray-700" " border-opacity-0 dark:bg-gray-800"))
                :on-click #(reset! current-setting name)}
               name]))])
 

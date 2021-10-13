@@ -20,15 +20,16 @@
                           (= 1 @sure?) (|> [(s-ev :article-delete) article_id])))]
     (fn
       [{:keys [name original last_opened date_created]}]
-      [:div.mb-4.bg-white.p-4.border.shadow-sm.hover:shadow.text-gray-400.hover:text-gray-900
-       [:div.text-md.py-1.text-black (u/trunc-ellipse name 50)]
+      [:div {:class "mb-4 text-gray-900 bg-white  p-4 border-gray-100 border shadow-sm hover:shadow
+                     dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-gray-50" }
+       [:div.text-md.py-1 (u/trunc-ellipse name 50)]
        [:div.text-sm
         [:div.flex.justify-between
          [:div.flex
           (when-let [x (u/date-unix->readable last_opened)]
             [:div.text-xs "Last opened: " x [:span.mx-2 "|"]])
           [:div.text-xs " Date created: " (u/date-unix->readable date_created)]]
-         [:div.text-xs.opacity-50.hover:opacity-100.text-red-800.hover:text-red-500
+         [:div.text-xs.opacity-50.hover:opacity-100.text-red-800.hover:text-red-500.dark:text-red-400
           {:on-click handle-delete}
           (case @sure? 0 "Delete" 1 "Sure?")]]
         [:div.pt-2.italic (u/trunc-ellipse original 100)]]])))
@@ -51,9 +52,8 @@
             [component/container
              [:div {:key "view-article-list"} ;; keep react happy.
               [component/page-heading "Your articles"]
-              [:input
-               {:class "mb-3 w-full border p-2 rounded-sm text-sm"
-                :placeholder "Search articles..."
+              [component/input
+               {:placeholder "Search articles..."
                 :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
                 (map-indexed (fn [idx item]

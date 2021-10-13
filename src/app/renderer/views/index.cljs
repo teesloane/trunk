@@ -26,12 +26,12 @@
   "Button for erasing the database"
   []
   [:div.flex.fixed.bottom-0.p-2.rounded-sm
-   [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.bg-opacity-25.hover:text-white
+   [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white
     {:on-click #(|> [(s-ev :wipe-db!)])} "wipe sql-db!"]])
 
 (defn main-panel []
   (let [current-view (<| [::subs/current-view])]
-    [:div.dark:bg-gray-800.dark:text-white.flex.flex-col.h-screen.bg-gray-50
+    [:div.dark:bg-gray-900.dark:text-white.flex.flex-col.h-screen.bg-gray-50
      ;; fixed pos things
      (when u/debug? [debug])
      [loading-wheel]

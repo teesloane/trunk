@@ -8,7 +8,7 @@
 
 (defn view
   []
-  (let [input-stz    "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-700 dark:text-white"
+  (let [
         form         (r/atom {:article "" :title "" :source ""})
         handle-submit (fn [e]
                         (.preventDefault e)
@@ -17,25 +17,23 @@
                        (swap! form assoc k (-> event .-target .-value)))]
     (fn []
       [component/container
-       [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
+       [:div
         [component/page-heading "Create a new article"]
-        [:input
-         {:class       input-stz
-          :placeholder "Article Title"
-          :type        "text"
-          :value       (@form :title)
-          :on-change   #(update-form %1 :title)}]
-        [:input
-         {:class       input-stz
-          :placeholder "Article source"
-          :type        "text"
-          :value       (@form :source)
-          :on-change   #(update-form %1 :source)}]
-        [:textarea
-         {:name        ""
-          :class       input-stz
-          :on-change   #(update-form %1 :article)
-          :rows        8
-          :placeholder "Paste article here..."}]
-        [component/button {:type "submit"
-                           :text "Submit"}]]])))
+        [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
+
+         [component/input {:placeholder "Article Title"
+                           :type        "text"
+                           :value       (@form :title)
+                           :on-change   #(update-form %1 :title)}]
+
+         [component/input {:placeholder "Article source"
+                           :type        "text"
+                           :value       (@form :source)
+                           :on-change   #(update-form %1 :source)}]
+         [component/textarea
+          {:name        ""
+           :on-change   #(update-form %1 :article)
+           :rows        8
+           :placeholder "Paste article here..."}]
+         [component/button {:type "submit"
+                            :text "Submit"}]]]])))

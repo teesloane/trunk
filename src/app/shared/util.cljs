@@ -12,11 +12,11 @@
   ^boolean goog.DEBUG)
 
 (def comfort-text-and-col
-  {0 {:name "Unknown" :text-col "text-gray-500"   :bg-col "bg-gray-300"}
+  {0 {:name "Unknown" :text-col "text-gray-800 dark:text-gray-200"   :bg-col "bg-gray-300 dark:bg-gray-800"}
    1 {:name "Hard"    :text-col "text-red-500"    :bg-col "bg-red-300"}
    2 {:name "Medium"  :text-col "text-yellow-500" :bg-col "bg-yellow-300"}
    3 {:name "Easy"    :text-col "text-green-500"  :bg-col "bg-green-300"}
-   4 {:name "Known"   :text-col "text-black"      :bg-col "bg-white"}})
+   4 {:name "Known"   :text-col "text-black dark:text-gray-500"      :bg-col "bg-white dark:bg-gray-900"}})
 
 (defn get-comfort-level-name [idx]
   (-> idx comfort-text-and-col :name))
@@ -131,3 +131,13 @@
 
 (defn last? [seq i]
   (= (last seq) i))
+
+;; class light + dark
+(defn twld
+  "Takes two strings, and adds dark mode to the end class"
+  [a b]
+  (let [
+        with-dark (->> (str/split b " ")
+                       (map (fn [s] (str "dark:" s)))
+                       (str/join " "))]
+    (str a " " with-dark)))

@@ -26,6 +26,10 @@
               :preloads  [day8.re-frame-10x.preload]
               }
              :tailwind/output "resources/public/css/site.css"
+             :tailwind/files {:base-path "./"
+                              :tailwind.css "./src/tailwind.css"
+                              ;; :tailwind.css "resources/public/css/site.css"
+                              }
              :tailwind/config {:dark-mode "media"}
              :release         {:build-hooks   [(teknql.tailwind/compile-release!)]
                                :build-options {:ns-aliases

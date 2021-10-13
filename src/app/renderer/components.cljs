@@ -5,9 +5,25 @@
    [app.shared.ipc-events :refer [s-ev]]
    [app.shared.util :as u]))
 
+(defn input
+  [props]
+  (let [input-stz "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-900 dark:border-gray-600 dark:text-white"]
+    [:input
+     (merge {:class input-stz} props)]))
+
+(defn textarea
+  [props]
+  (let [input-stz "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-900 dark:border-gray-600 dark:text-white"]
+    [:textarea
+     (merge {:class input-stz} props)]))
+
+(defn select
+  [props options]
+  (let [styles "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white outline-none"]
+    [:select (merge {:class styles} props) options]))
+
 (defn toast
   [{:keys [type msg]}]
-  (prn "toast rendering " type msg)
   (let [classes (str "px-4 h-full flex items-center "
                      (case type :confirmation "text-green-500" :error "text-red-500" ""))]
     (when-not (empty? msg)
@@ -16,7 +32,7 @@
 (defn container
   "This needs to have it's react-keys resolved."
   [children]
-  [:div {:class "flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl"}
+  [:div {:class "flex flex-col p-8 w-full md:w-10/12 lg:w-8/12  mx-auto max-w-screen-xl dark:bg-gray-900"}
    children])
 
 (def icons
@@ -26,8 +42,9 @@
 
 (defn card
   [{:keys [header]} body]
-  [:div.bg-white.border {:key header}
-   [:div.border-b.px-4.py-2.text-sm.font-bold [:span header]]
+  [:div.bg-white.border {:class (u/twld "bg-white border" "bg-gray-800 border-gray-700")
+                         :key header}
+   [:div.border-b.px-4.py-2.text-sm.font-bold.dark:border-gray-700 [:span header]]
    [:div.p-4 body]])
 
 (defn icon
@@ -91,7 +108,7 @@
                          {:text "Settings" :id "settings"}
                          {:text (u/trunc-ellipse (get current-article :name) 25)
                           :id "article"}]]
-    [:nav.bg-white.w-full.text-xs.dark:bg-black.dark:text-gray-50.border-b
+    [:nav.bg-white.w-full.text-xs.dark:bg-gray-800.dark:text-gray-50.border-b.dark:border-b-gray-900
      [:div.flex.items-center {:style {:height "35px"}}
       [:div.flex.flex-1.items-center
        [:div.pl-4 [trunk-logo {:width 24}]]
@@ -113,10 +130,13 @@
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation]} word
-        stz                                  (str (u/get-comfort-bg-col comfort) " border-b border-transparent pl-1 p-0.5 mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50")
-        is-current-word                      (and (= (dissoc word :comfort) (dissoc current-word :comfort))
+        base-styles                         "border-b border-transparent px-0.5 py-px mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 dark:bg-opacity-50 dark:text-gray-300"
+        stz                                 (str (u/get-comfort-bg-col comfort) " "
+                                                 ;; (u/get-comfort-text-col comfort) " "
+                                                 base-styles)
+        is-current-word                     (and (= (dissoc word :comfort) (dissoc current-word :comfort))
                                                   (= index current-word-idx))
-        stz                                  (if is-current-word (str " border-black " stz) (str "  " stz))]
+        stz                                 (if is-current-word (str " border-black dark:border-b-gray-300 " stz) (str "  " stz))]
     (cond
       ;; newlines that are just from textarea...
       (= name "\n")
@@ -135,7 +155,9 @@
 (defn google-translate-view
   [{:keys [t-win-open? current-word]}]
 
-  (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white hover:bg-gray-100 text-gray-800 border-t border-gray-300 "
+  (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white
+                       hover:bg-gray-100 text-gray-800 border-t border-gray-300
+                       dark:bg-gray-800 dark:border-gray-900 dark:hover:bg-gray-700 dark:text-white"
         button-height 33
         iframe-height 428
         window-width  js/window.innerWidth
@@ -170,17 +192,14 @@
   (let [t-win-open?   (<| [::subs/t-win-open?])
         handle-submit (fn [e]
                         (.preventDefault e)
-                        (|> [(s-ev :word-update) @form]))
-        input-stz     "w-full text-gray-700 dark:text-gray-50 border rounded-xs focus:outline-none text-md md:p-2 md:mb-4 dark:bg-gray-700 dark:text-white"]
-    [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l"}
-
+                        (|> [(s-ev :word-update) @form]))]
+    [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l dark:border-gray-900 dark:bg-gray-800 dark:border-gray-700"}
      (when current-word
-       [:div {:class "w-full p-8 flex flex-col mx-auto"}
+       [:div {:class "dark:bg-gray-800 w-full p-8 flex flex-col mx-auto"}
         [:div.static
          [:div {:class "text-2xl mb-8 w-full"} (current-word :name)]
          [:form {:class "w-full" :on-submit handle-submit}
-          [:input {:class         input-stz
-                   :placeholder   "Add Translation..."
+          [input {:placeholder   "Add Translation..."
                    :default-value (current-word :translation)
                    :value         (@form :translation)
                    :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
