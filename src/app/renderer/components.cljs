@@ -22,6 +22,17 @@
   (let [styles "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white outline-none"]
     [:select (merge {:class styles} props) options]))
 
+(defn loading-wheel
+  "Bottom right absolute position loading wheel."
+  []
+  (let [loading? (<| [::subs/loading?])
+        div-stz "transition duration-500 flex bg-gray-50 dark:bg-gray-800 text-xs shadow fixed bottom-0 right-0 p-2 m-2 rounded-md align-center items-center"
+        div-stz (if-not loading? (str "-bottom-16 " div-stz) (str "bottom-0 " div-stz))]
+    [:div {:class div-stz}
+     [:svg {:class "animate-spin text-blue-600 dark:text-blue-400", :style {:width "24px" :height "24px"} :xmlns "http://www.w3.org/2000/svg", :fill "none", :viewBox "0 0 24 24"}
+      [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
+      [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]]))
+
 (defn toast
   [{:keys [type msg]}]
   (let [classes (str "px-4 h-full flex items-center "
@@ -44,7 +55,8 @@
   [{:keys [header]} body]
   [:div.bg-white.border {:class (u/twld "bg-white border" "bg-gray-800 border-gray-700")
                          :key header}
-   [:div.border-b.px-4.py-2.text-sm.font-bold.dark:border-gray-700 [:span header]]
+   (when header
+     [:div.border-b.px-4.py-2.text-sm.font-bold.dark:border-gray-700 [:span header]])
    [:div.p-4 body]])
 
 (defn icon
@@ -59,6 +71,13 @@
 (defn loading-intercept
   [msg]
   [:div.h-screen.w-100.flex.items-center.justify-center.text-sm.text-gray.600 msg])
+
+(defn ext-link
+  [{:keys [link text]}]
+  (let [handle-click (fn [e]
+                       (.preventDefault e )
+                       (.openExternal (.-shell (js/require "electron")) link))]
+    [:a.text-blue-600.dark:text-blue-400.cursor-pointer {:on-click handle-click} text]))
 
 (defn button
   [{:keys [on-click text icon-name icon-size]}]
@@ -130,7 +149,8 @@
   "how single words are styled based on their familiarity/comfort."
   [{:keys [word current-word index current-word-idx on-click]}]
   (let [{:keys [name comfort _translation]} word
-        base-styles                         "border-b border-transparent px-0.5 py-px mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50 dark:bg-opacity-50 dark:text-gray-300"
+        base-styles                         "border-b border-transparent px-0.5 py-px mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50
+                                             dark:bg-opacity-50 dark:text-gray-300"
         stz                                 (str (u/get-comfort-bg-col comfort) " "
                                                  ;; (u/get-comfort-text-col comfort) " "
                                                  base-styles)

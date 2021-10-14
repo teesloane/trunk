@@ -13,11 +13,27 @@
   {;; "General"            nil
    "Languages"          nil
    "Backup and Restore" nil
+   "About"              nil
+   ;; "Donate"             nil
    })
 
 (defn update-settings
   [new]
   (|> [(s-ev :settings-update) new]))
+
+(defn about []
+   [:div {:class "p-4 sm:w-full md:w-4/5 lg:w-3/5 xl:1/2"}
+    [component/card {}
+     [:div.p-2
+    [:div {:style {:width "200px" :margin "0 auto" :min-height "200px"}}
+     [:img.w-full.text-center {:src "img/animations/speech-bubbles.gif"}]]
+    [:div.py-4.text-sm."Trunk is a language learning application inpsired by "
+     [component/ext-link {:link "https://learningwithtexts.com/" :text "learning with texts,"}]
+     [:span " built by "] [:span [component/ext-link {:link "https://theiceshelf.com" :text "The Ice Shelf."}]]
+     [:span " Trunk aims to help learners improve vocabulary and text comprehension while remaining simple and pleasant to use."]
+     [:div.mt-4 ""]]
+    [:div.mt-8.text-xs.
+     [:span "Trunk is open source software. Go to " [component/ext-link {:link "https://github.com/theiceshelf/trunk" :text "GitHub"}] " to contribute or file a bug."]]]]])
 
 (defn backup-restore
   [settings]
@@ -55,8 +71,7 @@
         (for [[lang-name lang-code] specs/langs]
           ^{:key lang-name}
           [:option {:value lang-code}
-           (str/capitalize lang-name)])]]
-      ])])
+           (str/capitalize lang-name)])]]])])
 
 (defn sidebar
   "Render the sidebar items; clickable to change current setting branch."
@@ -64,17 +79,17 @@
   [:div {:class "flex border-r bg-white flex-col h-full pt-8 text-sm w-64 min-w-max dark:bg-gray-800 dark:border-gray-700"}
    [:div.font-bold.mb-4.text-lg.px-4 "Settings"]
    (doall (for [[name _] settings-tree]
-           ^{:key name}
-             [:div
-              {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
-                           (if (= @current-setting name) " bg-gray-100 border-opacity-100 dark:bg-gray-700" " border-opacity-0 dark:bg-gray-800"))
-               :on-click #(reset! current-setting name)}
-              name]))])
+            ^{:key name}
+            [:div
+             {:class (str "my-1 cursor-pointer border-r-2 border-blue-500 px-4 py-2"
+                          (if (= @current-setting name) " bg-gray-100 border-opacity-100 dark:bg-gray-700" " border-opacity-0 dark:bg-gray-800"))
+              :on-click #(reset! current-setting name)}
+             name]))])
 
 (defn view
   []
   (|> [(s-ev :settings-get)])
-  (let [current-setting (r/atom "Backup and Restore")
+  (let [current-setting (r/atom "Languages")
         settings        (rf/subscribe [::subs/settings])]
     (fn []
       (when @settings
@@ -84,4 +99,5 @@
           (case @current-setting
             "Languages"          [languages settings]
             "Backup and Restore" [backup-restore settings]
+            "About"              [:div.justify-center.flex.items-center.flex-1 [about]]
             [languages settings])]]))))
