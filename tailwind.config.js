@@ -7,6 +7,10 @@ module.exports = {
   plugins: [],
   darkMode: "media",
   theme: {
+    fontFamily: {
+      sans: ["IBM Plex Sans", 'ui-sans-serif', 'system-ui']
+
+    },
     colors: {
       transparent: 'transparent',
       current: 'currentColor',

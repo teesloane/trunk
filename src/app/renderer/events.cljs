@@ -329,6 +329,7 @@
 
 (r-fx (s-ev :ipc-error)
       (fn [{:keys [db]} [_ error-data]]
+        (u/log "Error! " error-data)
         {:db
          (-> db (assoc :loading? false))
          :dispatch [::set-toast {:type :error :msg (error-data :msg)}]}))

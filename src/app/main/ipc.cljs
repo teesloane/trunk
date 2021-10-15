@@ -28,17 +28,18 @@
   ([electron-event err-msg]
    (reply-err! electron-event err-msg nil))
   ([electron-event err-msg err]
-   (js/electron-event.reply (name (s-ev :ipc-error)) {:msg err-msg :err err})))
+   (js/electron-event.reply (name (s-ev :ipc-error)) (js-obj "msg" err-msg "err" (str err)) )))
 
-;; TODO, could loop through a list to create this, or make a partial "handle" func?
 (def ipcHandlers
-  ;; creating a 2500~ word article: 580.027ms
   {(s-ev :article-create)
    (fn [event data]
-     (let [_                (db/words-insert data)
-           word-ids-str     (db/words-get-ids-for-article data)
-           inserted-article (db/article-insert (merge data {:word_ids word-ids-str}))]
-       (reply! event (s-ev :article-created) inserted-article)))
+     (try
+       (let [_                (db/words-insert data)
+             word-ids-str     (db/words-get-ids-for-article data)
+             inserted-article (db/article-insert (merge data {:word_ids word-ids-str}))]
+         (reply! event (s-ev :article-created) inserted-article))
+       (catch js/Error e
+         (reply-err! event "Failed to create article" e))))
 
    (s-ev :article-delete)
    (fn [event id]
@@ -47,47 +48,67 @@
 
    (s-ev :articles-get)
    (fn [event data]
-     (let [res (db/articles-get data)]
-       (reply! event (s-ev :articles-got) res)))
+     (try (let [res (db/articles-get data)]
+            (reply! event (s-ev :articles-got) res))
+          (catch js/Error e
+            (reply-err! event "Failed to get articles" e))))
 
    (s-ev :article-get)
    (fn [event data]
-     (db/article-update-last-opened data)
-     (->> data
-          db/article-get-by-id
-          db/article-attach-words
-          (reply! event (s-ev :article-received))))
+     (try
+       (db/article-update-last-opened data)
+       (->> data
+            db/article-get-by-id
+            db/article-attach-words
+            (reply! event (s-ev :article-received)))
+       (catch js/Error e
+         (reply-err! event "Failed to get article."  e))))
 
    ;; -- WORDS HANDLERS ---------------------------
 
    (s-ev :words-get)
    (fn [event data]
-     (let [res (db/words-get data)]
-       (reply! event (s-ev :words-got) res)))
+     (try
+       (let [res (db/words-get data)]
+         (reply! event (s-ev :words-got) res))
+       (catch js/Error e
+         reply-err! event "Failed to get words" e)))
 
    (s-ev :word-update)
    (fn [event data]
-     (let [_   (db/word-update data)
-           res (db/word-get (data :word_id))]
-       (reply! event (s-ev :word-updated) res)))
+     (try
+       (let [_   (db/word-update data)
+             res (db/word-get (data :word_id))]
+         (reply! event (s-ev :word-updated) res))
+       (catch js/Error e
+         (reply-err! event "Failed to update word" e))))
 
    (s-ev :words-mark-all-known)
    (fn [event data]
-     (let [_ (db/words-mark-all-known data)]
-       (reply! event (s-ev :words-marked-as-known) nil)))
+     (try
+       (let [_ (db/words-mark-all-known data)]
+         (reply! event (s-ev :words-marked-as-known) nil))
+       (catch js/Error e
+         (reply-err! event "Failed to mark all words known" e))))
 
    ;; -- Settings --------------------------------------------------------------
 
    (s-ev :settings-get)
    (fn [event data]
-     (let [settings (db/settings-get)]
-       (reply! event (s-ev :settings-got) settings)))
+     (try
+       (let [settings (db/settings-get)]
+         (reply! event (s-ev :settings-got) settings))
+       (catch js/Error e
+         (reply-err! event "Failed to get settings" e))))
 
    (s-ev :settings-update)
    (fn [event data]
-     (let [updated      (db/settings-update data)
-           new-settings (db/settings-get)]
-       (reply! event (s-ev :settings-updated) new-settings)))
+     (try
+       (let [updated      (db/settings-update data)
+             new-settings (db/settings-get)]
+         (reply! event (s-ev :settings-updated) new-settings))
+       (catch js/Error e
+         (reply-err! event "Failed to update settings" e))))
 
    (s-ev :settings-backup-db)
    (fn [event _]

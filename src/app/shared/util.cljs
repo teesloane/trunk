@@ -44,8 +44,6 @@
                            (not= s ""))) res)]
     (vec res)))
 
-(split-article "«foo bar ba, bo—»")
-
 (defn split-delimited-article
   [word-ids]
   (str/split word-ids "$"))

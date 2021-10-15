@@ -30,9 +30,8 @@
     [:div.py-4.text-sm."Trunk is a language learning application inpsired by "
      [component/ext-link {:link "https://learningwithtexts.com/" :text "learning with texts,"}]
      [:span " built by "] [:span [component/ext-link {:link "https://theiceshelf.com" :text "The Ice Shelf."}]]
-     [:span " Trunk aims to help learners improve vocabulary and text comprehension while remaining simple and pleasant to use."]
-     [:div.mt-4 ""]]
-    [:div.mt-8.text-xs.
+     [:span " Trunk aims to help learners improve vocabulary and text comprehension while remaining simple and pleasant to use."]]
+    [:div.mt-4.text-xs.
      [:span "Trunk is open source software. Go to " [component/ext-link {:link "https://github.com/theiceshelf/trunk" :text "GitHub"}] " to contribute or file a bug."]]]]])
 
 (defn backup-restore

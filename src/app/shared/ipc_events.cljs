@@ -1,6 +1,7 @@
 (ns app.shared.ipc-events)
 
 ;; used so ipc knows what to listen and dispatch on and use in re-frame
+;; TODO: make a getter function that throws an error when the key doesn't exist?
 (def s-ev
   {
    :articles-get          ::articles-get
