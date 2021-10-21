@@ -3,6 +3,7 @@
    [app.main.db :as db]
    [app.main.ipc :as ipc]
    [app.main.windows :as windows]
+   [app.main.menu :as menu]
    ["electron" :refer [app]]))
 
 (enable-console-print!)
@@ -16,5 +17,6 @@
 
   (db/init)
   (ipc/init)
+  (menu/init)
 
   (.on app "ready" windows/init-browser))
