@@ -119,14 +119,16 @@
   "Display the navigation bar in app."
   [{:keys [current-view]}]
   (let [nav!            (fn [route] (|> [::events/navigate route]))
-        current-article (<| [::subs/current-article])
+        ;; current-article (<| [::subs/current-article])
         toast-msg       (<| [::subs/toast])
         links           [{:text "Read" :id "article-list"}
                          {:text "Create Article" :id "article-create"}
                          {:text "Words" :id "words"}
                          {:text "Settings" :id "settings"}
-                         {:text (u/trunc-ellipse (get current-article :name) 25)
-                          :id "article"}]]
+                         ;; NOTE: show the currently reading article in the nav:
+                         ;; not sure I want this as part of the ux so I'm commenting out for now.
+                         ;; {:text (u/trunc-ellipse (get current-article :name) 25) :id "article"}
+                         ]]
     [:nav.bg-white.w-full.text-xs.dark:bg-gray-800.dark:text-gray-50.border-b.dark:border-b-gray-900
      [:div.flex.items-center {:style {:height "35px"}}
       [:div.flex.flex-1.items-center
@@ -147,15 +149,19 @@
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
-  [{:keys [word current-word index current-word-idx on-click]}]
+  [{:keys [word current-word index current-word-idx on-click current-phrase-idxs]}]
   (let [{:keys [name comfort _translation]} word
         base-styles                         "border-b border-transparent px-0.5 py-px mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50
                                              dark:bg-opacity-50 dark:text-gray-300"
         stz                                 (str (u/get-comfort-bg-col comfort) " "
                                                  ;; (u/get-comfort-text-col comfort) " "
                                                  base-styles)
-        is-current-word                     (and (= (dissoc word :comfort) (dissoc current-word :comfort))
-                                                  (= index current-word-idx))
+        is-in-current-phrase                (not (nil? (some #{index} current-phrase-idxs)))
+        is-current-word                     (or (and (= (dissoc word :comfort) (dissoc current-word :comfort))
+                                                     (= index current-word-idx))
+                                                is-in-current-phrase
+                                                ;; no current-word, but we have a
+                                                )
         stz                                 (if is-current-word (str " border-black dark:border-b-gray-300 " stz) (str "  " stz))]
     (cond
       ;; newlines that are just from textarea...
@@ -165,7 +171,9 @@
       (= name "\n\n")
       [:div.w-full [:br]]
 
-      (not (u/word? name)) ;; anything that's not a word (punctuation, numbers...)
+      ;; if it's not a phrase...
+      (and (word :id)
+           (not (u/word? name)))
       [:span.mr-1 (str "" (word :name) " ")]
 
       :else
@@ -173,13 +181,13 @@
        [:span {:class stz} (str " " (word :name) " ")]])))
 
 (defn google-translate-view
-  [{:keys [t-win-open? current-word]}]
+  [{:keys [t-win-open? word-or-phrase]}]
 
   (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white
                        hover:bg-gray-100 text-gray-800 border-t border-gray-300
                        dark:bg-gray-800 dark:border-gray-900 dark:hover:bg-gray-700 dark:text-white"
         button-height 33
-        iframe-height 428
+        iframe-height 368
         window-width  js/window.innerWidth
         window-height js/window.innerHeight]
 
@@ -187,7 +195,7 @@
     ;; TODO: checking of window heighto only happens on render,
     ;; so handle for user resize of window.
     (when (and (> window-width 1000)
-               (> window-height (+ iframe-height button-height 64)))
+               (> window-height (+ iframe-height button-height 128)))
       [:div
        (if t-win-open?
          [:div
@@ -199,7 +207,7 @@
          [:button {:class    stz
                    :on-click #(|> [(s-ev :t-win-open)
                                    {:width           window-width
-                                    :current-word    current-word
+                                    :word-or-phrase  word-or-phrase
                                     :height          window-height
                                     :button-height   button-height
                                     :containerHeight iframe-height
@@ -207,24 +215,34 @@
           "Open Translations"])])))
 
 (defn view-current-word
-  "Displays the currently mousedover / clicked on word for user editing."
+  "Displays the currently clicked on word/phrase for user editing. "
   [{:keys [current-word form]}]
-  (let [t-win-open?   (<| [::subs/t-win-open?])
-        handle-submit (fn [e]
-                        (.preventDefault e)
-                        (|> [(s-ev :word-update) @form]))]
+  (let [t-win-open?               (<| [::subs/t-win-open?])
+        currently-selected-phrase (<| [::subs/current-phrase]) ; current phrase as in, the one being underlined and is yet to be made a word.
+        word-or-phrase            (or currently-selected-phrase current-word)
+        word-or-phrase-text       (or (word-or-phrase :name) (<| [::subs/current-phrase-text]))
+        is-phrase                 (or currently-selected-phrase
+                                      (u/is-phrase word-or-phrase))
+        handle-submit             (fn [e]
+                              (.preventDefault e)
+                              (if is-phrase
+                                (|> [(s-ev :phrase-update) @form])
+                                (|> [(s-ev :word-update) @form])))]
+
     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l dark:border-gray-900 dark:bg-gray-800 dark:border-gray-700"}
-     (when current-word
+     (when word-or-phrase
        [:div {:class "dark:bg-gray-800 w-full p-8 flex flex-col mx-auto"}
         [:div.static
-         [:div {:class "text-2xl mb-8 w-full"} (current-word :name)]
+         ;; current word or title text:
+         [:div.h-16.flex.items-center
+          [:div {:class (str "mb-8 w-full" (when-not is-phrase " text-xl"))} word-or-phrase-text]]
          [:form {:class "w-full" :on-submit handle-submit}
           [input {:placeholder   "Add Translation..."
-                   :default-value (current-word :translation)
-                   :value         (@form :translation)
-                   :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
+                  :default-value (get word-or-phrase :translation "")
+                  :value         (@form :translation)
+                  :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
-         ;; radio button
+          ;; radio button
           [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
            (doall ;; needed for deref (@) in lazy for loop.
             (for [[comfort-int comfort-data] u/comfort-text-and-col
@@ -238,8 +256,11 @@
                         :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
                [:label {:for name :class (str "text-sm p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
-         ;; submit update
-          [:div.mt-4 [button {:type "submit" :text "Update Word"}]]]]
+          ;; submit update
+          [:div.mt-4 [button {:type "submit"
+                              :text (if is-phrase
+                                      (if currently-selected-phrase  "Add phrase" "Update phrase")
+                                      "Update Word")}]]]]
         [google-translate-view
-         {:t-win-open?  t-win-open?
-          :current-word (current-word :name)}]])]))
+         {:t-win-open?    t-win-open?
+          :word-or-phrase (word-or-phrase :name)}]])]))

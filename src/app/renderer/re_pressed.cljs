@@ -12,7 +12,7 @@
 
 (def ns-root "app.renderer.re-pressed/")
 ;; (def ns-root "re-pressed.core/")
-(def max-record 25)
+(def max-record 5)
 (def modifier-keys #{16 ;; shift
                      17 ;; ctrl
                      18 ;; alt
@@ -286,8 +286,18 @@
    ;; example event - will be triggered if tab (keycode 9) is pressed 2x. [[:some-event-id2] [{:keyCode 9} {:keyCode 9}]]]
    :event-keys [[[:key-pressed-right] [{:keyCode 39}]] ;; right arrow pressed once.
                 [[:key-pressed-left]  [{:keyCode 37}]] ;; left arrow pressed
+                [[:key-pressed-shift]     [{:keyCode 16}]]
                 [[:key-pressed-num] [{:keyCode 49}]  [{:keyCode 50}]  [{:keyCode 51}]  [{:keyCode 52}] [{:keyCode 53}]]
                 ]
+   :clear-keys           [] ;; takes a collection of key combos that, if pressed, will clear the recorded keys  [{:keycode 27}]
+   :always-listen-keys   [] ;; takes a collection of keys that will always be recorded (regardless if the user is typing in an input, select, or textarea)
+   :prevent-default-keys [] ;; prevent default action with specific key.
+   }])
+
+
+(rf/dispatch
+ [::set-keyup-rules
+  {:event-keys [[[:key-up-shift]     [{:keyCode 16}]]]
    :clear-keys           [] ;; takes a collection of key combos that, if pressed, will clear the recorded keys  [{:keycode 27}]
    :always-listen-keys   [] ;; takes a collection of keys that will always be recorded (regardless if the user is typing in an input, select, or textarea)
    :prevent-default-keys [] ;; prevent default action with specific key.

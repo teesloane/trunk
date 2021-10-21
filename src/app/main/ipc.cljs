@@ -60,6 +60,7 @@
        (->> data
             db/article-get-by-id
             db/article-attach-words
+            db/article-attach-phrases
             (reply! event (s-ev :article-received)))
        (catch js/Error e
          (reply-err! event "Failed to get article."  e))))
@@ -78,7 +79,7 @@
    (fn [event data]
      (try
        (let [_   (db/word-update data)
-             res (db/word-get (data :word_id))]
+             res (db/word-get (data :id))]
          (reply! event (s-ev :word-updated) res))
        (catch js/Error e
          (reply-err! event "Failed to update word" e))))
@@ -86,15 +87,31 @@
    (s-ev :words-mark-all-known)
    (fn [event data]
      (try
-       (let [_ (db/words-mark-all-known data)]
+       (let [_ (db/words-and-phrases-mark-all-known data)]
          (reply! event (s-ev :words-marked-as-known) nil))
        (catch js/Error e
          (reply-err! event "Failed to mark all words known" e))))
 
+   ;; -- Phrase ----------------------------------------------------------------
+   ;;
+   ;;
+   (s-ev :phrase-update)
+   (fn [event data]
+     (try
+       (let [res            (db/phrase-upsert data)
+             is-insert       (-> data :id nil?) ;no id yet == insert.
+             lastInsertRowid (or (data :id) (res :lastInsertRowid))
+             updated-phrase (db/phrase-get lastInsertRowid )]
+         (if is-insert
+           (reply! event (s-ev :phrase-inserted) updated-phrase)
+           (reply! event (s-ev :phrase-updated) updated-phrase)))
+       (catch js/Error e
+         (reply-err! event "Failed to insert phrase" e))))
+
    ;; -- Settings --------------------------------------------------------------
 
    (s-ev :settings-get)
-   (fn [event data]
+   (fn [event _]
      (try
        (let [settings (db/settings-get)]
          (reply! event (s-ev :settings-got) settings))
@@ -104,7 +121,7 @@
    (s-ev :settings-update)
    (fn [event data]
      (try
-       (let [updated      (db/settings-update data)
+       (let [_            (db/settings-update data)
              new-settings (db/settings-get)]
          (reply! event (s-ev :settings-updated) new-settings))
        (catch js/Error e
@@ -112,7 +129,7 @@
 
    (s-ev :settings-backup-db)
    (fn [event _]
-     (let [db-backup-name  (str "trunk-backup-" (js/Date.now) ".db")]
+     (let [db-backup-name (str "trunk-backup-" (js/Date.now) ".db")]
        (-> (windows/bkup-db-window? db-backup-name) ; <1> try and open the window.
            (.then (fn [res]
                     (when-let [new-bkup-path (goog.object/get res "filePath")]

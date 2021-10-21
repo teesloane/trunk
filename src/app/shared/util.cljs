@@ -84,6 +84,11 @@
       (is-punctuation-or-newline? w)
       (re-matches #".*[0-9].*" w)))))
 
+(defn is-phrase
+  "Phrases have the key `:first_word_slug`, so check if it's present on the map."
+  [m]
+  (-> m :first_word_slug nil? not))
+
 (defn not-word?
   [w]
   (not (word? w)))
@@ -139,3 +144,30 @@
                        (map (fn [s] (str "dark:" s)))
                        (str/join " "))]
     (str a " " with-dark)))
+
+(defn update-word-list-with-phrases
+  [phrase word-data]
+  (let [phrase-length             (-> phrase :word_ids split-delimited-article count)
+        {:keys [first_word_slug]} phrase
+        res
+        (reduce (fn [{:keys [capture-buffer out] :as acc} {:keys [slug] :as curr}]
+                  (if (and                              ; now it's time to see if...
+                       (empty? (acc :capture-buffer))   ; our buffer is empty (we haven't captured anything)
+                       (not= slug first_word_slug))     ; and the curr word isn't the start of a phrase
+                    (update acc :out conj curr)         ; so we can just continue on and push the word into the out vec.
+
+                    ;; it's time to capture words into the buffer until it's as long as the num of words in the curr phrase
+                    (if (not= phrase-length (count capture-buffer))
+                      (update acc :capture-buffer conj curr) ; buffer hasn't reached length of phrase yet, so keep capturing words.
+                      (if (= (str/join "$" (map :id capture-buffer))
+                             (phrase :word_ids))
+                        (-> acc                    ; add the phrase, and empty the buffer
+                            (update :out conj phrase)
+                            (update :out conj curr)
+                            (assoc :capture-buffer []))
+                        (-> acc
+                            (assoc :out (into [] (concat (acc :out) (acc :capture-buffer) [curr])))
+                            (assoc :capture-buffer [])))
+                      )))
+                {:out [] :capture-buffer [] } word-data)]
+    (res :out)))

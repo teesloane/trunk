@@ -16,12 +16,12 @@
   (println "wipe!  called")
   (.exec db "DELETE FROM words;
              DELETE FROM articles;
+             DELETE FROM phrases;
              DELETE FROM settings;" #(println %)))
 
 (defn remove-db-file!
   []
   (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
-
 
 ;; NOTE: each word has a `slug` which is a lowercased, cleaned version of the
 ;; word. This way, if an article has a capitalized version of a word etc, you
@@ -39,13 +39,27 @@
 (def db-seed "
 
   CREATE TABLE IF NOT EXISTS words (
-    word_id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     slug TEXT NOT NULL,
     comfort INTEGER DEFAULT 0,
     translation TEXT,
     language TEXT,
     is_not_a_word BOOLEAN NOT NULL CHECK (is_not_a_word IN (0, 1)),
+    count INTEGER DEFAULT 0,
+    UNIQUE(name, language)
+  );
+
+  CREATE TABLE IF NOT EXISTS phrases (
+    id INTEGER PRIMARY KEY,
+    word_ids TEXT,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL,
+    comfort INTEGER DEFAULT 0,
+    translation TEXT,
+    first_word_slug TEXT,
+    last_word_slug TEXT,
+    language TEXT,
     UNIQUE(name, language)
   );
 
@@ -73,11 +87,13 @@
   [b]
   (if b 1 0))
 
-
 (defn sql
   [{:keys [stmt params op]}]
   (let [prepared (.prepare db stmt)
-        params   (apply array params)]
+        params   (cond
+                   (vector? params) (apply array params)
+                   (map? params)    (clj->js params)
+                   :else            params)]
     (js->clj
      (case op
        :all (if params (.all prepared params) (.all prepared))
@@ -119,7 +135,7 @@
         words-ids-vec (u/split-delimited-article word-ids)
         words-out     (atom [])]
     (doseq [word-id words-ids-vec]
-      (let [res (sql {:stmt   "SELECT * FROM words WHERE word_id = ?"
+      (let [res (sql {:stmt   "SELECT * FROM words WHERE id = ?"
                       :params [word-id]
                       :op     :get})]
         (swap! words-out conj res)))
@@ -136,10 +152,10 @@
         :stmt    "INSERT INTO articles(original, word_ids, name, source, date_created, language) VALUES (?, ?, ?, ?, ?, ?)"}))
 
 (defn word-get
-  [word_id]
+  [id]
   (sql {:op :get
-        :stmt "SELECT * FROM words WHERE word_id = ?"
-        :params [word_id]}))
+        :stmt "SELECT * FROM words WHERE id = ?"
+        :params [id]}))
 
 (defn words-get
   [{:keys [language]}]
@@ -147,15 +163,22 @@
         :params [language]
         :stmt "SELECT * FROM words WHERE is_not_a_word = 0 AND language = ? GROUP BY slug ORDER BY comfort DESC"}))
 
-(defn words-mark-all-known
+(defn words-and-phrases-mark-all-known
   "Receives a list of words and updates their comfort to `known` for all."
   [words]
-  (let [stmt        (str "UPDATE words SET comfort = " (specs/word-comfort :known) " WHERE slug = ? AND language = ?")
-        sql-update  (.prepare db stmt )
-        insert-many (.transaction db (fn [words]
-                                       (doseq [word words]
-                                         (.run sql-update (word :slug) (word :language)))))]
-    (insert-many words)))
+  (let [stmt-words         (str "UPDATE words SET comfort = " (specs/word-comfort :known) " WHERE slug = ? AND language = ?")
+        stmt-phrases       (str "UPDATE phrases SET comfort = " (specs/word-comfort :known) " WHERE id = ? AND language = ?")
+        just-phrases       (filter :first_word_slug words)
+        sql-update         (.prepare db stmt-words)
+        sql-update-phrases (.prepare db stmt-phrases)
+        update-words       (.transaction db (fn [words]
+                                              (doseq [word words]
+                                                (.run sql-update (word :slug) (word :language)))))
+        update-phrases     (.transaction db (fn [phrases]
+                                              (doseq [phrase phrases]
+                                                (.run sql-update-phrases (phrase :id) (phrase :language)))))]
+    (update-words words)
+    (update-phrases just-phrases)))
 
 (defn word-update
   [data]
@@ -170,12 +193,12 @@
   [{:keys [article language]}]
   (let [article-str-vec (u/split-article article)
         word-ids        (atom [])
-        query           "SELECT word_id FROM words WHERE slug = ? AND name = ? AND language = ?"]
+        query           "SELECT id FROM words WHERE slug = ? AND name = ? AND language = ?"]
     (doseq [word article-str-vec]
       (let [res (sql {:op :get
                       :stmt query
                       :params [(u/slug-word word) word language]})]
-        (swap! word-ids conj (get res :word_id))))
+        (swap! word-ids conj (get res :id))))
     (u/delimit-article @word-ids)))
 
 (defn words-insert
@@ -196,11 +219,61 @@
                                     language)))
                             flatten
                             (apply array))
-        queryWords   (str "INSERT OR IGNORE INTO words(name, slug, is_not_a_word, language) VALUES " placeholders)]
+        queryWords   (str "INSERT INTO words(name, slug, is_not_a_word, language) VALUES " placeholders " ON CONFLICT(name, language) DO UPDATE SET count=count+1")]
     (sql {:op :run :stmt queryWords :params params})))
 
+;; -- DB: Phrases --------------------------------------------------------------
 
-;; -- DB: Settings --
+(defn phrase-upsert
+  [phrase]
+  (sql {:op     :run
+        :params phrase
+        :stmt    "INSERT INTO phrases VALUES (@id, @word_ids, @name, @slug, @comfort, @translation, @first_word_slug, @last_word_slug, @language)
+                  ON CONFLICT(name, language) DO UPDATE SET comfort=@comfort, name=@name, translation=@translation"
+        }))
+
+(defn phrase-get
+  [id]
+  (sql {:op :get
+        :stmt "SELECT * FROM phrases WHERE id = ?"
+        :params [id]}))
+
+(defn article-attach-phrases
+  "Attaches phrase data to the `article` map.
+  How it works:
+
+  - Once an article has its `word-data` attached to it:
+    - we iterate over each word and search the phrase table for phrases that STARTS  with that word's slug.
+    - we filter over that list, and keep it IF:
+      - the phrase's word_ids are a substring of the article's word_ids substr
+      - then, we loop over the word data, replacing them with phrases"
+  [{:keys [word-data] :as article}]
+  (let [collected-phrases (atom [])
+        new-word-data     (atom word-data)]
+    (doseq [word word-data :let [{:keys [slug]} word]]
+      (let [res (sql {:stmt   "SELECT * FROM phrases WHERE first_word_slug = ?"
+                      :params [slug]
+                      :op     :get})]
+        (when res
+          ;; if the word_ids of the phrase are in the article word_ids...
+          (when (str/includes? (article :word_ids) (get res :word_ids))
+            (swap! collected-phrases conj res)))))
+    ;; now that we have all the phrases that MIGHT appear in the article,
+    ;; now we do the work of looking through the collecting phrases to find ones
+    ;; that are actually in the article. this involves some reducing through the
+    ;; words and building a temporary buffer whenever we encounter alignment
+    ;; between phrase and word, and then comparing the collected buffer against the phrase to see if it is the same.
+    (doseq [phrase (dedupe @collected-phrases)
+            :let [{:keys [first_word_slug]} phrase
+                  phrase-length (-> phrase :word_ids u/split-delimited-article count)]]
+      (let [result (u/update-word-list-with-phrases phrase @new-word-data)]
+        (reset! new-word-data result)))
+    (if (empty? @new-word-data)
+      article
+      (assoc article :word-data @new-word-data))))
+
+
+;; -- DB: Settings -------------------------------------------------------------
 ;; All settings updates/inserts need to be jsonified.
 (defn- settings->json
   [s]
@@ -219,8 +292,7 @@
   [settings]
   (sql {:op :run
         :stmt "UPDATE settings SET user = ? WHERE settings_id = 1"
-        :params [(settings->json settings)]
-        }))
+        :params [(settings->json settings)]}))
 
 (defn settings-init
   "If there are no rows in the settings table, initialize it."
@@ -230,7 +302,7 @@
     (when-not existing-settings
       (sql {:op :run
             :stmt "INSERT INTO settings(user) VALUES (?)"
-            :params [ default-settings ]}))))
+            :params [default-settings]}))))
 
 ;; -----------------------------------------------------------------------------
 
@@ -240,7 +312,6 @@
          (fn [err]
            (when err
              (throw (js/Error. (str "Failed db" err))))))
-
   (settings-init))
 
 ;; FIXME: when do I run "db.close()"?

@@ -2,7 +2,8 @@
   "This file has several maps that describe the shape of common data throughout Trunk.
   These are not clojure/spec shapes (yet)."
   (:require [app.shared.util :as u]
-            ["path" :as path]))
+            ["path" :as path]
+            [clojure.string :as str]))
 
 (def trunk-version
   (let [package-path (.join path (.cwd js/process) "package.json")
@@ -18,11 +19,35 @@
    :known   4})
 
 (def word
-  {:word_id     nil
+  {:id     nil
    :name        nil
-   :slug        nil
+   :slug        nil ; lowercased version of the word
    :comfort     0
+   :count       0
    :translation nil})
+
+(def phrase
+  {:id       nil ; auto set by sqlite
+   :word_ids        ""  ; $ delimited string of ints.
+   :slug            ""
+   :name            ""
+   :translation     nil
+   :comfort         0
+   :first_word_slug ""
+   :last_word_slug  ""
+   :language        ""
+   })
+
+(defn make-phrase
+  [list-words]
+  (let [words (->> list-words (map :name))]
+    (-> phrase
+        (assoc :word_ids (str/join "$" (map :id list-words))
+               :name  (str/join " " words)
+               :slug     (str/join " " (map u/slug-word words))
+               :first_word_slug (-> list-words first :slug)
+               :last_word_slug (-> list-words last :slug)
+               :language (-> list-words first :language)))))
 
 (def langs
   {"french"  "fr"

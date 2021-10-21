@@ -26,6 +26,9 @@
    :words-got             ::words-got
    :words-mark-all-known  ::words-mark-all-known
    :words-marked-as-known ::words-marked-as-known
+   :phrase-update         ::phrase-update
+   :phrase-inserted       ::phrase-inserted
+   :phrase-updated        ::phrase-updated
    :wipe-db!              ::wipe-db!
 
    ;; twin == translation window

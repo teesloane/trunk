@@ -4,6 +4,7 @@
    [day8.re-frame.async-flow-fx :as async-flow-fx] ;; this registers the fx; leave in.
    [app.shared.ipc-events :refer [s-ev]]
    [app.renderer.re-pressed :as rp]
+   [clojure.string :as str]
    [app.shared.specs :as specs]
    [app.shared.util :as u]
    [re-frame.core :as rf]))
@@ -37,7 +38,6 @@
 (r-fx :boot
       (fn [_ _]
         {:db db/default-db
-         :dispatch [::rp/add-keyboard-event-listener "keydown"]
          :async-flow (boot-flow)})) ;; kick off the async process
 
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
@@ -81,31 +81,40 @@
       (let [idx-dir-fn              (case dir :right inc :left dec)
             next-word-idx           (-> db :current-word-idx idx-dir-fn)
             next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
-            last-known-word-and-idx (if (or (nil? next-word)
-                                            (u/not-word? (get next-word :name)))
-                                      [current-word current-word-idx]
-                                      [next-word next-word-idx])
+            ;; this `if` is messy, but basically, look at the next word ,if it's
+            ;; not nil, or is not a word, keep current-word + index, otherwise, advance.
+            last-known-word-and-idx (when next-word (if (or (nil? next-word) ; if the next word doesn't exist
+                                                            (if (u/is-phrase next-word)
+                                                              false
+                                                              (u/not-word? (get next-word :name))))
+                                                      [current-word current-word-idx]
+                                                      [next-word next-word-idx]))
             next-db                 (-> db
                                         (assoc :current-word next-word)
                                         (assoc :current-word-idx next-word-idx))
-              ;; recur when we are on punctuation; ie, skip punctuation.
-            continue-recur          (and (u/not-word? (get next-word :name))
-                                         (not (nil? next-word)))]
+            ;; recur when we are on punctuation; ie, skip punctuation.
+            continue-recur          (when next-word (and
+                                                     (if (u/is-phrase next-word)
+                                                       false
+                                                       (u/not-word? (get next-word :name)))
+                                                     (not (nil? next-word))))]
         (if continue-recur
           (recur next-db last-known-word-and-idx)
           (let [[lkw lki] last-known-word-and-idx]
-            (-> db
-                (assoc :current-word lkw)
-                (assoc :current-word-idx lki))))))))
+            (if last-known-word-and-idx
+              (-> db
+                  (assoc :current-word lkw)
+                  (assoc :current-word-idx lki))
+              db)))))))
 
 (defn- when-t-win-open
   "If the translation window is open..."
   [new-db]
   (if (-> new-db :t-win :open?)
-    [(s-ev :t-win-update-word)
-     {:current-word (-> new-db :current-word :name)
-      :target-lang  (-> new-db :settings :target-lang)
-      :native-lang  (-> new-db :settings :native-lang)}]
+      [(s-ev :t-win-update-word)
+       {:word-or-phrase (db/get-curr-word-or-phrase new-db)
+        :target-lang    (-> new-db :settings :target-lang)
+        :native-lang    (-> new-db :settings :native-lang)}]
     [::noop]))
 
 (r-fx :key-pressed-right
@@ -114,6 +123,14 @@
           (let [new-db (move-word :right db)]
             {:db new-db
              :dispatch (when-t-win-open new-db)}))))
+
+(r-fx :key-pressed-shift
+      (fn [{:keys [db]} [_ _]]
+        {:db (assoc db :shift-held? true)}))
+
+(r-fx :key-up-shift
+      (fn [{:keys [db]} [_ _]]
+        {:db (assoc db :shift-held? false)}))
 
 (r-fx :key-pressed-left
       (fn [{:keys [db]} [_ _]]
@@ -130,7 +147,10 @@
               new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
           (when (u/curr-word-view-open? db)
             {:db (assoc db :current-word new-word-with-comfort)
-             :fx [[:dispatch [(s-ev :word-update) new-word-with-comfort]]]}))))
+             :fx [[:dispatch
+                   (if (u/is-phrase new-word-with-comfort)
+                       [(s-ev :phrase-update) new-word-with-comfort]
+                       [(s-ev :word-update) new-word-with-comfort])]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
@@ -174,7 +194,7 @@
         {::ipc-send! (with-lang db event)}))
 
 (r-fx (s-ev :article-created)
-      (fn [{:keys [db]} [_ data]]
+      (fn [{:keys [db]} [_ _]]
         {:db db
          :fx [[:dispatch [::set-toast {:type :confirmation :msg "Article created."}]]
               [:dispatch [::navigate "article-list"]]]}))
@@ -211,7 +231,7 @@
          ::ipc-send! [event (-> db :current-article :word-data)]}))
 
 (r-db (s-ev :words-marked-as-known)
-      (fn [db [_ data]]
+      (fn [db [_ _]]
         (let [update-words #(->> %
                                  (map (fn [word] (assoc word :comfort (specs/word-comfort :known))))
                                  (into []))]
@@ -220,21 +240,42 @@
               (update-in [:current-article :word-data] update-words)))))
 
 (defn update-word-helper
-  "Finds a word in the re-frame db's list of words and updates it"
+  "Finds a word or phrase in the re-frame db's list of words and updates it with
+  new data from the backend"
   [event-data word-data]
   (vec
    (map
-    (fn [curr-word]
+    (fn [w-or-p] ;; w-or-p = word-or-phrase
       (cond
-        (= (:word_id curr-word) (:word_id event-data)) event-data
-        ;; if slug matches, update everything except the "name"
-        (and (= (:slug curr-word) (:slug event-data))
-             (not= (curr-word :word_id) (event-data :word_id)))
-        (assoc event-data :name (curr-word :name) :word_id (curr-word :word_id))
-        :else curr-word)) word-data)))
+        ;; two phrases encounter each other...
+        ;; if their ids are the same, update.
+        (and (u/is-phrase event-data)
+             (u/is-phrase w-or-p)
+             (= (:id w-or-p) (:id event-data)))
+        event-data
+
+
+        ;; we're updating a `word` and it's the original one clicked on and updated.
+        (and (not (u/is-phrase event-data))
+             (not (u/is-phrase w-or-p))
+             (= (w-or-p :id) (event-data :id)))
+        event-data
+
+        ;; here slugs match, but id's don't: good for matching updates to
+        ;; words with different capitlizations - we basically patch the old data into the new
+        ;; event data and use that instead to return to the `map` call.
+        (and (not (u/is-phrase event-data))
+             (= (:slug w-or-p) (:slug event-data)) ;
+             (not= (w-or-p :id) (event-data :id)))
+        (assoc event-data :name (w-or-p :name) :id (w-or-p :id))
+
+        ;; just return and carry on.
+        :else w-or-p)
+
+      ) word-data)))
 
 (r-fx (s-ev :word-updated)
-      (fn [{:keys [db]} [event-name data]]
+      (fn [{:keys [db]} [_ data]]
         (let [current-article-words (-> db :current-article :word-data)
               words-view-words      (-> db :words)]
           {:dispatch [::set-toast {:type :confirmation :msg "Word updated."}]
@@ -250,12 +291,73 @@
 
 (r-fx ::set-current-word
       (fn [{:keys [db]} [_ data]]
-        (let [{:keys [word index]} data]
-          (let [new-db (-> db
-                           (assoc :current-word word)
-                           (assoc :current-word-idx index))]
-            {:db  new-db
-             :dispatch  (when-t-win-open new-db)}))))
+        (let [{:keys [word index]} data
+              new-db (-> db (assoc :current-word word
+                                   :current-word-idx index
+                                   :current-phrase nil
+                                   :current-phrase-idxs nil))]
+            {:db       new-db
+             :dispatch (when-t-win-open new-db)})))
+
+;; current phrase events -------------------------------------------------------
+
+(r-fx ::set-current-phrase
+      (fn [{:keys [db]} [_ index]]
+        (let [current-word-idx (-> db :current-word-idx)
+              lesser-index     (min index current-word-idx)
+              greater-index    (inc (max index current-word-idx))
+              phrase-words     (subvec (-> db :current-article :word-data) lesser-index greater-index)
+              new-db           (-> db (assoc :current-word nil
+                                             :current-phrase (specs/make-phrase phrase-words)
+                                             :current-phrase-words phrase-words
+                                             :current-phrase-idxs (range lesser-index greater-index)
+                                             :current-word-idx nil))]
+          {:db new-db
+           :dispatch (when-t-win-open new-db)})))
+
+(r-fx (s-ev :phrase-update)
+      (fn [{:keys [db]} event]
+        {:db db
+         ::ipc-send! (with-lang db event)}))
+
+
+
+;; FIXME: LEAVING OFF - this ain't working
+
+(r-fx (s-ev :phrase-updated)
+      (fn [{:keys [db]} [_ data]]
+        (let [current-article-words (-> db :current-article :word-data)
+              words-view-words      (-> db :words)]
+          {:dispatch [::set-toast {:type :confirmation :msg "Word updated."}]
+           :db       (cond-> db
+                       true                  (assoc :loading? false)
+                       true                  (assoc :current-word data)
+
+                       (db/view-article? db)
+                       (assoc-in [:current-article :word-data] (update-word-helper data current-article-words))
+
+                       (db/view-words? db)
+                       (assoc :words (update-word-helper data words-view-words)))})))
+
+
+(r-fx (s-ev :phrase-inserted)
+      (fn [{:keys [db]} [_ phrase-from-db]]
+        (let [word-data        (-> db :current-article :word-data)
+              words-view-words (-> db :words)]
+          {:dispatch [::set-toast {:type :confirmation :msg "Phrase updated."}]
+           :db       (cond-> db
+                       true (assoc :loading? false)
+                       true (assoc :current-word phrase-from-db)
+                       true (assoc :current-phrase-idxs nil
+                                   :current-phrase nil)
+
+                       (db/view-article? db)
+                       (assoc-in [:current-article :word-data]
+                                 (u/update-word-list-with-phrases phrase-from-db word-data))
+
+                       ;; TODO handle this.
+                       (db/view-words? db)
+                       (assoc :words (update-word-helper phrase-from-db words-view-words)))})))
 
 ;; -- Settings -----------------------------------------------------------------
 
@@ -296,6 +398,7 @@
       (fn [{:keys [db]} [event window-data]]
         {:db         (assoc-in db [:t-win :loading?] true)
          ::ipc-send! [event (assoc window-data
+                                   :word-or-phrase (db/get-curr-word-or-phrase db)
                                    :target-lang (-> db :settings :target-lang)
                                    :native-lang (-> db :settings :native-lang))]}))
 
@@ -345,7 +448,7 @@
 
 (def incoming-handlers
   [:article-created :articles-got      :article-received       :article-deleted
-   :words-got       :word-updated      :words-marked-as-known
+   :words-got       :word-updated      :words-marked-as-known  :phrase-updated :phrase-inserted
    :settings-got    :settings-updated
    :ipc-error       :ipc-success       :t-win-opened])
 ;; Loop over the incoming handlers and set them up to dispatch a re-frame events whenever they get triggered by ipcMain.

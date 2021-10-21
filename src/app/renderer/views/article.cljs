@@ -10,32 +10,45 @@
 (defn view
   "Displays a single article."
   []
-  (let [sure-mark? (r/atom 0)
-        loading?     (<| [::subs/loading?])
+  (let [sure-mark?     (r/atom 0)
+        loading?       (<| [::subs/loading?])
+        current-phrase (r/atom nil)
         ]
     (fn []
       (when-not loading?
-        (let [current-article          (<| [::subs/current-article])
-              current-word             (<| [::subs/current-word])
-              current-word-idx         (<| [::subs/current-word-idx])
-              form                     (r/atom current-word)
-              total-words              (count (get current-article :word-data))
-              words-known              (count (filter (fn [word-data]
-                                                        (or (not= 0 (word-data :comfort))
-                                                            (not= nil (word-data :translation))))
-                                                      (-> current-article :word-data)))
+        (let [current-article     (<| [::subs/current-article])
+              current-word        (<| [::subs/current-word])
+              current-word-idx    (<| [::subs/current-word-idx])
+              current-phrase-idxs (<| [::subs/current-phrase-idxs])
+              current-phrase      (<| [::subs/current-phrase])
+              word-or-phrase      (or current-phrase current-word)
+              shift-held?         (<| [::subs/shift-held?])
+              form                (r/atom word-or-phrase)
+              total-words         (count (get current-article :word-data))
+              words-known         (count (filter (fn [word-data]
+                                                (or (not= 0 (word-data :comfort))
+                                                    (not= nil (word-data :translation))))
+                                              (-> current-article :word-data)))
+              ;; -- handlers -----
 
-              handle-mark-all-known    (fn []
-                                         (case @sure-mark?
-                                           0 (reset! sure-mark? 1)
-                                           1 (do (|> [(s-ev :words-mark-all-known)])
-                                                 (reset! sure-mark? 0))))
-              {:keys [name word-data]} current-article
-              ]
+              handle-mark-all-known (fn []
+                                      (case @sure-mark?
+                                        0 (reset! sure-mark? 1)
+                                        1 (do (|> [(s-ev :words-mark-all-known)])
+                                              (reset! sure-mark? 0))))
+
+              handle-word-click (fn [word index]
+                                  (if (and current-word shift-held?)
+                                    (|> [::events/set-current-phrase index])
+                                    (|> [::events/set-current-word {:word word :index index}])))
+              {:keys [name word-data]} current-article]
+
+          ;; -- Render ---
           [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
            [:div {:key "view-article" :class "flex flex-col flex-1 bg-white dark:bg-gray-800"}
             ;; metadata and actions
             [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.px-8.py-2.dark:border-gray-900
+             [:span (u/trunc-ellipse name 23)]
              [:span "Words recognized: " words-known " / " total-words]
              (if (= words-known total-words)
                [:span "All words known!"]
@@ -44,12 +57,14 @@
 
             [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white dark:bg-gray-900"}
             [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
+             {:style {:user-select (if shift-held? "none" "inherit")}}
              (map-indexed (fn [index word]
                             ^{:key (str word "-" index)}
                             [component/article-word
-                             {:word             word
-                              :current-word     current-word
-                              :on-click         #(|> [::events/set-current-word {:word word :index index}])
-                              :index            index
-                              :current-word-idx current-word-idx}]) word-data)]]]
+                             {:word                word
+                              :current-word        current-word
+                              :on-click            #(handle-word-click word index)
+                              :index               index
+                              :current-phrase-idxs current-phrase-idxs
+                              :current-word-idx    current-word-idx}]) word-data)]]]
            [component/view-current-word {:current-word current-word :form form}]])))))

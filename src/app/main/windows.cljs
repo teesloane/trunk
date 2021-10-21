@@ -23,12 +23,12 @@
   (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil)))
 
 (defn go-to-url
-  [{:keys [current-word target-lang native-lang]}]
+  [{:keys [word-or-phrase target-lang native-lang] :as data}]
   (.loadURL ^js (.-webContents ^BrowserView @t-win )
-            (if (and current-word target-lang native-lang)
+            (if (and word-or-phrase target-lang native-lang)
               (str "https://translate.google.com"
                    "?sl=" target-lang "&tl=" native-lang
-                   "&text=" current-word "&op=translate")
+                   "&text=" word-or-phrase "&op=translate")
               "https://translate.google.com")))
 
 (defn t-win-init
@@ -41,11 +41,11 @@
   (reset! t-win (BrowserView.))
   (.setBrowserView ^js/electron.BrowserWindow @main-window @t-win)
   (.setBounds ^js/electron.BrowserView @t-win (clj->js pos))
-  (go-to-url (select-keys data [:current-word :target-lang :native-lang]))))
+  (go-to-url (select-keys data [:word-or-phrase :target-lang :native-lang]))))
 
 (defn t-win-update-word
   [data]
-  (go-to-url (select-keys data [:current-word :target-lang :native-lang])))
+  (go-to-url (select-keys data [:word-or-phrase :target-lang :native-lang])))
 
 (defn t-win-close
   []
