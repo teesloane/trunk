@@ -46,7 +46,12 @@
     [component/card {:header "Restore your Trunk database"}
      [:div.text-sm
       [:div.mb-4 "Import a database from a previous backup." [:span.text-red-500.mb-4 " This will overwrite your existing Trunk database."]]
-      [component/button {:text "Restore" :on-click #(|> [(s-ev :settings-restore-db)])}]]]]])
+      [component/button {:text "Restore" :on-click #(|> [(s-ev :settings-restore-db)])}]]]]
+   [:div {:class "w-full mt-4"}
+    [component/card {:header "Wipe your Trunk database"}
+     [:div.text-sm
+      [:div.mb-4 "Caution: this will erase all your data and relaunch the application."]
+      [component/erase-db]]]]])
 
 (defn languages
   [settings]

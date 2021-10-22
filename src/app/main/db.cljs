@@ -5,18 +5,22 @@
    ["better-sqlite3" :as sqlite]
    [clojure.string :as str]
    ["electron" :refer [app]]
+   ["fs" :as fs]
    ["path" :as path]))
 
 (def db-name (if u/debug? "trunk-dev.db" "trunk.db"))
 (def db-path (.join path (.getPath app "userData") db-name))
 (def db (sqlite. db-path))
 
-(defn wipe! []
-  (println "wipe!  called")
-  (.exec db "DELETE FROM words;
-             DELETE FROM articles;
-             DELETE FROM phrases;
-             DELETE FROM settings;" #(println %)))
+(defn wipe!
+  "Wipes the database and relaunches the application."
+  []
+  (.exec db "DROP TABLE words;
+             DROP TABLE articles;
+             DROP TABLE phrases;
+             DROP TABLE settings;" #(println %))
+  (.relaunch app)
+  (.quit app))
 
 ;; (defn remove-db-file! []
 ;;   (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
@@ -98,6 +102,13 @@
        :get (if params (.get prepared params) (.get prepared))
        :run (if params (.run prepared params) (.run prepared)))
      :keywordize-keys true)))
+
+;; get the trunk version from package.json.
+(def trunk-version
+  (-> (.readFileSync ^:export fs (.join path js/__dirname ".." "package.json") "utf8")
+      js/JSON.parse
+      js->clj
+      (get "version")))
 
 ;; -- DB calls -----------------------------------------------------------------
 
@@ -293,7 +304,7 @@
 (defn settings-init
   "If there are no rows in the settings table, initialize it."
   []
-  (let [default-settings (settings->json specs/settings-default)
+  (let [default-settings (settings->json (specs/make-default-settings trunk-version))
         existing-settings (settings-get)]
     (when-not existing-settings
       (sql {:op :run

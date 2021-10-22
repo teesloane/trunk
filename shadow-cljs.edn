@@ -31,7 +31,7 @@
                               ;; :tailwind.css "resources/public/css/site.css"
                               }
              :tailwind/config {:dark-mode "media"}
-             :release         {:build-hooks   [(teknql.tailwind/compile-release!)]
+             :release         {; :build-hooks   [(teknql.tailwind/compile-release!)] ; can't use this on windows (ci) so have to disable it.
                                :build-options {:ns-aliases
                                                {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}
              :modules         {:renderer {:init-fn app.renderer.core/start!}}}}}

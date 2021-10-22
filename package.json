@@ -1,27 +1,49 @@
 {
   "name": "Trunk",
   "version": "0.0.1",
-  "description": "",
+  "description": "Language learning application",
   "productName": "Trunk",
   "main": "resources/main.js",
   "scripts": {
     "dev-cljs": "shadow-cljs watch main renderer",
     "dev-electron": "npx electron .",
-    "build": "shadow-cljs compile main renderer",
-    "release-cljs": "shadow-cljs release main renderer",
+    "build": "npm run tailwind:prod && shadow-cljs release main renderer",
+    "postinstall": "npx electron-builder install-app-deps",
+    "tailwind:prod": "npx tailwindcss -i ./src/tailwind.css -o resources/public/css/site.css --minify",
     "clean": "rm -rf resources/public/js/* && rm -rf target",
-    "release-mac": "npx electron-packager . Trunk --out=releases --icon=resources/public/img/icons/icon.icns --overwrite --ignore=\"(src*|.git*|.shadow-cljs*|.lsp*|resources/public/js/cljs-runtime*)\"",
-    "release": "npm run release-cljs; npm run release-mac",
+    "pack": "npx electron-builder --dir",
+    "dist": "electron-builder",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "The Ice Shelf",
+  "author": {
+    "name" : "The Ice Shelf",
+    "email" : "contact@theiceshelf.com",
+    "url" : "https://theiceshelf.com"
+  },
+  "build": {
+    "appId": "com.theiceshelf.trunk",
+    "mac": {
+      "category": "trunk.theiceshelf"
+    },
+    "linux": {
+      "target": ["deb"]
+    },
+    "files": [
+      "!.lsp",
+      "!.shadow-cljs/**/*",
+      "!resources/publicjs/cljs-runtime/**/*"
+    ],
+    "publish": {
+      "provider": "github"
+    }
+  },
   "devDependencies": {
     "autoprefixer": "^10.3.1",
     "concurrently": "^6.2.0",
     "cssnano": "^5.0.7",
     "electron": "^13.1.7",
-    "electron-packager": "^15.4.0",
-    "electron-rebuild": "^3.2.3",
+    "electron-builder": "^22.13.1",
     "postcss-cli": "^8.3.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -31,7 +53,6 @@
   "dependencies": {
     "better-sqlite3": "^7.4.3",
     "highlight.js": "10.7.1",
-    "sqlite3": "^5.0.2",
     "ws": "^7.5.5"
   }
 }

@@ -26,6 +26,10 @@
   [db [event-name event-data]]
   [event-name (assoc event-data :language (-> db :settings :target-lang))])
 
+(r-db ::initialize-db
+      (fn [_ _]
+        db/default-db))
+
 (defn boot-flow
   "Set up re-frame's async boot of events.
   see use of: https://github.com/day8/re-frame-async-flow-fx."
@@ -461,12 +465,12 @@
   "Load ipcRenderer and loop through defined handlers
   and attach handlers with handle."
   []
-  (println "Initing renderer ipc handlers.")
+  (u/log-dev "Initing renderer ipc handlers.")
   (let [ipcRenderer    (.. (js/require "electron") -ipcRenderer)
         existingEvents (.eventNames ipcRenderer)]
     (doseq [[key handler] ipcHandlers]
       (when-not (some #{key} existingEvents)
         (.on ipcRenderer (name key) ;; convert str to be readable for ipcRenderer.
              (fn [event args]
-               (println "[ipcRenderer ->]: " key)
+               (u/print-dev "[ipcRenderer ->]: " key)
                (handler event (js->clj args :keywordize-keys true))))))))

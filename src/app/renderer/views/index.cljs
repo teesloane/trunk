@@ -23,7 +23,7 @@
   (let [current-view (<| [::subs/current-view])]
     [:div.dark:bg-gray-900.dark:text-white.flex.flex-col.h-screen.bg-gray-50
      ;; fixed pos things
-     (when u/debug? [debug])
+     ;; (when u/debug? [debug])
      [component/loading-wheel]
      [component/nav {:current-view current-view}]
      ;; Navigate!

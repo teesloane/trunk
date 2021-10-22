@@ -2,13 +2,8 @@
   "This file has several maps that describe the shape of common data throughout Trunk.
   These are not clojure/spec shapes (yet)."
   (:require [app.shared.util :as u]
-            ["path" :as path]
             [clojure.string :as str]))
 
-(def trunk-version
-  (let [package-path (.join path (.cwd js/process) "package.json")
-        as-js        (js/require package-path)]
-    (-> as-js .-version)))
 
 ;; the word comfort integers as they are reflected in the db.
 (def word-comfort
@@ -56,7 +51,8 @@
    "german"  "de"
    "italian" "it"})
 
-(def settings-default
+(defn make-default-settings
+  [trunk-version]
   {:native-lang (get langs "english")
    :target-lang (get langs "french")
    :trunk-version trunk-version})

@@ -4,8 +4,15 @@
 
 (def log (.-log js/console))
 
-(def debug?
-  ^boolean goog.DEBUG)
+(def debug? ^boolean goog.DEBUG)
+
+(defn log-dev [& args]
+  (when debug?
+    (apply (.-log js/console) args)))
+
+(defn print-dev [& args]
+  (when debug?
+    (apply prn args)))
 
 (def comfort-text-and-col
   {0 {:name "Unknown" :text-col "text-gray-800 dark:text-gray-200"   :bg-col "bg-gray-300 dark:bg-gray-800"}

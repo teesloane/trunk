@@ -3,6 +3,23 @@
 ** Icons
 - Icons must be in =*.icns= format.
 - You can convert a =.png= to =.icns= using Preview, provided it is exactly =512px x 512px= (and 300dpi).
+** Issues with native dependencies
+- using sqlite3 (through better-sqlite3) comes with some challenges regarding the need to rebuild the dependencies between different versions of node.
+- Read [[https://github.com/JoshuaWise/better-sqlite3/issues/545#issuecomment-824887942][this comment for more information]].
+  + More info on electron+sqlite [[https://github.com/JoshuaWise/better-sqlite3/issues/126#issuecomment-647078068][here]].
+
+** Packaging / Distribution instructions
+
+Last updated: [2021-10-23 Sat]
+
+We use electron-builder to build Trunk on CI. See the
+=.github/workflows/build.yml=. Please note that the CI process will only release
+(and succeed) when you push a tag that *does not yet have draft releases to it*.
+This is a [[https://github.com/electron-userland/electron-builder/issues/4940][bug]].
+
+If you are trying to get upload artifacts into a release and the build is
+failing, youi may need to manually [[https://user-images.githubusercontent.com/777278/125193935-50c03680-e24f-11eb-99e5-c976eafda0bd.png][remove release uploads]] of your draft tag.
+
 
 * Design
 ** Animation notes

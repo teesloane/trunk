@@ -3,7 +3,9 @@
    [app.renderer.events :as events :refer [|>]]
    [app.renderer.subs :as subs :refer [<|]]
    [app.shared.ipc-events :refer [s-ev]]
-   [app.shared.util :as u]))
+   [app.shared.util :as u]
+   [reagent.core :as r]
+   [re-frame.core :as rf]))
 
 (defn input
   [props]
@@ -22,16 +24,35 @@
   (let [styles "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white outline-none"]
     [:select (merge {:class styles} props) options]))
 
+
+(defn erase-db
+  "Button for erasing the database"
+  []
+  (let [sure-del? (r/atom 0)
+        handle-wipe-db (fn []
+                         (case @sure-del?
+                           0 (reset! sure-del? 1)
+                           1 (do (|> [(s-ev :wipe-db!)])
+                                 (reset! sure-del? 0))))]
+    (fn []
+      [:div.flex.rounded-sm
+       [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white.shadow
+        {:on-click #(handle-wipe-db)}
+        (case @sure-del?
+          0 "Wipe Trunk database"
+          1 "Are you sure you want to delete your data?")]])))
+
 (defn loading-wheel
   "Bottom right absolute position loading wheel."
   []
-  (let [loading? (<| [::subs/loading?])
+  (let [loading? (rf/subscribe [::subs/loading?])
         div-stz "transition duration-500 flex bg-gray-50 dark:bg-gray-800 text-xs shadow fixed bottom-0 right-0 p-2 m-2 rounded-md align-center items-center"
-        div-stz (if-not loading? (str "-bottom-16 " div-stz) (str "bottom-0 " div-stz))]
-    [:div {:class div-stz}
-     [:svg {:class "animate-spin text-blue-600 dark:text-blue-400", :style {:width "24px" :height "24px"} :xmlns "http://www.w3.org/2000/svg", :fill "none", :viewBox "0 0 24 24"}
-      [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
-      [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]]))
+        div-stz (if-not @loading? (str "-bottom-16 " div-stz) (str "bottom-0 " div-stz))]
+    (when @loading?
+      [:div {:class div-stz}
+       [:svg {:class "animate-spin text-blue-600 dark:text-blue-400", :style {:width "24px" :height "24px"} :xmlns "http://www.w3.org/2000/svg", :fill "none", :viewBox "0 0 24 24"}
+        [:circle {:class "opacity-25", :cx "12", :cy "12", :r "10", :stroke "currentColor", :stroke-width "4"}]
+        [:path {:class "opacity-75", :fill "currentColor", :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]])))
 
 (defn toast
   [{:keys [type msg]}]
@@ -220,7 +241,7 @@
   (let [t-win-open?               (<| [::subs/t-win-open?])
         currently-selected-phrase (<| [::subs/current-phrase]) ; current phrase as in, the one being underlined and is yet to be made a word.
         word-or-phrase            (or currently-selected-phrase current-word)
-        word-or-phrase-text       (or (word-or-phrase :name) (<| [::subs/current-phrase-text]))
+        word-or-phrase-text       (or (get word-or-phrase :name) (<| [::subs/current-phrase-text]))
         is-phrase                 (or currently-selected-phrase
                                       (u/is-phrase word-or-phrase))
         handle-submit             (fn [e]
@@ -228,7 +249,6 @@
                               (if is-phrase
                                 (|> [(s-ev :phrase-update) @form])
                                 (|> [(s-ev :word-update) @form])))]
-
     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l dark:border-gray-900 dark:bg-gray-800 dark:border-gray-700"}
      (when word-or-phrase
        [:div {:class "dark:bg-gray-800 w-full p-8 flex flex-col mx-auto"}

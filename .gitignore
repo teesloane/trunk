@@ -1,7 +1,5 @@
 /node_modules
 /target
-/yarn.lock
-/package-lock.json
 /.shadow-cljs
 /*.iml
 /.nrepl-port
@@ -13,6 +11,8 @@ resources/main.js
 resources/*.js
 
 releases
+out
+dist
 
 .lsp
 .log

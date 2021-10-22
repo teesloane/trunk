@@ -10,15 +10,17 @@
    [clojure.string :as str]))
 
 (defn cell
-  [child]
-  [:td.flex.w-full.border-r.border-b.items-center.p-1.dark:border-gray-700 child])
+  ([child]
+   [cell {} child])
+  ([props child]
+   [:td.flex.w-full.border-r.border-b.items-center.p-1.dark:border-gray-700 props child]))
 
 (defn- set-current-word
   [props idx]
   (|> [::events/set-current-word {:word (specs/m->word props) :index idx}]))
 
 (defn word-row
-  [{:keys [name comfort translation word-idx current-row] :as props}]
+  [{:keys [name comfort translation word-idx count current-row] :as props}]
   (let [comfort-styles (str "inline-flex rounded-full ml-2 h-2 w-2 border dark:border-gray-700 "
                             (u/get-comfort-bg-col comfort))
         handle-click   (fn [props word-idx]
@@ -28,19 +30,22 @@
      {:key      word-idx :style {:font-size "13px"}
       :class    (str "flex w-full cursor-pointer" (when (= word-idx @current-row) " bg-gray-50 dark:bg-gray-700 "))
       :on-click #(handle-click props word-idx)}
-     [cell [:div.p-1 (str/lower-case name)]]
-     [cell [:div.p-1 translation]]
-     [cell
+     [cell {:class "w-4/12"} [:div.p-1 (str/lower-case name)]]
+     [cell {:class "w-4/12"} [:div.p-1 translation]]
+     [cell {:class "w-2/12"}
       [:span.flex.items-center.p-1
        [:span (inc comfort)]
        [:span {:class comfort-styles}]
-       [:span.text-xs.ml-2.text-gray-400.text-mono
-        "(" (u/get-comfort-level-name comfort) ")"]]]]))
+       #_[:span.text-xs.ml-2.text-gray-400.text-mono
+        "(" (u/get-comfort-level-name comfort) ")"]]]
+     [cell  {:class "w-2/12"}[:div.p-1 count]]]))
 
 (defn table-header-cell
-  [{:keys [text sort-key sort-tuple handle-changed-sort]}]
+  [{:keys [text sort-key size sort-tuple handle-changed-sort]}]
+  (prn "size is" size)
   (let [[sort-direction -sort-key] @sort-tuple]
     [:th.flex.w-full.text-sm.text-left.p-2.text-gray-700.border.dark:border-gray-700.dark:text-gray-300
+     {:class size}
      [:span.flex.items-center
       [:span.text-sm.font-medium text]
       [:span.flex.flex-col.ml-2
@@ -68,7 +73,7 @@
   b) the column to sort by: `:name` | `:comfort` | `:translation`."
   []
   (|> [(s-ev :words-get) nil])
-  (let [sort-tuple          (r/atom ["descending" :slug])
+  (let [sort-tuple          (r/atom ["ascending" :count])
         current-row         (r/atom nil)
         handle-changed-sort (fn [a b]
                               (reset! sort-tuple [a b]))]
@@ -79,9 +84,19 @@
             current-word (<| [::subs/current-word])
             form         (r/atom current-word)
             words        (sort-words-by @sort-tuple words)
-            headers      [{:sort-key :slug :header-text "Words"}
-                          {:sort-key :translation :header-text "Translation"}
-                          {:sort-key :comfort :header-text "Comfort"}]]
+            headers      [{:sort-key    :slug
+                           :size        "w-4/12"
+                           :header-text "Words"}
+                          {:sort-key    :translation
+                           :size        "w-4/12"
+                           :header-text "Translation"}
+                          {:sort-key    :comfort
+                           :size        "w-2/12"
+                           :header-text "Comfort"}
+                          {:sort-key    :count
+                           :size        "w-2/12"
+                           :header-text "Count"}
+                          ]]
         (if loading?
           [component/loading-intercept "Loading all words. This might take a second."]
           ;; we don't check (db :words) because we force it to empty on navigation to avoid flicker
@@ -98,6 +113,7 @@
                   (map-indexed (fn [idx header-data]
                                  [table-header-cell {:handle-changed-sort handle-changed-sort
                                                      :key                 idx
+                                                     :size                (:size header-data)
                                                      :sort-tuple          sort-tuple
                                                      :sort-key            (:sort-key header-data)
                                                      :text                (:header-text header-data)}])  headers)]]
