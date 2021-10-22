@@ -5,7 +5,6 @@
    ["better-sqlite3" :as sqlite]
    [clojure.string :as str]
    ["electron" :refer [app]]
-   ["fs" :as fs]
    ["path" :as path]))
 
 (def db-name (if u/debug? "trunk-dev.db" "trunk.db"))
@@ -19,9 +18,8 @@
              DELETE FROM phrases;
              DELETE FROM settings;" #(println %)))
 
-(defn remove-db-file!
-  []
-  (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
+;; (defn remove-db-file! []
+;;   (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
 
 ;; NOTE: each word has a `slug` which is a lowercased, cleaned version of the
 ;; word. This way, if an article has a capitalized version of a word etc, you
@@ -208,7 +206,7 @@
   "
   [{:keys [article language]}]
   (let [words        (u/split-article article)
-        placeholders (str/join ", " (map (fn [w] "(?, ?, ?, ?)") words)) ;; this is annoying
+        placeholders (str/join ", " (map (fn [_] "(?, ?, ?, ?)") words)) ;; this is annoying
         params         (->> words
                             (map (fn [word]
                                    ;; THIS is the param list!
@@ -263,9 +261,7 @@
     ;; that are actually in the article. this involves some reducing through the
     ;; words and building a temporary buffer whenever we encounter alignment
     ;; between phrase and word, and then comparing the collected buffer against the phrase to see if it is the same.
-    (doseq [phrase (dedupe @collected-phrases)
-            :let [{:keys [first_word_slug]} phrase
-                  phrase-length (-> phrase :word_ids u/split-delimited-article count)]]
+    (doseq [phrase (dedupe @collected-phrases)]
       (let [result (u/update-word-list-with-phrases phrase @new-word-data)]
         (reset! new-word-data result)))
     (if (empty? @new-word-data)

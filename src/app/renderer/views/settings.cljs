@@ -6,7 +6,7 @@
    [reagent.core :as r]
    [app.shared.specs :as specs]
    [clojure.string :as str]
-   [app.renderer.subs :as subs :refer [<|]]
+   [app.renderer.subs :as subs]
    [re-frame.core :as rf]))
 
 (def settings-tree
@@ -35,7 +35,7 @@
      [:span "Trunk is open source software. Go to " [component/ext-link {:link "https://github.com/theiceshelf/trunk" :text "GitHub"}] " to contribute or file a bug."]]]]])
 
 (defn backup-restore
-  [settings]
+  [_]
   [:div
    [:div {:class "w-full mr-2"}
     [component/card {:header "Backup/Export your Trunk database"}
@@ -51,8 +51,7 @@
 (defn languages
   [settings]
   [component/card {:header "General Language Settings" :key "gls"}
-   (let [select-classes "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white"
-         swap-key       (fn [option settings-key]
+   (let [swap-key       (fn [option settings-key]
                           (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
                             (update-settings new-settings)))]
      [:div.flex.flex-col.md:flex-row

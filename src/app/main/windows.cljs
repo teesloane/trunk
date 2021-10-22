@@ -23,7 +23,7 @@
   (.on ^js/electron.BrowserWindow @main-window "closed" #(reset! main-window nil)))
 
 (defn go-to-url
-  [{:keys [word-or-phrase target-lang native-lang] :as data}]
+  [{:keys [word-or-phrase target-lang native-lang]}]
   (.loadURL ^js (.-webContents ^BrowserView @t-win )
             (if (and word-or-phrase target-lang native-lang)
               (str "https://translate.google.com"
@@ -33,7 +33,7 @@
 
 (defn t-win-init
   "Used for mini google translate window."
-  [{:keys [width height containerHeight button-height containerWidth current-word] :as data} ]
+  [{:keys [width height containerHeight button-height containerWidth] :as data} ]
   (let [pos {:x      (- width (int containerWidth))
              :y      (- height button-height (int containerHeight) )
              :width  (int containerWidth)

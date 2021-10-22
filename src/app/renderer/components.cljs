@@ -36,7 +36,7 @@
 (defn toast
   [{:keys [type msg]}]
   (let [classes (str "px-4 h-full flex items-center "
-                     (case type :confirmation "text-green-500" :error "text-red-500" ""))]
+                     (case type :confirmation "text-green-600" :error "text-red-500" ""))]
     (when-not (empty? msg)
       [:div {:class (str classes)} msg])))
 

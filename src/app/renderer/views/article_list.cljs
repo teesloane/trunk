@@ -55,7 +55,7 @@
                {:placeholder "Search articles..."
                 :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
-                (map-indexed (fn [idx item]
+                (map-indexed (fn [_ item]
                                [:div.cursor-pointer.mb-4
                                 {:key (item :article_id) :on-click #(nav! "article" item)}
                                 [article item]]) articles))]]))))))

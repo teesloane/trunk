@@ -2,10 +2,6 @@
   (:require
    [clojure.string :as str]))
 
-(defn print-deep-js
-  [o]
-  (js/console.log (js/JSON.stringify o nil 4)))
-
 (def log (.-log js/console))
 
 (def debug?
@@ -15,7 +11,7 @@
   {0 {:name "Unknown" :text-col "text-gray-800 dark:text-gray-200"   :bg-col "bg-gray-300 dark:bg-gray-800"}
    1 {:name "Hard"    :text-col "text-red-500"    :bg-col "bg-red-300"}
    2 {:name "Medium"  :text-col "text-yellow-500" :bg-col "bg-yellow-300"}
-   3 {:name "Easy"    :text-col "text-green-500"  :bg-col "bg-green-300"}
+   3 {:name "Easy"    :text-col "text-green-600"  :bg-col "bg-green-300"}
    4 {:name "Known"   :text-col "text-black dark:text-gray-500"      :bg-col "bg-white dark:bg-gray-900"}})
 
 (defn get-comfort-level-name [idx]
@@ -24,15 +20,6 @@
 (defn get-comfort-bg-col [idx]
   (-> idx comfort-text-and-col :bg-col))
 
-(defn get-comfort-text-col [idx]
-  (-> idx comfort-text-and-col :text-col))
-
-(defn seq->sql-placeholder
-  [seq]
-  (->> seq
-       (map (fn [_] "(?)"))
-       (apply array)
-       (str/join ",")))
 
 (defn split-article
   "Splits a string by whitespace and punctuation"
@@ -104,14 +91,6 @@
   [s]
   (str/lower-case s))
 
-(defn map->js-obj->sql
-  "Convert a clojure map into a suitable object for sqlite queries."
-  [m]
-  (->> m
-       (map (fn [[k v]] [(str "$" (name k)) v]))
-       (into {})
-       (clj->js)))
-
 (defn trunc
   [s n]
   (subs s 0 (min (count s) n)))
@@ -127,13 +106,6 @@
   (when ts
     (-> ts js/Date. (.toLocaleDateString))))
 
-;; clojure-y things
-
-(defn first? [seq i]
-  (= (first seq) i))
-
-(defn last? [seq i]
-  (= (last seq) i))
 
 ;; class light + dark
 (defn twld
@@ -150,7 +122,7 @@
   (let [phrase-length             (-> phrase :word_ids split-delimited-article count)
         {:keys [first_word_slug]} phrase
         res
-        (reduce (fn [{:keys [capture-buffer out] :as acc} {:keys [slug] :as curr}]
+        (reduce (fn [{:keys [capture-buffer] :as acc} {:keys [slug] :as curr}]
                   (if (and                              ; now it's time to see if...
                        (empty? (acc :capture-buffer))   ; our buffer is empty (we haven't captured anything)
                        (not= slug first_word_slug))     ; and the curr word isn't the start of a phrase

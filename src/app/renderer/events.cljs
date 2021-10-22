@@ -4,7 +4,6 @@
    [day8.re-frame.async-flow-fx :as async-flow-fx] ;; this registers the fx; leave in.
    [app.shared.ipc-events :refer [s-ev]]
    [app.renderer.re-pressed :as rp]
-   [clojure.string :as str]
    [app.shared.specs :as specs]
    [app.shared.util :as u]
    [re-frame.core :as rf]))
@@ -54,7 +53,7 @@
                        [(s-ev :t-win-close)]
                        [::noop])})))
 
-(r-db ::noop (fn [db [_ new-route]] db))
+(r-db ::noop (fn [db [_ _]] db))
 
 (r-fx ::set-toast
       (fn [cofx [_ data]]
@@ -75,9 +74,8 @@
   Also contains logic to prevent moving beyond the beginning and end of an article."
   [dir db]
   ;; check we can move word before starting...
-  (let [{:keys [current-word current-article current-word-idx]} db]
-    (loop [db                      db
-           last-known-word-and-idx nil]
+  (let [{:keys [current-word current-word-idx]} db]
+    (loop [db                      db]
       (let [idx-dir-fn              (case dir :right inc :left dec)
             next-word-idx           (-> db :current-word-idx idx-dir-fn)
             next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
@@ -99,7 +97,7 @@
                                                        (u/not-word? (get next-word :name)))
                                                      (not (nil? next-word))))]
         (if continue-recur
-          (recur next-db last-known-word-and-idx)
+          (recur next-db)
           (let [[lkw lki] last-known-word-and-idx]
             (if last-known-word-and-idx
               (-> db
@@ -367,7 +365,7 @@
          ::ipc-send! event}))
 
 (r-fx (s-ev :settings-got)
-      (fn [cofx [event data]]
+      (fn [cofx [_ data]]
         {:db (-> (cofx :db)
                  (assoc :loading? false)
                  (assoc :settings data))}))
@@ -382,7 +380,7 @@
          ::ipc-send! [event data]}))
 
 (r-fx (s-ev :settings-updated)
-      (fn [{:keys [db]} [event data]]
+      (fn [{:keys [db]} [_ data]]
         {:db (-> db
                  (assoc :settings data)
                  (assoc :current-article nil)
@@ -403,7 +401,7 @@
                                    :native-lang (-> db :settings :native-lang))]}))
 
 (r-fx (s-ev :t-win-opened)
-      (fn [{:keys [db]} event]
+      (fn [{:keys [db]} _]
         {:db (-> db
                  (assoc-in [:t-win :open?] true)
                  (assoc-in [:t-win :loading?] false))}))

@@ -93,7 +93,7 @@
 (defn- ->clear-keys! [event-type]
   (let [ns-keyword (->ns-keyword event-type)]
     (fn clear-keys!
-      [{:keys [db]} [_ key-map]]
+      [{:keys [db]} [_ _]]
       {:db (assoc-in db [(ns-keyword)
                          :keys] [])})))
 
@@ -146,7 +146,7 @@
       (fn [e]
         (let [ns-keyword (->ns-keyword event-type)
 
-              e-key         (.-keyCode e)
+              ;; e-key         (.-keyCode e)
               modifier-key? (modifier-keys -key)
 
               ;; --
@@ -208,7 +208,7 @@
                 clear?
                 (rf/dispatch-sync [(ns-keyword "-clear-keys")])
 
-                (and event?)
+                event?
                 (rf/dispatch-sync (conj triggered-event
                                         e
                                         recent-keys))
@@ -236,8 +236,7 @@
       [_ {:keys [event-keys
                  clear-keys
                  always-listen-keys
-                 prevent-default-keys]
-          :as   opts}]]
+                 prevent-default-keys]}]]
    {:db (-> db
             (assoc-in [::keydown :keys] nil)
             (assoc-in [::keydown :event-keys] event-keys)
@@ -267,8 +266,7 @@
  (fn [{:keys [db]}
       [_ {:keys [event-keys
                  clear-keys
-                 always-listen-keys]
-          :as   opts}]]
+                 always-listen-keys]}]]
    {:db (-> db
             (assoc-in [::keyup :keys] nil)
             (assoc-in [::keyup :event-keys] event-keys)

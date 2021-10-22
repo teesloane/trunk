@@ -76,7 +76,6 @@
     (fn []
       (let [loading?     (<| [::subs/loading?])
             words        (<| [::subs/words])
-            articles     (<| [::subs/articles])
             current-word (<| [::subs/current-word])
             form         (r/atom current-word)
             words        (sort-words-by @sort-tuple words)

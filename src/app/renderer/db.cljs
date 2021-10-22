@@ -41,9 +41,3 @@
 
 (defn view-article? [db]
   (= (-> db :current-view) (views :article)))
-
-(defn view-article-list?  [db]
-  (= (-> db :current-view) (views :article-list)))
-
-(defn view-article-create? [db]
-  (= (-> db :current-view) (views :article-create)))

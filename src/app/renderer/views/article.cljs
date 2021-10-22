@@ -11,9 +11,7 @@
   "Displays a single article."
   []
   (let [sure-mark?     (r/atom 0)
-        loading?       (<| [::subs/loading?])
-        current-phrase (r/atom nil)
-        ]
+        loading?       (<| [::subs/loading?])]
     (fn []
       (when-not loading?
         (let [current-article     (<| [::subs/current-article])

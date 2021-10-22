@@ -9,9 +9,8 @@
    [app.main.db :as db]
    [app.main.windows :as windows]
    [app.shared.ipc-events :refer [s-ev]]
-   ["fs" :as fs]
-   ["path" :as path]
-   ["electron" :refer [app ipcMain]]))
+   ["electron" :refer [ipcMain]]
+   ["fs" :as fs]))
 
 (defn reply!
   "Sends data back to renderer from IPC back end.
@@ -142,7 +141,7 @@
 
 
    (s-ev :settings-restore-db)
-   (fn [event data]
+   (fn [event _]
      (-> (windows/restore-db-window?)
          (.then (fn [res]
                   (let [selected-path (-> res (goog.object/get "filePaths") (aget 0))]
@@ -154,7 +153,7 @@
          (.catch #(reply-err! event "Failed to open restore window." %))))
 
    (s-ev :wipe-db!)
-   (fn [event data] (db/wipe!))
+   (fn [_ _] (db/wipe!))
 
    ;; -- Translation window ----------------------------------------------------
 
@@ -170,7 +169,7 @@
      (reply! event (s-ev :t-win-updated-word) nil))
 
    (s-ev :t-win-close)
-   (fn [event data]
+   (fn [event _]
      (windows/t-win-close)
      (reply! event (s-ev :t-win-closed) nil))})
 
