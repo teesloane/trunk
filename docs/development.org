@@ -11,6 +11,13 @@
 ** Packaging / Distribution instructions
 
 Last updated: [2021-10-23 Sat]
+*** Steps to do a release
+1. Push your code and get it ready for release. Once that's done...
+2. Bump the =version= in package.json (example: 0.0.3)
+3. Commit
+4. Create a tag, and name it the same as the package.json version (example: =v.0.0.3=)
+5. push the commit + the tag.
+*** Notes
 
 We use electron-builder to build Trunk on CI. See the
 =.github/workflows/build.yml=. Please note that the CI process will only release

@@ -1,6 +1,6 @@
 {
   "name": "Trunk",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Language learning application",
   "productName": "Trunk",
   "main": "resources/main.js",
