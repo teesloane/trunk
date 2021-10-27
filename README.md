@@ -23,11 +23,13 @@ With that said, it currently works as so:
 1. Open your build running on `http://localhost:9630/dashboard`
 1. Navigate to "Builds"
 1. Press `Watch` button for `main` and `renderer` builds.
+1. Run `npm run dev-electron` in a new terminal.
 
 **In Terminal**
 
+1. Clone repo.
 1. `npm install`
-1. In one terminal run `npm run shadow-cljs`
+1. In one terminal run `npm dev-cljs`
 1. Open your build running on `http://localhost:9630/dashboard`
 1. Navigate to "Builds"
 1. Press `Watch` button for `main` and `renderer` builds.

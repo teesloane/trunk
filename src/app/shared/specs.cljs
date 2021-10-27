@@ -48,7 +48,10 @@
   {"french"  "fr"
    "english" "en"
    "spanish" "es"
+   "polish"  "pl"
    "german"  "de"
+   "swedish" "sv"
+   "dutch"   "nl"
    "italian" "it"})
 
 (defn make-default-settings

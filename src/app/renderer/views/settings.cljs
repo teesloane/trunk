@@ -14,25 +14,37 @@
    "Languages"          nil
    "Backup and Restore" nil
    "About"              nil
-   ;; "Donate"             nil
-   })
+   "Donate"             nil})
 
 (defn update-settings
   [new]
   (|> [(s-ev :settings-update) new]))
 
-(defn about []
-   [:div {:class "p-4 sm:w-full md:w-4/5 lg:w-3/5 xl:1/2"}
-    [component/card {}
-     [:div.p-2
-    [:div {:style {:width "200px" :margin "0 auto" :min-height "200px"}}
-     [:img.w-full.text-center {:src "img/animations/speech-bubbles.gif"}]]
-    [:div.py-4.text-sm."Trunk is a language learning application inpsired by "
-     [component/ext-link {:link "https://learningwithtexts.com/" :text "learning with texts,"}]
-     [:span " built by "] [:span [component/ext-link {:link "https://theiceshelf.com" :text "The Ice Shelf."}]]
-     [:span " Trunk aims to help learners improve vocabulary and text comprehension while remaining simple and pleasant to use."]]
-    [:div.mt-4.text-xs.
-     [:span "Trunk is open source software. Go to " [component/ext-link {:link "https://github.com/theiceshelf/trunk" :text "GitHub"}] " to contribute or file a bug."]]]]])
+(defn about [settings]
+  [:div {:class "p-4 sm:w-full md:w-4/5 lg:w-3/5 xl:1/2" :style {:min-height "50vh"}}
+   [component/card {}
+    [:div.p-2.text-sm
+     [:div {:style {:width "200px" :margin "0 auto" :min-height "200px"}}
+      [:img.w-full.text-center {:src "img/animations/speech-bubbles.gif"}]]
+     [:div.py-4. "Trunk is a language learning application inpsired by "
+      [component/ext-link {:link "https://learningwithtexts.com/" :text "learning with texts,"}]
+      [:span " built by "] [:span [component/ext-link {:link "https://theiceshelf.com" :text "The Ice Shelf."}]]
+      [:span " Trunk aims to help learners improve vocabulary and text comprehension while remaining simple and pleasant to use."]]
+     [:div
+      [:span "Trunk is open source software. Go to " [component/ext-link {:link "https://github.com/theiceshelf/trunk" :text "GitHub"}] " to contribute or file a bug."]]
+     [:div "You are currently using version " [:code.text-xs.px-1 (get @settings :trunk-version)] " of Trunk."]]]])
+
+(defn donate []
+  [:div {:class "p-4 sm:w-full md:w-4/5 lg:w-3/5 xl:1/2 text-sm"}
+   [component/card {}
+    [:div.p-2
+     [:div.flex.justify-center {:style {:width "200px" :margin "0 auto" :min-height "200px"}}
+      [:div.tis-logo]]
+     [:div.py-4.text-sm. "Trunk is free software. If you enjoy using it and it is
+    helping you improve in your language learning journey please consider
+    showing your support by "
+      [component/ext-link {:link "https://patreon.com/theiceshelf" :text "donating to fund its continued development. "}]]
+     [:div "If now is not a convenient time to donate consider visiting our website to find other ways to reach out and say hello!"]]]])
 
 (defn backup-restore
   [_]
@@ -102,5 +114,6 @@
           (case @current-setting
             "Languages"          [languages settings]
             "Backup and Restore" [backup-restore settings]
-            "About"              [:div.justify-center.flex.items-center.flex-1 [about]]
+            "About"              [:div.justify-center.flex.items-center.flex-1 [about settings]]
+            "Donate"             [:div.justify-center.flex.items-center.flex-1 [donate]]
             [languages settings])]]))))

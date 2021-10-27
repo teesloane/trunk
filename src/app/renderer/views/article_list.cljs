@@ -52,7 +52,7 @@
              [:div {:key "view-article-list"} ;; keep react happy.
               [component/page-heading "Your articles"]
               [component/input
-               {:placeholder "Search articles..."
+               {:placeholder "Search texts..."
                 :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
                 (map-indexed (fn [_ item]

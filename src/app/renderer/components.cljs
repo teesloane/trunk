@@ -36,7 +36,7 @@
                                  (reset! sure-del? 0))))]
     (fn []
       [:div.flex.rounded-sm
-       [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white.shadow
+       [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white.shadow.dark:bg-gray-800.dark:text-white.dark:hover:bg-red-700
         {:on-click #(handle-wipe-db)}
         (case @sure-del?
           0 "Wipe Trunk database"
@@ -122,8 +122,8 @@
 
 (defn empty-state-with-msg
   [{:keys [top-line bottom-line]
-    :or   {top-line    "You haven't created any articles yet."
-           bottom-line "Click \"Create Article\" above to get started."}}]
+    :or   {top-line    "You haven't created any texts yet."
+           bottom-line "Click \"Create Text\" above to get started."}}]
   [empty-state
    [:div.text-center.text-gray-400
     [:div top-line]

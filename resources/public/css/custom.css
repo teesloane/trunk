@@ -9,3 +9,27 @@
   50% { opacity: 1 }
   80% {opacity: 1}
 }
+
+
+.tis-logo {
+  display: flex;
+  align-self: center;
+  width: 120px;
+  height: 120px;
+  background-image: url('../img/icons/tis_dark.png');
+  background-size:     cover;
+  background-repeat:   no-repeat;
+  background-position: center center;
+}
+@media(prefers-color-scheme: dark) {
+  .tis-logo {
+    width: 120px;
+    height: 120px;
+    background-image: url('../img/icons/tis_light.png');
+    background-size:     cover;
+    background-repeat:   no-repeat;
+    background-position: center center;
+
+  }
+  /* background-url:  */
+}

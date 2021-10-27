@@ -21,12 +21,12 @@
         [component/page-heading "Create a new article"]
         [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
 
-         [component/input {:placeholder "Article Title"
+         [component/input {:placeholder "Text Title"
                            :type        "text"
                            :value       (@form :title)
                            :on-change   #(update-form %1 :title)}]
 
-         [component/input {:placeholder "Article source"
+         [component/input {:placeholder "Text source"
                            :type        "text"
                            :value       (@form :source)
                            :on-change   #(update-form %1 :source)}]
