@@ -18,7 +18,7 @@
     (fn []
       [component/container
        [:div
-        [component/page-heading "Create a new article"]
+        [component/page-heading "Create a new text"]
         [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
 
          [component/input {:placeholder "Text Title"
@@ -34,6 +34,6 @@
           {:name        ""
            :on-change   #(update-form %1 :article)
            :rows        8
-           :placeholder "Paste article here..."}]
+           :placeholder "Paste text here..."}]
          [component/button {:type "submit"
                             :text "Submit"}]]]])))

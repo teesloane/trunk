@@ -10,13 +10,25 @@
 
 ** Packaging / Distribution instructions
 
-Last updated: [2021-10-23 Sat]
+Last updated: [2021-10-28 Thu]
+
 *** Steps to do a release
-1. Push your code and get it ready for release. Once that's done...
-2. Bump the =version= in package.json (example: 0.0.3)
-3. Commit
-4. Create a tag, and name it the same as the package.json version (example: =v.0.0.3=)
-5. push the commit + the tag.
+
+1. Update the version in your project's package.json file (e.g. 1.2.3)
+ 2. Commit that change (git commit -am v1.2.3)
+ 3. Tag your commit (git tag v1.2.3). Make sure your tag name's format is v*.*.*. Your workflow will use this tag to detect when to create a release
+ 4. Push your changes to GitHub (git push && git push --tags)
+
+If you need to overwrite an existing release in Github, you'll need to:
+
+1. Delete the release if it is not a draft
+2. If it is a draft, delete all the uploaded assets.
+3. make your commits, squash, and amend to the previous commit.
+4. delete the tag that you are replacing.
+5. Add the tag to the commit you ammended.
+6. Force push the branch *and* the tags: =git push -f && git push --tags -f=
+
+
 *** Notes
 
 We use electron-builder to build Trunk on CI. See the

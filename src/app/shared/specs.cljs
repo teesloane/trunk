@@ -54,6 +54,11 @@
    "dutch"   "nl"
    "italian" "it"})
 
+(defn get-lang-by-shortcode
+  "Get English by passing `en`, for example"
+  [sc]
+  (some (fn [[k v]] (when (= v sc) k)) langs))
+
 (defn make-default-settings
   [trunk-version]
   {:native-lang (get langs "english")

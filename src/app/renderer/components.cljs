@@ -143,7 +143,7 @@
         ;; current-article (<| [::subs/current-article])
         toast-msg       (<| [::subs/toast])
         links           [{:text "Read" :id "article-list"}
-                         {:text "Create Article" :id "article-create"}
+                         {:text "Create Text" :id "article-create"}
                          {:text "Words" :id "words"}
                          {:text "Settings" :id "settings"}
                          ;; NOTE: show the currently reading article in the nav:

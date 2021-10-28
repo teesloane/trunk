@@ -7,7 +7,8 @@
    [app.shared.util :as u]
    [reagent.core :as r]
    [re-frame.core :as rf]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [app.shared.specs :as specs]))
 
 (defn article
   "Display a single article in the article list view."
@@ -36,24 +37,27 @@
 (defn view
   []
   (let [search-query (r/atom "")
+        settings     (rf/subscribe [::subs/settings])
         loading?     (rf/subscribe [::subs/loading?])]
     (when-not @loading? (|> [(s-ev :articles-get) nil]))
     (fn []
-      (let [articles (<| [::subs/articles])
-            articles (if-not (empty? @search-query)
-                       (filter (fn [article] (str/includes? (article :name) @search-query)) articles)
-                       articles)
-            nav!     (fn [_ article] (|> [(s-ev :article-get) article]))]
+      (let [articles  (<| [::subs/articles])
+            curr-lang (-> @settings :target-lang specs/get-lang-by-shortcode )
+            curr-lang (if curr-lang (str/capitalize curr-lang) "")
+            articles  (if-not (empty? @search-query)
+                        (filter (fn [article] (str/includes? (article :name) @search-query)) articles)
+                        articles)
+            nav!      (fn [_ article] (|> [(s-ev :article-get) article]))]
         (when-not @loading?
           (if (and (empty? articles)
                    (empty? @search-query))
             [component/empty-state-with-msg]
             [component/container
              [:div {:key "view-article-list"} ;; keep react happy.
-              [component/page-heading "Your articles"]
+              [component/page-heading (str"Your " curr-lang " Texts")]
               [component/input
                {:placeholder "Search texts..."
-                :value @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
+                :value       @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
               (when articles
                 (map-indexed (fn [_ item]
                                [:div.cursor-pointer.mb-4

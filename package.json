@@ -1,18 +1,18 @@
 {
   "name": "Trunk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Language learning application",
   "productName": "Trunk",
   "main": "resources/main.js",
   "scripts": {
     "dev-cljs": "shadow-cljs watch main renderer",
     "dev-electron": "npx electron .",
-    "build": "npm run tailwind:prod && shadow-cljs release main renderer",
+    "build": "shadow-cljs release main renderer && npm run tailwind:prod ",
     "postinstall": "npx electron-builder install-app-deps",
     "tailwind:prod": "npx tailwindcss -i ./src/tailwind.css -o resources/public/css/site.css --minify",
     "clean": "rm -rf resources/public/js/* && rm -rf target",
     "pack": "npx electron-builder --dir",
-    "dist": "electron-builder",
+    "dist": "DEBUG=electron-builder electron-builder",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +23,7 @@
   },
   "build": {
     "appId": "com.theiceshelf.trunk",
+    "asar": false,
     "mac": {
       "category": "trunk.theiceshelf"
     },

@@ -1,14 +1,13 @@
 Trunk is an early prototype of a tool for learning new languages. It
 is inspired by [Learning With Texts](https://learningwithtexts.com/).
 
-![](./docs/screenshots/trunk.png)
+![](./docs/screenshots/trunk_1_phrase.png)
 
 ⚠️ Trunk is currently under development and is not recommended for personal use.
 With that said, it currently works as so:
 
-1. Install and setup (see [development](#development))
-2. Find and create an article to practice reading (preferrably something
-   short!).
+1. Download the [latest release](https://github.com/theiceshelf/trunk/releases) for your platform.
+2. Find and create an article to practice reading (preferrably something short!).
 3. Read the article while marking the familiarity of works and adding translations.
 
 ### Development
