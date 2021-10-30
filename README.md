@@ -29,18 +29,18 @@ Requirements:
 1. Open your build running on `http://localhost:9630/dashboard`
 1. Navigate to "Builds"
 1. Press `Watch` button for `main` and `renderer` builds.
-1. Run `npm run dev-electron` in a new terminal.
+1. Run `yarn dev-electron` in a new terminal.
 
 **In Terminal**
 
 1. Clone repo.
-1. `npm install`
-1. In one terminal run `npm run dev-cljs`
+1. `yarn install`
+1. In one terminal run `yarn dev-cljs`
 1. Open your build running on `http://localhost:9630/dashboard`
 1. Navigate to "Builds"
 1. Press `Watch` button for `main` and `renderer` builds.
-1. In another terminal, run `npm run dev-electron`
+1. In another terminal, run `yarn dev-electron`
 
-Note: from time to time you will likely need to restart the `npm run
-dev-electron` process if you make stateful changes to certain variables that are
-only defined once, at boot.
+Note: from time to time you will likely need to restart the `yarn dev-electron`
+process if you make stateful changes to certain variables that are only defined
+once, at boot.
