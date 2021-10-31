@@ -31,7 +31,7 @@
 (defn split-article
   "Splits a string by whitespace and punctuation"
   [string]
-  (let [re  #"(\s+|[.,!?«»:;—\"])"
+  (let [re  #"(\s+|[.,!?«»:;—\"])" ; TODO: determine this based on language preferences.
         res (str/split string re)
         res (filter (fn [s]
                       (and (not= s " ")
