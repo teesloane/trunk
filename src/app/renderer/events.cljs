@@ -144,7 +144,7 @@
 (r-fx :key-pressed-num
       (fn [{:keys [db]} event]
         (let [last-key              (-> event last last)
-              key->comfort-val      {49 0 50 1 51 2 52 3 53 4}
+              key->comfort-val      {49 0 50 1 51 2 52 3 53 4 54 5}
               current-word          (-> db :current-word)
               new-word-with-comfort (assoc current-word :comfort (get key->comfort-val (last-key :keyCode)))]
           (when (u/curr-word-view-open? db)

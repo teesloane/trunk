@@ -263,18 +263,21 @@
                   :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
           ;; radio button
-          [:div.my-2.flex.md:flex-col.xl:flex-row.xl:justify-between
+          [:div.my-2.flex.md:flex-col.lg:flex-row.xl:justify-between.flex-wrap
            (doall ;; needed for deref (@) in lazy for loop.
             (for [[comfort-int comfort-data] u/comfort-text-and-col
-                  :let                       [{:keys [name text-col]} comfort-data]]
-              [:span.flex.xl:justify-between.items-center.mr-2 {:key comfort-int}
+                  :let                       [{:keys [name text-col help-text]} comfort-data]]
+              [:span {:class "flex items-center lg:w-1/2 xl:w-1/3"
+                      :key comfort-int}
                [:input {:id        name
                         :type      "radio"
                         :value     comfort-int
                         :name      "group-1"
                         :checked   (= (@form :comfort) comfort-int)
                         :on-change (fn [e] (swap! form assoc :comfort (-> e .-target .-value int)))}]
-               [:label {:for name :class (str "text-sm p-0.5 pl-1 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
+               [:label {:for name
+                        :title help-text
+                        :class (str "text-sm p-0.5 pl-1 pr-2 " text-col)} (str name "(" (+ 1 comfort-int) ")")]]))]
 
           ;; submit update
           [:div.mt-4 [button {:type "submit"

@@ -15,18 +15,36 @@
     (apply prn args)))
 
 (def comfort-text-and-col
-  {0 {:name "Unknown" :text-col "text-gray-800 dark:text-gray-200"   :bg-col "bg-gray-300 dark:bg-gray-800"}
-   1 {:name "Hard"    :text-col "text-red-500"    :bg-col "bg-red-300"}
-   2 {:name "Medium"  :text-col "text-yellow-500" :bg-col "bg-yellow-300"}
-   3 {:name "Easy"    :text-col "text-green-600"  :bg-col "bg-green-300"}
-   4 {:name "Known"   :text-col "text-black dark:text-gray-500"      :bg-col "bg-white dark:bg-gray-900"}})
+  {0 {:name      "Unknown"
+      :text-col  "text-gray-800 dark:text-gray-200"
+      :bg-col    "bg-gray-300 dark:bg-gray-800"
+      :help-text "A word with no comfort or translation assigned."}
+   1 {:name      "Hard"
+      :text-col  "text-red-500"
+      :bg-col    "bg-red-300"
+      :help-text "A difficult word you are in the process of learning."}
+   2 {:name      "Medium"
+      :text-col  "text-yellow-500"
+      :bg-col    "bg-yellow-300"
+      :help-text "A word you know fairly well."}
+   3 {:name      "Easy"
+      :text-col  "text-green-600"
+      :bg-col    "bg-green-300"
+      :help-text "A word that you almost always remember."}
+   4 {:name      "Known"
+      :text-col  "text-black dark:text-gray-200"
+      :bg-col    "bg-white dark:bg-gray-900"
+      :help-text "A well known word that you don't need to study."}
+   5 {:name      "Ignore"
+      :text-col  "text-gray-500 dark:text-gray-400"
+      :bg-col    "bg-gray-50 dark:bg-gray-900"
+      :help-text "Ignore this word (ex: proper nouns, untranslateable words etc.)"}})
 
 (defn get-comfort-level-name [idx]
   (-> idx comfort-text-and-col :name))
 
 (defn get-comfort-bg-col [idx]
   (-> idx comfort-text-and-col :bg-col))
-
 
 (defn split-article
   "Splits a string by whitespace and punctuation"
@@ -113,13 +131,11 @@
   (when ts
     (-> ts js/Date. (.toLocaleDateString))))
 
-
 ;; class light + dark
 (defn twld
   "Takes two strings, and adds dark mode to the end class"
   [a b]
-  (let [
-        with-dark (->> (str/split b " ")
+  (let [with-dark (->> (str/split b " ")
                        (map (fn [s] (str "dark:" s)))
                        (str/join " "))]
     (str a " " with-dark)))
@@ -146,7 +162,6 @@
                             (assoc :capture-buffer []))
                         (-> acc
                             (assoc :out (into [] (concat (acc :out) (acc :capture-buffer) [curr])))
-                            (assoc :capture-buffer [])))
-                      )))
-                {:out [] :capture-buffer [] } word-data)]
+                            (assoc :capture-buffer []))))))
+                {:out [] :capture-buffer []} word-data)]
     (res :out)))
