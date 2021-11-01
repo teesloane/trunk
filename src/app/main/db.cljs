@@ -48,7 +48,7 @@
     translation TEXT,
     language TEXT,
     is_not_a_word BOOLEAN NOT NULL CHECK (is_not_a_word IN (0, 1)),
-    count INTEGER DEFAULT 0,
+    count INTEGER DEFAULT 1,
     UNIQUE(name, language)
   );
 
