@@ -167,10 +167,16 @@
         :params [id]}))
 
 (defn words-get
+  "https://stackoverflow.com/a/612268 < query help"
   [{:keys [language]}]
   (sql {:op :all
         :params [language]
-        :stmt "SELECT * FROM words WHERE is_not_a_word = 0 AND language = ? GROUP BY slug ORDER BY comfort DESC"}))
+        ;; TODO: come back and get this sql query working so only the correct words are returned to fe.
+        ;; :stmt "SELECT m.* FROM words m LEFT JOIN words b ON m.slug = b.slug AND m.count < b.count WHERE b.count IS NULL AND m.is_not_a_word = 0 AND m.language = 'fr' ORDER BY count DESC"
+        ;; NOTE: this query almost wordks - but the above query will be better because it returns distinct results by slug - for for example
+        ;; If `le` shows up 323 times in the db, it will be returned instead of `Le` which might only show up 5 times.
+        ;; Both are technically the same, but we want to sort words by how common they are.)
+        :stmt "SELECT * FROM words WHERE is_not_a_word = 0 AND language = ? AND comfort != 0 AND comfort != 5 GROUP BY slug ORDER BY comfort DESC"}))
 
 (defn words-and-phrases-mark-all-known
   "Receives a list of words and updates their comfort to `known` for all."
