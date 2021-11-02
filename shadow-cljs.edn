@@ -1,6 +1,6 @@
 ;; shadow-cljs configuration
 {:source-paths
- ["src"]
+ ["src" "test"]
 
  :dependencies
  [[reagent "1.1.0"]
@@ -26,12 +26,18 @@
               :preloads  [day8.re-frame-10x.preload]
               }
              :tailwind/output "resources/public/css/site.css"
-             :tailwind/files {:base-path "./"
-                              :tailwind.css "./src/tailwind.css"
-                              ;; :tailwind.css "resources/public/css/site.css"
-                              }
+             :tailwind/files  {:base-path    "./"
+                               :tailwind.css "./src/tailwind.css"
+                               ;; :tailwind.css "resources/public/css/site.css"
+                               }
              :tailwind/config {:dark-mode "media"}
              :release         {; :build-hooks   [(teknql.tailwind/compile-release!)] ; can't use this on windows (ci) so have to disable it.
                                :build-options {:ns-aliases
                                                {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}
-             :modules         {:renderer {:init-fn app.renderer.core/start!}}}}}
+             :modules         {:renderer {:init-fn app.renderer.core/start!}}}
+  :test     {:target :node-test
+             :output-to "out/node-tests.js"
+             :autorun true
+
+             }
+  }}
