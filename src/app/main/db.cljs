@@ -274,7 +274,7 @@
           (when (str/includes? (article :word_ids) (get res :word_ids))
             (swap! collected-phrases conj res)))))
     ;; now that we have all the phrases that MIGHT appear in the article,
-    ;; now we do the work of looking through the collecting phrases to find ones
+    ;; now we do the work of looking through the collected phrases to find ones
     ;; that are actually in the article. this involves some reducing through the
     ;; words and building a temporary buffer whenever we encounter alignment
     ;; between phrase and word, and then comparing the collected buffer against the phrase to see if it is the same.
