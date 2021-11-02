@@ -11,7 +11,9 @@
    :hard    1
    :medium  2
    :easy    3
-   :known   4})
+   :known   4
+   :ignore  5
+   })
 
 (def word
   {:id     nil
