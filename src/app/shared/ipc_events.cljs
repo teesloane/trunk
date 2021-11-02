@@ -8,6 +8,7 @@
    :articles-got          ::articles-got
    :article-create        ::article-create
    :article-created       ::article-created
+   :article-change-page   ::article-change-page
    :article-get           ::article-get
    :article-update        ::article-update
    :article-updated       ::article-updated

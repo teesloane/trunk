@@ -63,9 +63,11 @@
 
 (defn make-default-settings
   [trunk-version]
-  {:native-lang (get langs "english")
-   :target-lang (get langs "french")
-   :trunk-version trunk-version})
+  {:native-lang   (get langs "english")
+   :target-lang   (get langs "french")
+   :trunk-version trunk-version
+   :page-size     1000}
+  )
 
 (defn m->word
   [m]

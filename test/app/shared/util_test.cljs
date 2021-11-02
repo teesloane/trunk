@@ -11,3 +11,12 @@
 (t/deftest split-delimited-article
   (let [res (sut/split-delimited-article "1$2$3$4$5$6$7$8$9$8$6$10$11$12")]
     (t/is (= res  ["1" "2" "3" "4" "5" "6" "7" "8" "9" "8" "6" "10" "11" "12"]))))
+
+(t/deftest paginate-vector
+  (let [res1 (sut/paginate-vector (vec (range 1 100)) 10 0)
+        res2 (sut/paginate-vector (vec (range 1 100)) 10 1)
+        oob  (sut/paginate-vector (vec (range 1 100)) 10 50)
+        ]
+    (t/is (= res1 [1 2 3 4 5 6 7 8 9 10] ))
+    (t/is (= res2 [11 12 13 14 15 16 17 18 19 20]))
+    (t/is (= oob  (vec (range 1 100))))))

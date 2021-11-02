@@ -7,18 +7,45 @@
    [app.shared.specs :as specs]
    [clojure.string :as str]
    [app.renderer.subs :as subs]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [app.shared.util :as u]))
 
 (def settings-tree
-  {;; "General"            nil
+  {"General"            nil
    "Languages"          nil
    "Backup and Restore" nil
    "About"              nil
    "Donate"             nil})
 
-(defn update-settings
+(defn- update-settings
   [new]
   (|> [(s-ev :settings-update) new]))
+
+(defn- save-changes
+  [new-settings]
+  [:div.flex.absolute.bottom-0.w-full.bg-white.p-4.items-center.border-t.border-gray-300.dark:border-t-gray-700.dark:bg-gray-800.dark:text-gray-50
+   [component/button {:text "Save changes" :on-click #(update-settings @new-settings) :style "primary"}]
+   [:div.ml-2.text-sm.italic "You have unsaved changes."]])
+
+(defn general
+  [settings]
+  [:div
+   [component/card {:header "Number of words per page" :key "gen"}
+    (let [warning-col {:class "text-yellow-700 dark:text-yellow-400"}
+          swap-key (fn [input settings-key]
+                     (let [new-settings (assoc @settings settings-key input)]
+                       (reset! settings new-settings)))]
+      [:div.flex.flex-col.md:flex-row
+       [:div {:class "text-sm w-full  md:mt-0"}
+        [:div.pb-1
+         [:span warning-col "Note: "]
+         [:span "changing this value will"] [:span warning-col " reset the current page"] [:span " you are reading on all existing texts."]]
+        [:div.pb-2 "Raising this value too high may decrease performance when reading a text."]
+
+        [:div.w-72
+         [component/input {:type          :number
+                           :default-value (-> @settings :page-size)
+                           :on-change     #(swap-key (-> % .-target .-value js/parseInt) :page-size)}]]]])]])
 
 (defn about [settings]
   [:div {:class "p-4 sm:w-full md:w-4/5 lg:w-3/5 xl:1/2" :style {:min-height "50vh"}}
@@ -67,10 +94,10 @@
 
 (defn languages
   [settings]
-  [component/card {:header "General Language Settings" :key "gls"}
+  [component/card {:header "Language Settings" :key "gls"}
    (let [swap-key       (fn [option settings-key]
                           (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
-                            (update-settings new-settings)))]
+                            (reset! settings new-settings)))]
      [:div.flex.flex-col.md:flex-row
       [:div {:class "text-sm w-1/2 md:mt-0"}
        [:div "What language do you want to practice?"]
@@ -104,16 +131,22 @@
 (defn view
   []
   (|> [(s-ev :settings-get)])
-  (let [current-setting (r/atom "Languages")
-        settings        (rf/subscribe [::subs/settings])]
+  (let [current-setting (r/atom "General")
+        orig-settings   (rf/subscribe [::subs/settings])
+        ;; settings        (rf/subscribe [::subs/settings])
+        settings        (r/atom @orig-settings)]
     (fn []
       (when @settings
         [:div.flex.h-full
          [sidebar {:current-setting current-setting}]
-         [:div {:class "flex flex-col pt-4 w-full p-4 pt-8 max-w-screen-lg"}
-          (case @current-setting
-            "Languages"          [languages settings]
-            "Backup and Restore" [backup-restore settings]
-            "About"              [:div.justify-center.flex.items-center.flex-1 [about settings]]
-            "Donate"             [:div.justify-center.flex.items-center.flex-1 [donate]]
-            [languages settings])]]))))
+         [:div.flex.flex-1.flex-col
+          [:div {:class "flex flex-col pt-4 w-full p-4 pt-8 max-w-screen-lg"}
+           (case @current-setting
+             "General"            [general settings]
+             "Languages"          [languages settings]
+             "Backup and Restore" [backup-restore settings]
+             "About"              [:div.justify-center.flex.items-center.flex-1 [about settings]]
+             "Donate"             [:div.justify-center.flex.items-center.flex-1 [donate]]
+             [languages settings])]
+          (when (not= @orig-settings @settings)
+            [save-changes settings])]]))))

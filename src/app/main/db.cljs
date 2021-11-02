@@ -4,6 +4,7 @@
    [app.shared.specs :as specs]
    ["better-sqlite3" :as sqlite]
    [clojure.string :as str]
+   [clojure.data :as data]
    ["electron" :refer [app]]
    ["fs" :as fs]
    ["path" :as path]))
@@ -12,15 +13,6 @@
 (def db-path (.join path (.getPath app "userData") db-name))
 (def db (sqlite. db-path))
 
-(defn wipe!
-  "Wipes the database and relaunches the application."
-  []
-  (.exec db "DROP TABLE words;
-             DROP TABLE articles;
-             DROP TABLE phrases;
-             DROP TABLE settings;" #(println %))
-  (.relaunch app)
-  (.quit app))
 
 ;; (defn remove-db-file! []
 ;;   (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
@@ -73,7 +65,8 @@
     word_ids TEXT,
     language TEXT,
     date_created INTEGER,
-    last_opened INTEGER
+    last_opened INTEGER,
+    current_page INTEGER DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS settings (
@@ -110,7 +103,65 @@
       js->clj
       (get "version")))
 
-;; -- DB calls -----------------------------------------------------------------
+
+(defn read-sample-file
+  [name]
+  (-> (.readFileSync ^:export fs (.join path js/__dirname ".." "test/sample_texts/" name) "utf8")))
+
+
+
+;; -- DB: Settings -------------------------------------------------------------
+;; Settings are handled in JSON. For better or worse: ¯\_(ツ)_/¯
+;; All settings updates/inserts need to be jsonified.
+
+
+(defn- settings->json
+  [s]
+  (-> s clj->js js/JSON.stringify))
+
+(defn- settings->edn
+  [json-from-db]
+  (-> json-from-db js/JSON.parse js->clj))
+
+(defn settings-get
+  []
+  (let [res (sql {:op :get :stmt "SELECT user FROM settings"})]
+    (-> res :user settings->edn)))
+
+(defn settings-hook!
+  "since we batch update settings as json (for better or worse)) we need to
+    sometimes handle side-effectful things, so we diff the new settings
+    against the old, and run 'hooks' based on what changed."
+  [new-settings-from-fe]
+  (let [old-settings             (settings-get)
+        ;; normalize new-settings to look like it came from the db before we diff it.
+        new-settings             (-> new-settings-from-fe settings->json settings->edn)
+        [old-diff new-diff both] (data/diff new-settings old-settings)]
+    (cond
+      (contains? new-diff "page-size")
+      (sql {:op :run :params [] :stmt "UPDATE articles SET current_page = 0"})
+
+      :else nil
+      )))
+
+(defn settings-update
+  [settings]
+    (settings-hook! settings)
+    (sql {:op :run
+          :stmt "UPDATE settings SET user = ? WHERE settings_id = 1"
+          :params [(settings->json settings)]}))
+
+(defn settings-init
+  "If there are no rows in the settings table, initialize it."
+  []
+  (let [default-settings (settings->json (specs/make-default-settings trunk-version))
+        existing-settings (settings-get)]
+    (when-not existing-settings
+      (sql {:op :run
+            :stmt "INSERT INTO settings(user) VALUES (?)"
+            :params [default-settings]}))))
+
+;; -- DB: Articles -------------------------------------------------------------
 
 (defn article-get-by-id
   [{:keys [article_id language]}]
@@ -131,24 +182,31 @@
         :op :all}))
 
 (defn article-update-last-opened
-  [{:keys [article_id]}]
-  (sql {:stmt "UPDATE articles SET last_opened = ? WHERE article_ID = ?"
-        :op :run
-        :params [(js/Date.now) article_id]}))
+  [{:keys [article_id current_page]}]
+  (let [current_page (if (< current_page 0) 0 current_page)]
+    (sql {:stmt "UPDATE articles SET last_opened = ?, current_page = ? WHERE article_ID = ?"
+          :op :run
+          :params [(js/Date.now) current_page article_id]})))
 
 (defn article-attach-words
   "When given an article, it fetches the word data for each word from the DB and
   attaches it back to the article."
   [article]
-  (let [word-ids      (get article :word_ids)
+  (let [page-size     (get (settings-get) "page-size" 1000) ; aka 'limit'
+        curr-page     (get article :current_page 0)
+        word-ids      (get article :word_ids)
         words-ids-vec (u/split-delimited-article word-ids)
+        total-pages   (/ (count words-ids-vec) page-size)
+        ;; paginate the words we return.
+        words-ids-slice (u/paginate-vector words-ids-vec page-size curr-page)
         words-out     (atom [])]
-    (doseq [word-id words-ids-vec]
+    (doseq [word-id words-ids-slice]
       (let [res (sql {:stmt   "SELECT * FROM words WHERE id = ?"
                       :params [word-id]
                       :op     :get})]
         (swap! words-out conj res)))
-    (assoc article :word-data @words-out)))
+    (assoc article :word-data @words-out :total-pages (js/Math.ceil total-pages)))
+  )
 
 (defn article-insert
   "Creates a new article. Requirements:
@@ -286,38 +344,44 @@
       (assoc article :word-data @new-word-data))))
 
 
-;; -- DB: Settings -------------------------------------------------------------
-;; All settings updates/inserts need to be jsonified.
-(defn- settings->json
-  [s]
-  (-> s clj->js js/JSON.stringify))
 
-(defn- settings->edn
-  [json-from-db]
-  (-> json-from-db js/JSON.parse js->clj))
+;; ----------------------------------------------------------------------------------------
+;; Seed fns
 
-(defn settings-get
+
+(defn seed-article
   []
-  (let [res (sql {:op :get :stmt "SELECT user FROM settings"})]
-    (-> res :user settings->edn)))
+  (let [
+        data             {:article (read-sample-file "fr_compte2.txt") :title "Compte, Ch 2", :source "..", :language "fr"}
+        _                (words-insert data)
+        word-ids-str     (words-get-ids-for-article data)
+        inserted-article (article-insert (merge data {:word_ids word-ids-str}))])
+  )
 
-(defn settings-update
-  [settings]
-  (sql {:op :run
-        :stmt "UPDATE settings SET user = ? WHERE settings_id = 1"
-        :params [(settings->json settings)]}))
+(defn run-seeds
 
-(defn settings-init
-  "If there are no rows in the settings table, initialize it."
   []
-  (let [default-settings (settings->json (specs/make-default-settings trunk-version))
-        existing-settings (settings-get)]
-    (when-not existing-settings
-      (sql {:op :run
-            :stmt "INSERT INTO settings(user) VALUES (?)"
-            :params [default-settings]}))))
+  (let [articles       (sql {:op :get :stmt "SELECT * FROM articles" :params []})
+        words          (sql {:op :get :stmt "SELECT * FROM words" :params []})
+        no-content-yet (and (= (count articles) 0)
+                            (= (count words) 0))]
+    (when no-content-yet
+      (seed-article))))
 
-;; -----------------------------------------------------------------------------
+
+;; Wipe / Init -----------------------------------------------------------------------------
+
+(defn wipe!
+  "Wipes the database and relaunches the application."
+  []
+  (.exec db "DROP TABLE words;
+             DROP TABLE articles;
+             DROP TABLE phrases;
+             DROP TABLE settings;" #(println %))
+  (.relaunch app)
+  (.quit app)
+  )
+
 
 (defn init
   []
@@ -325,6 +389,8 @@
          (fn [err]
            (when err
              (throw (js/Error. (str "Failed db" err))))))
-  (settings-init))
+  (settings-init)
+  (when u/debug? (run-seeds))
+  )
 
 ;; FIXME: when do I run "db.close()"?

@@ -140,6 +140,28 @@
                        (str/join " "))]
     (str a " " with-dark)))
 
+(defn paginate-vector
+  "Simulated sql pagination with a vector"
+  [v limit curr-page]
+  (prn (type limit) (type curr-page))
+  (let [subvec-start (* curr-page limit) ; offset
+        subvec-end   (+ subvec-start limit)
+        total-size   (count v)]
+    (prn "->>>" "subvec start" subvec-start "subvec end" subvec-end "total size" total-size)
+    (cond
+      ;; handle out-of-bounds on both start/end (this shouldn't happen).
+      (and
+       (> subvec-start total-size)
+       (> subvec-end total-size))
+      ;; TODO this is breaking things.
+      v ; just return the vector and give up because software is too hard.
+
+      (> subvec-end total-size)
+      (subvec v subvec-start total-size)
+
+      :else
+      (subvec v subvec-start (+ subvec-start limit)))))
+
 (defn update-word-list-with-phrases
   [phrase word-data]
   (let [phrase-length             (-> phrase :word_ids split-delimited-article count)

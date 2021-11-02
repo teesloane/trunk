@@ -24,7 +24,6 @@
   (let [styles "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white outline-none"]
     [:select (merge {:class styles} props) options]))
 
-
 (defn erase-db
   "Button for erasing the database"
   []
@@ -96,15 +95,22 @@
 (defn ext-link
   [{:keys [link text]}]
   (let [handle-click (fn [e]
-                       (.preventDefault e )
+                       (.preventDefault e)
                        (.openExternal (.-shell (js/require "electron")) link))]
     [:a.text-blue-600.dark:text-blue-400.cursor-pointer {:on-click handle-click} text]))
 
 (defn button
-  [{:keys [on-click text icon-name icon-size]}]
-  (let [styles "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow"]
+  [{:keys [on-click text icon-name icon-size disabled? style]
+    :or   {disabled? false style ""}}]
+  (let [style  (case style
+                 "primary" "bg-blue-400 hover:bg-blue-500 text-white border-none font-bold"
+                 ""        "bg-white text-gray-800 hover:bg-gray-100 dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700")
+        styles (str style " self-start text-xs py-1 px-2 border border-gray-400 rounded shadow " (when disabled? "cursor-not-allowed"))]
+        ;; styles (str "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow " (when disabled? "cursor-not-allowed"))]
     [:button
-     {:class styles :on-click on-click}
+     {:class    styles
+      :on-click on-click
+      :disabled disabled?}
      (if icon-name
        [:span [icon {:icon icon-name :size (or icon-size 18)}] [:span text]]
        text)]))
@@ -245,10 +251,10 @@
         is-phrase                 (or currently-selected-phrase
                                       (u/is-phrase word-or-phrase))
         handle-submit             (fn [e]
-                              (.preventDefault e)
-                              (if is-phrase
-                                (|> [(s-ev :phrase-update) @form])
-                                (|> [(s-ev :word-update) @form])))]
+                                    (.preventDefault e)
+                                    (if is-phrase
+                                      (|> [(s-ev :phrase-update) @form])
+                                      (|> [(s-ev :word-update) @form])))]
     [:div {:class "bg-gray-50 w-full border-t md:border-t-0 md:flex md:w-2/5 md:relative border-l dark:border-gray-900 dark:bg-gray-800 dark:border-gray-700"}
      (when word-or-phrase
        [:div {:class "dark:bg-gray-800 w-full p-8 flex flex-col mx-auto"}

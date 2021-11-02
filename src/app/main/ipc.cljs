@@ -64,6 +64,20 @@
        (catch js/Error e
          (reply-err! event "Failed to get article."  e))))
 
+   ;; TODO dedupe with article-get
+   (s-ev :article-change-page)
+   (fn [event data]
+     (try
+       (db/article-update-last-opened data)
+       (->> data
+            db/article-get-by-id
+            db/article-attach-words
+            db/article-attach-phrases
+            (reply! event (s-ev :article-received)))
+       (catch js/Error e
+         (reply-err! event "Failed to get article."  e)))
+     )
+
    ;; -- WORDS HANDLERS ---------------------------
 
    (s-ev :words-get)

@@ -161,6 +161,22 @@
         {:db (assoc db :loading? true)
          ::ipc-send! (with-lang db event)}))
 
+(r-fx (s-ev :article-change-page)
+      (fn [{:keys [db]} [ev-name dir]]
+        (let [curr-a      (-> db :current-article (dissoc :word-data))
+              dir-fn      (if (= dir :next) inc dec)
+              success-out {:db         (assoc db :loading? true)
+                           ::ipc-send! [ev-name
+                                        (update curr-a :current_page dir-fn)]}
+
+              {:keys [current_page total-pages]} (db :current-article)
+              current_page                       (inc current_page)
+              ]
+          (cond
+            (and (= dir :next) (< current_page total-pages)) success-out
+            (and (= dir :prev) (> current_page 1))           success-out
+            :else                                            {:db db}))))
+
 (r-fx (s-ev :article-delete)
       (fn [{:keys [db]} event]
         {:db         (-> db (assoc :loading? true))

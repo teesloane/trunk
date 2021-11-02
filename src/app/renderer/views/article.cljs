@@ -7,6 +7,20 @@
    [reagent.core :as r]
    [app.shared.util :as u]))
 
+(defn pagination
+  [{:keys [current_page total-pages]}]
+  (let [curr-page (inc current_page)]
+    [:div.text-sm.flex.items-center.justify-between.border-t.border-gray-300.dark:border-gray-700
+     [:div.p-3
+      [component/button {:text "← Previous page"
+                         :disabled? (= curr-page 1)
+                         :on-click #(|> [(s-ev :article-change-page) :prev])}]]
+     [:div "Page " curr-page " / " total-pages]
+     [:div.p-3
+      [component/button {:text "Next page →"
+                         :disabled? (= curr-page total-pages)
+                         :on-click #(|> [(s-ev :article-change-page) :next])}]]]))
+
 (defn view
   "Displays a single article."
   []
@@ -24,9 +38,9 @@
               form                (r/atom word-or-phrase)
               total-words         (count (get current-article :word-data))
               words-known         (count (filter (fn [word-data]
-                                                (or (not= 0 (word-data :comfort))
-                                                    (not= nil (word-data :translation))))
-                                              (-> current-article :word-data)))
+                                                   (or (not= 0 (word-data :comfort))
+                                                       (not= nil (word-data :translation))))
+                                                 (-> current-article :word-data)))
               ;; -- handlers -----
 
               handle-mark-all-known (fn []
@@ -54,15 +68,16 @@
                 (case @sure-mark? 0 "Mark all known?" 1 "You sure?")])]
 
             [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white dark:bg-gray-900"}
-            [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
-             {:style {:user-select (if shift-held? "none" "inherit")}}
-             (map-indexed (fn [index word]
-                            ^{:key (str word "-" index)}
-                            [component/article-word
-                             {:word                word
-                              :current-word        current-word
-                              :on-click            #(handle-word-click word index)
-                              :index               index
-                              :current-phrase-idxs current-phrase-idxs
-                              :current-word-idx    current-word-idx}]) word-data)]]]
+             [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
+              {:style {:user-select (if shift-held? "none" "inherit")}}
+              (map-indexed (fn [index word]
+                             ^{:key (str word "-" index)}
+                             [component/article-word
+                              {:word                word
+                               :current-word        current-word
+                               :on-click            #(handle-word-click word index)
+                               :index               index
+                               :current-phrase-idxs current-phrase-idxs
+                               :current-word-idx    current-word-idx}]) word-data)]]
+            [pagination current-article]]
            [component/view-current-word {:current-word current-word :form form}]])))))
