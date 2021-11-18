@@ -48,8 +48,8 @@
 
 (defn split-article
   "Splits a string by whitespace and punctuation"
-  [string]
-  (let [re  #"(\s+|[.,!?«»:;—\"])" ; TODO: determine this based on language preferences.
+  [string regex]
+  (let [re  (re-pattern regex)
         res (str/split string re)
         res (filter (fn [s]
                       (and (not= s " ")
@@ -65,36 +65,14 @@
   [vec-str-ids]
   (str/join "$" vec-str-ids))
 
-(defn is-punctuation?
-  "NOTE: Eventually punctuation will vary by language...
-  Example, french, usually words will not split on apostraphe
-  J'ai !== J | ai.
-  Eventually each language will need a user configure regex.
-  "
-  [s]
-  (if (nil? s)
-    false
-    (re-matches #"[!,\/?\.»«—:;\"()]" s)))
-
-(defn is-punctuation-or-newline?
-  "Check's if a string is a punctuation item(s) or newline(s)."
-  [s]
-  (if (nil? s)
-    false
-    (or
-     (not (nil? (is-punctuation? s)))
-     (not (nil? (re-matches  #"[\n]*" s))))))
-
+;; TODO should probably be in a try catch.
 (defn word?
-  "Checks if is punctuation or starts with a digit before confirming that it is a
-  word We may at some point need to dynamically define this based on user
-  preferences"
-  [w]
-  (let [w (str/trim w)]
-    (not
-     (or
-      (is-punctuation-or-newline? w)
-      (re-matches #".*[0-9].*" w)))))
+  [w rx-str]
+  (let [w (str/trim w)
+        regex (re-pattern rx-str)]
+
+    (re-matches regex w)))
+
 
 (defn is-phrase
   "Phrases have the key `:first_word_slug`, so check if it's present on the map."
@@ -102,8 +80,9 @@
   (-> m :first_word_slug nil? not))
 
 (defn not-word?
-  [w]
-  (not (word? w)))
+  [w rx-str]
+  (let [regex (re-pattern rx-str)]
+    (not (word? w rx-str))))
 
 ;; -- db functionality selector things?
 
@@ -115,6 +94,10 @@
   "Makes a word slug-ready for the db."
   [s]
   (str/lower-case s))
+
+(defn find-first
+  [pred l]
+  (->> l (filter pred) first))
 
 (defn trunc
   [s n]
@@ -147,7 +130,6 @@
   (let [subvec-start (* curr-page limit) ; offset
         subvec-end   (+ subvec-start limit)
         total-size   (count v)]
-    (prn "->>>" "subvec start" subvec-start "subvec end" subvec-end "total size" total-size)
     (cond
       ;; handle out-of-bounds on both start/end (this shouldn't happen).
       (and

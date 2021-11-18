@@ -19,21 +19,27 @@
       [component/container
        [:div
         [component/page-heading "Create a new text"]
-        [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
+        [component/card
+         {}
+         [:form.flex.flex-col {:key "view-article-list" :on-submit handle-submit }
 
-         [component/input {:placeholder "Text Title"
-                           :type        "text"
-                           :value       (@form :title)
-                           :on-change   #(update-form %1 :title)}]
+          [:div.mb-3
+           [component/input {:placeholder "Text Title"
+                             :type        "text"
+                             :value       (@form :title)
+                             :on-change   #(update-form %1 :title)}]]
 
-         [component/input {:placeholder "Text source"
-                           :type        "text"
-                           :value       (@form :source)
-                           :on-change   #(update-form %1 :source)}]
-         [component/textarea
-          {:name        ""
-           :on-change   #(update-form %1 :article)
-           :rows        8
-           :placeholder "Paste text here..."}]
-         [component/button {:type "submit"
-                            :text "Submit"}]]]])))
+          [:div.mb-3
+           [component/input {:placeholder "Text source"
+                             :type        "text"
+                             :value       (@form :source)
+                             :on-change   #(update-form %1 :source)}]]
+
+          [:div.mb-3
+           [component/textarea
+            {:name        ""
+             :on-change   #(update-form %1 :article)
+             :rows       12
+             :placeholder "Paste text here..."}]
+           [component/button {:type "submit"
+                              :text "Submit"}]]]]]])))

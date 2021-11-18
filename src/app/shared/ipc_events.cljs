@@ -15,6 +15,14 @@
    :article-delete        ::article-delete
    :article-deleted       ::article-deleted
    :article-received      ::article-received
+   :languages-get         ::languages-get
+   :languages-got         ::languages-got
+   :language-update       ::language-update
+   :language-updated      ::language-updated
+   :language-create       ::language-create
+   :language-created      ::language-created
+   :language-delete       ::language-delete
+   :language-deleted      ::language-deleted
    :settings-get          ::settings-get
    :settings-got          ::settings-got
    :settings-update       ::settings-update
@@ -41,7 +49,7 @@
    :t-win-updated-word ::t-win-updated-word
 
    ;; misc events / generic
-   :ipc-success        ::ipc-success
-   :ipc-error          ::ipc-error
+   :ipc-success ::ipc-success
+   :ipc-error   ::ipc-error
 
    })

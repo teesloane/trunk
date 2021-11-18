@@ -21,7 +21,7 @@
                           (= 1 @sure?) (|> [(s-ev :article-delete) article_id])))]
     (fn
       [{:keys [name original last_opened date_created]}]
-      [:div {:class "mb-4 text-gray-900 bg-white p-4 border-gray-100 border shadow-sm hover:shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:text-gray-50" }
+      [:div {:class "mb-4 text-gray-900 bg-white p-4 border-gray-100 border shadow-sm hover:shadow dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-gray-50" }
        [:div.text-md.py-1 (u/trunc-ellipse name 50)]
        [:div.text-sm
         [:div.flex.justify-between
@@ -55,9 +55,10 @@
             [component/container
              [:div {:key "view-article-list"} ;; keep react happy.
               [component/page-heading (str"Your " curr-lang " Texts")]
-              [component/input
-               {:placeholder "Search texts..."
-                :value       @search-query :on-change #(reset! search-query (-> % .-target .-value))}]
+              [:div.mb-4
+               [component/input
+                {:placeholder "Search texts..."
+                 :value       @search-query :on-change #(reset! search-query (-> % .-target .-value))}]]
               (when articles
                 (map-indexed (fn [_ item]
                                [:div.cursor-pointer.mb-4

@@ -42,7 +42,6 @@
 
 (defn table-header-cell
   [{:keys [text sort-key size sort-tuple handle-changed-sort]}]
-  (prn "size is" size)
   (let [[sort-direction -sort-key] @sort-tuple]
     [:th.flex.w-full.text-sm.text-left.p-2.text-gray-700.border.dark:border-gray-700.dark:text-gray-300
      {:class size}

@@ -13,6 +13,7 @@
     "clean": "rm -rf resources/public/js/* && rm -rf target",
     "pack": "npx electron-builder --dir",
     "dist": "DEBUG=electron-builder electron-builder",
+    "dist-local": "yarn build && DEBUG=electron-builder electron-builder",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "test": "shadow-cljs compile test && node out/node-tests.js"
   },

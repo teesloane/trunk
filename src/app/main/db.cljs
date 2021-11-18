@@ -13,7 +13,6 @@
 (def db-path (.join path (.getPath app "userData") db-name))
 (def db (sqlite. db-path))
 
-
 ;; (defn remove-db-file! []
 ;;   (.unlink fs db-path #(when % (prn "Failed to delete db file") %)))
 
@@ -27,9 +26,7 @@
 ;; versions of their actual spelling and ID, making it possible to reconstruct
 ;; the word from the delimisted string (word_ids) in the article table.
 
-;; FIXME: words table needs new columns
-;; TODO - last updated
-;; TODO - last seen
+;; TODO: rename `article_id` -> `id`; same with `settings_id`
 (def db-seed "
 
   CREATE TABLE IF NOT EXISTS words (
@@ -69,10 +66,19 @@
     current_page INTEGER DEFAULT 0
   );
 
+  CREATE TABLE IF NOT EXISTS languages (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    iso_639_1 TEXT NOT NULL,
+    text_splitting_regex TEXT NOT NULL,
+    word_regex TEXT NOT NULL,
+    UNIQUE(name, iso_639_1)
+  );
+
   CREATE TABLE IF NOT EXISTS settings (
     settings_id INTEGER PRIMARY KEY,
     user TEXT
-  )
+  );
 
 ")
 
@@ -103,17 +109,68 @@
       js->clj
       (get "version")))
 
-
 (defn read-sample-file
   [name]
   (-> (.readFileSync ^:export fs (.join path js/__dirname ".." "test/sample_texts/" name) "utf8")))
 
+;; -- DB: Langs ----------------------------------------------------------------
+;;
 
+(defn langs-init
+  "Create the starting languages for the database, if they don't exist yet."
+  []
+  (let [langs (sql {:op :get :stmt "SELECT * FROM languages" :params []})]
+    (when (= (count langs) 0)
+      (doseq [[lang lang-map] specs/langs-db]
+        (sql {:op     :run
+              :params (assoc lang-map :id nil)
+              :stmt    "INSERT INTO languages VALUES (@id, @name, @iso_639_1, @text_splitting_regex, @word_regex)"})))))
+
+(defn langs-all
+  []
+  (sql {:op :all :params [] :stmt "SELECT * FROM languages;"}))
+
+(defn lang-get-by-code
+  [lang-code]
+  (sql {:op :get :params [lang-code] :stmt "SELECT * FROM languages where iso_639_1 = ?;"}))
+
+(defn lang-get-text-split-regex
+  [lang-code]
+  (get (lang-get-by-code lang-code) :text_splitting_regex))
+
+(defn lang-get-word-regex
+  [lang-code]
+  (get (lang-get-by-code lang-code) :word_regex))
+
+(defn lang-update
+  "Takes a new language and updates it in the database,
+  then finds all texts (articles) in this language, and resplits and inserts
+  words based on how it splits up."
+  [language]
+  (sql {:op     :run
+        :stmt   "UPDATE languages SET word_regex=@word_regex, text_splitting_regex=@text_splitting_regex WHERE id = @id"
+        :params (select-keys language [:word_regex :text_splitting_regex :id])})
+  (lang-get-by-code (language :iso_639_1)))
+
+(defn lang-create
+  "Allows user's to add their own language."
+  [lang-form-data]
+  (let [form-data (select-keys lang-form-data [:name :iso_639_1 :word_regex :text_splitting_regex])
+        form-data (assoc form-data :id nil)]
+    (sql {:op     :run
+          :params form-data
+          :stmt   "INSERT INTO languages VALUES(@id, @name, @iso_639_1, @word_regex, @text_splitting_regex)"})))
+
+(defn lang-delete
+  [lang]
+  (let [id (lang :id)]
+    (sql {:op     :run
+          :params [id]
+          :stmt   "DELETE FROM languages WHERE id=?"})))
 
 ;; -- DB: Settings -------------------------------------------------------------
 ;; Settings are handled in JSON. For better or worse: ¯\_(ツ)_/¯
 ;; All settings updates/inserts need to be jsonified.
-
 
 (defn- settings->json
   [s]
@@ -133,23 +190,22 @@
     sometimes handle side-effectful things, so we diff the new settings
     against the old, and run 'hooks' based on what changed."
   [new-settings-from-fe]
-  (let [old-settings             (settings-get)
+  (let [old-settings   (settings-get)
         ;; normalize new-settings to look like it came from the db before we diff it.
-        new-settings             (-> new-settings-from-fe settings->json settings->edn)
-        [old-diff new-diff both] (data/diff new-settings old-settings)]
+        new-settings   (-> new-settings-from-fe settings->json settings->edn)
+        [_ new-diff _] (data/diff new-settings old-settings)]
     (cond
       (contains? new-diff "page-size")
       (sql {:op :run :params [] :stmt "UPDATE articles SET current_page = 0"})
 
-      :else nil
-      )))
+      :else nil)))
 
 (defn settings-update
   [settings]
-    (settings-hook! settings)
-    (sql {:op :run
-          :stmt "UPDATE settings SET user = ? WHERE settings_id = 1"
-          :params [(settings->json settings)]}))
+  (settings-hook! settings)
+  (sql {:op :run
+        :stmt "UPDATE settings SET user = ? WHERE settings_id = 1"
+        :params [(settings->json settings)]}))
 
 (defn settings-init
   "If there are no rows in the settings table, initialize it."
@@ -205,14 +261,13 @@
                       :params [word-id]
                       :op     :get})]
         (swap! words-out conj res)))
-    (assoc article :word-data @words-out :total-pages (js/Math.ceil total-pages)))
-  )
+    (assoc article :word-data @words-out :total-pages (js/Math.ceil total-pages))))
 
 (defn article-insert
   "Creates a new article. Requirements:
   -> words for article are already in words table.
-  -> words from article have been re-queries
-  -> requiriesed words' ids have been made into a delimited string with $."
+  -> words from article have been queried
+  -> queried words' ids have been made into a delimited string with $."
   [{:keys [article title source word_ids language]}]
   (sql {:op     :run
         :params [article word_ids title source (js/Date.now) language]
@@ -264,7 +319,8 @@
   "Before inserting an article, we need to get the id for each word in the db
   then we can build a delimited string that will get stored under the `word_ids` column"
   [{:keys [article language]}]
-  (let [article-str-vec (u/split-article article)
+  (let [split-regex     (lang-get-text-split-regex language)
+        article-str-vec (u/split-article article split-regex)
         word-ids        (atom [])
         query           "SELECT id FROM words WHERE slug = ? AND name = ? AND language = ?"]
     (doseq [word article-str-vec]
@@ -280,7 +336,9 @@
   The sql placeholder is a string with many question marks because we are doing a bulk insert?
   "
   [{:keys [article language]}]
-  (let [words        (u/split-article article)
+  (let [split-regex     (lang-get-text-split-regex language)
+        word-regex      (lang-get-word-regex language)
+        words        (u/split-article article split-regex)
         placeholders (str/join ", " (map (fn [_] "(?, ?, ?, ?)") words)) ;; this is annoying
         params         (->> words
                             (map (fn [word]
@@ -288,7 +346,7 @@
                                    (vector
                                     word
                                     (u/slug-word word)
-                                    (bool->int (not (u/word? word)))
+                                    (bool->int (not (u/word? word word-regex)))
                                     language)))
                             flatten
                             (apply array))
@@ -302,8 +360,7 @@
   (sql {:op     :run
         :params phrase
         :stmt    "INSERT INTO phrases VALUES (@id, @word_ids, @name, @slug, @comfort, @translation, @first_word_slug, @last_word_slug, @language)
-                  ON CONFLICT(name, language) DO UPDATE SET comfort=@comfort, name=@name, translation=@translation"
-        }))
+                  ON CONFLICT(name, language) DO UPDATE SET comfort=@comfort, name=@name, translation=@translation"}))
 
 (defn phrase-get
   [id]
@@ -343,20 +400,15 @@
       article
       (assoc article :word-data @new-word-data))))
 
-
-
 ;; ----------------------------------------------------------------------------------------
 ;; Seed fns
 
-
 (defn seed-article
   []
-  (let [
-        data             {:article (read-sample-file "fr_compte2.txt") :title "Compte, Ch 2", :source "..", :language "fr"}
+  (let [data             {:article (read-sample-file "fr_compte2.txt") :title "Compte, Ch 2", :source "..", :language "fr"}
         _                (words-insert data)
         word-ids-str     (words-get-ids-for-article data)
-        inserted-article (article-insert (merge data {:word_ids word-ids-str}))])
-  )
+        inserted-article (article-insert (merge data {:word_ids word-ids-str}))]))
 
 (defn run-seeds
 
@@ -368,7 +420,6 @@
     (when no-content-yet
       (seed-article))))
 
-
 ;; Wipe / Init -----------------------------------------------------------------------------
 
 (defn wipe!
@@ -377,11 +428,10 @@
   (.exec db "DROP TABLE words;
              DROP TABLE articles;
              DROP TABLE phrases;
+             DROP TABLE languages;
              DROP TABLE settings;" #(println %))
   (.relaunch app)
-  (.quit app)
-  )
-
+  (.quit app))
 
 (defn init
   []
@@ -390,7 +440,8 @@
            (when err
              (throw (js/Error. (str "Failed db" err))))))
   (settings-init)
-  (when u/debug? (run-seeds))
-  )
+  (langs-init)
+
+  (when u/debug? (run-seeds)))
 
 ;; FIXME: when do I run "db.close()"?

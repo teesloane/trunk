@@ -15,6 +15,7 @@
 (defn reply!
   "Sends data back to renderer from IPC back end.
   Data going over ipc MUST be in JS, so it is converted here.
+  ;; TODO: note that the use of `name` here causes errors if the key doesn't exist.
   "
   ([electron-event msg]
    (js/electron-event.reply (name (s-ev :ipc-success)) msg))
@@ -78,7 +79,38 @@
          (reply-err! event "Failed to get article."  e)))
      )
 
-   ;; -- WORDS HANDLERS ---------------------------
+   ;; -- language handlers -----------------------------------------------------
+   (s-ev :languages-get)
+   (fn [event _]
+     (try
+       (let [res (db/langs-all)]
+         (reply! event (s-ev :languages-got) res))
+       (catch js/Error e reply-err! event "Failed to fetch languages" e)))
+
+   (s-ev :language-create)
+   (fn [event data]
+     (try
+       (let [_     (db/lang-create data)
+             langs (db/langs-all)]
+         (reply! event (s-ev :language-created) langs))
+       (catch js/Error e reply-err! event "Failed to create a language" e)))
+
+   (s-ev :language-delete)
+   (fn [event data]
+     (try
+       (let [_     (db/lang-delete data)
+             langs (db/langs-all)]
+         (reply! event (s-ev :language-deleted) langs))
+       (catch js/Error e reply-err! event "Failed to create a language" e)))
+
+   (s-ev :language-update)
+   (fn [event data]
+     (try
+       (let [updated-lang (db/lang-update data)]
+         (reply! event (s-ev :language-updated) updated-lang))
+       (catch js/Error e reply-err! event "Failed to update language" e)))
+
+   ;; -- words handlers --------------------------------------------------------
 
    (s-ev :words-get)
    (fn [event data]
@@ -111,10 +143,10 @@
    (s-ev :phrase-update)
    (fn [event data]
      (try
-       (let [res            (db/phrase-upsert data)
+       (let [res             (db/phrase-upsert data)
              is-insert       (-> data :id nil?) ;no id yet == insert.
              lastInsertRowid (or (data :id) (res :lastInsertRowid))
-             updated-phrase (db/phrase-get lastInsertRowid )]
+             updated-phrase  (db/phrase-get lastInsertRowid )]
          (if is-insert
            (reply! event (s-ev :phrase-inserted) updated-phrase)
            (reply! event (s-ev :phrase-updated) updated-phrase)))

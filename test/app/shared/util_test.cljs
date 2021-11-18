@@ -1,10 +1,11 @@
 (ns app.shared.util-test
   (:require [app.shared.util :as sut]
+            [app.shared.specs :as specs]
             [cljs.test :as t :include-macros true]))
 
 (t/deftest split-article
-  (let [res1 (sut/split-article "I am an english article")
-        res2 (sut/split-article "«Range à carguer les voiles de hune, le foc et la brigantine! cria le jeune marin; faites penaud!»")]
+  (let [res1 (sut/split-article "I am an english article" (specs/get-lang-split-regex "english"))
+        res2 (sut/split-article "«Range à carguer les voiles de hune, le foc et la brigantine! cria le jeune marin; faites penaud!»" (specs/get-lang-split-regex "french"))]
     (t/is (= res1 ["I" "am" "an" "english" "article"]))
     (t/is (= res2 ["«" "Range" "à" "carguer" "les" "voiles" "de" "hune" "," "le" "foc" "et" "la" "brigantine" "!" "cria" "le" "jeune" "marin" ";" "faites" "penaud" "!" "»"]))))
 

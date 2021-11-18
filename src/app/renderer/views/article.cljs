@@ -11,12 +11,12 @@
   [{:keys [current_page total-pages]}]
   (let [curr-page (inc current_page)]
     [:div.text-sm.flex.items-center.justify-between.border-t.border-gray-300.dark:border-gray-700
-     [:div.p-3
+     [:div.pt-2.py-3.mx-4
       [component/button {:text "← Previous page"
                          :disabled? (= curr-page 1)
                          :on-click #(|> [(s-ev :article-change-page) :prev])}]]
      [:div "Page " curr-page " / " total-pages]
-     [:div.p-3
+     [:div.pt-2.py-3.mx-4
       [component/button {:text "Next page →"
                          :disabled? (= curr-page total-pages)
                          :on-click #(|> [(s-ev :article-change-page) :next])}]]]))
@@ -24,8 +24,8 @@
 (defn view
   "Displays a single article."
   []
-  (let [sure-mark?     (r/atom 0)
-        loading?       (<| [::subs/loading?])]
+  (let [sure-mark? (r/atom 0)
+        loading?   (<| [::subs/loading?])]
     (fn []
       (when-not loading?
         (let [current-article     (<| [::subs/current-article])
@@ -33,6 +33,7 @@
               current-word-idx    (<| [::subs/current-word-idx])
               current-phrase-idxs (<| [::subs/current-phrase-idxs])
               current-phrase      (<| [::subs/current-phrase])
+              lang-word-regex     (<| [::subs/current-language-word-regex])
               word-or-phrase      (or current-phrase current-word)
               shift-held?         (<| [::subs/shift-held?])
               form                (r/atom word-or-phrase)
@@ -49,7 +50,7 @@
                                         1 (do (|> [(s-ev :words-mark-all-known)])
                                               (reset! sure-mark? 0))))
 
-              handle-word-click (fn [word index]
+              handle-word-click        (fn [word index]
                                   (if (and current-word shift-held?)
                                     (|> [::events/set-current-phrase index])
                                     (|> [::events/set-current-word {:word word :index index}])))
@@ -78,6 +79,7 @@
                                :on-click            #(handle-word-click word index)
                                :index               index
                                :current-phrase-idxs current-phrase-idxs
+                               :lang-word-regex     lang-word-regex
                                :current-word-idx    current-word-idx}]) word-data)]]
             [pagination current-article]]
            [component/view-current-word {:current-word current-word :form form}]])))))

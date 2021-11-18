@@ -11,6 +11,7 @@
    :current-phrase       nil
    :current-phrase-words nil ; sub-vec of word-maps (from current-article :word-data)
    :current-phrase-idxs  nil ; list of indexes of the current selected phrase
+   :languages            []
    :loading?             true
    :toast                ""
    :settings             nil
@@ -41,3 +42,15 @@
 
 (defn view-article? [db]
   (= (-> db :current-view) (views :article)))
+
+(defn get-current-language
+  [db]
+  (let [target-lang (-> db :settings :target-lang)
+        langs       (-> db :languages)]
+    (->> langs
+         (filter #(= target-lang (% :iso_639_1)))
+         first)))
+
+(defn get-word-regex-for-target-lang
+  [db]
+  ((get-current-language db) :word_regex))

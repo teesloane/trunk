@@ -36,7 +36,8 @@
   []
   {:first-dispatch [(s-ev :settings-get)]              ;; what event kicks things off ?
    :rules [{:when :seen? :events (s-ev :settings-got) :dispatch [(s-ev :articles-get)]}
-           {:when :seen? :events (s-ev :articles-got) :halt? true}]})
+           {:when :seen? :events (s-ev :articles-got) :dispatch [(s-ev :languages-get)]}
+           {:when :seen? :events (s-ev :languages-got) :halt? true}]})
 
 (r-fx :boot
       (fn [_ _]
@@ -46,6 +47,7 @@
 ;; -- UI / UX Events (Loading, toast etc.) -------------------------------------
 
 (r-fx ::navigate
+      ;;TODO - consider only navigating when loading is false?
       (fn [{:keys [db]} [_ new-route]]
         ;; if we're not in `article` or `words` view, hide the translation window
         (let [should-close-t-window? (not (some #{new-route} '("article words")))]
@@ -82,13 +84,14 @@
     (loop [db                      db]
       (let [idx-dir-fn              (case dir :right inc :left dec)
             next-word-idx           (-> db :current-word-idx idx-dir-fn)
+            word-regex              (db/get-word-regex-for-target-lang db)
             next-word               (-> db (get-in [:current-article :word-data next-word-idx]))
             ;; this `if` is messy, but basically, look at the next word ,if it's
             ;; not nil, or is not a word, keep current-word + index, otherwise, advance.
             last-known-word-and-idx (when next-word (if (or (nil? next-word) ; if the next word doesn't exist
                                                             (if (u/is-phrase next-word)
                                                               false
-                                                              (u/not-word? (get next-word :name))))
+                                                              (u/not-word? (get next-word :name) word-regex)))
                                                       [current-word current-word-idx]
                                                       [next-word next-word-idx]))
             next-db                 (-> db
@@ -98,7 +101,7 @@
             continue-recur          (when next-word (and
                                                      (if (u/is-phrase next-word)
                                                        false
-                                                       (u/not-word? (get next-word :name)))
+                                                       (u/not-word? (get next-word :name) word-regex))
                                                      (not (nil? next-word))))]
         (if continue-recur
           (recur next-db)
@@ -113,10 +116,10 @@
   "If the translation window is open..."
   [new-db]
   (if (-> new-db :t-win :open?)
-      [(s-ev :t-win-update-word)
-       {:word-or-phrase (db/get-curr-word-or-phrase new-db)
-        :target-lang    (-> new-db :settings :target-lang)
-        :native-lang    (-> new-db :settings :native-lang)}]
+    [(s-ev :t-win-update-word)
+     {:word-or-phrase (db/get-curr-word-or-phrase new-db)
+      :target-lang    (-> new-db :settings :target-lang)
+      :native-lang    (-> new-db :settings :native-lang)}]
     [::noop]))
 
 (r-fx :key-pressed-right
@@ -151,8 +154,8 @@
             {:db (assoc db :current-word new-word-with-comfort)
              :fx [[:dispatch
                    (if (u/is-phrase new-word-with-comfort)
-                       [(s-ev :phrase-update) new-word-with-comfort]
-                       [(s-ev :word-update) new-word-with-comfort])]]}))))
+                     [(s-ev :phrase-update) new-word-with-comfort]
+                     [(s-ev :word-update) new-word-with-comfort])]]}))))
 
 ;; -- Article(s) - fetching, updating, creating --------------------------------
 
@@ -170,8 +173,7 @@
                                         (update curr-a :current_page dir-fn)]}
 
               {:keys [current_page total-pages]} (db :current-article)
-              current_page                       (inc current_page)
-              ]
+              current_page                       (inc current_page)]
           (cond
             (and (= dir :next) (< current_page total-pages)) success-out
             (and (= dir :prev) (> current_page 1))           success-out
@@ -272,8 +274,7 @@
              (= (:id w-or-p) (:id event-data)))
         event-data
 
-
-        ;; we're updating a `word` and it's the original one clicked on and updated.
+;; we're updating a `word` and it's the original one clicked on and updated.
         (and (not (u/is-phrase event-data))
              (not (u/is-phrase w-or-p))
              (= (w-or-p :id) (event-data :id)))
@@ -288,9 +289,7 @@
         (assoc event-data :name (w-or-p :name) :id (w-or-p :id))
 
         ;; just return and carry on.
-        :else w-or-p)
-
-      ) word-data)))
+        :else w-or-p)) word-data)))
 
 (r-fx (s-ev :word-updated)
       (fn [{:keys [db]} [_ data]]
@@ -314,8 +313,8 @@
                                    :current-word-idx index
                                    :current-phrase nil
                                    :current-phrase-idxs nil))]
-            {:db       new-db
-             :dispatch (when-t-win-open new-db)})))
+          {:db       new-db
+           :dispatch (when-t-win-open new-db)})))
 
 ;; current phrase events -------------------------------------------------------
 
@@ -338,8 +337,6 @@
         {:db db
          ::ipc-send! (with-lang db event)}))
 
-
-
 ;; FIXME: LEAVING OFF - this ain't working
 
 (r-fx (s-ev :phrase-updated)
@@ -356,7 +353,6 @@
 
                        (db/view-words? db)
                        (assoc :words (update-word-helper data words-view-words)))})))
-
 
 (r-fx (s-ev :phrase-inserted)
       (fn [{:keys [db]} [_ phrase-from-db]]
@@ -376,6 +372,60 @@
                        ;; TODO handle this.
                        (db/view-words? db)
                        (assoc :words (update-word-helper phrase-from-db words-view-words)))})))
+
+;; -- Languages ---------------------------------------------------------------
+;;
+(r-fx (s-ev :languages-get)
+      (fn [{:keys [db]} [event data]]
+        {:db (assoc db :loading? true)
+         ::ipc-send! [event data]}))
+
+(r-fx (s-ev :languages-got)
+      (fn [{:keys [db]} [_ data]]
+        {:db (assoc db :loading? false :languages data)}))
+
+(r-fx (s-ev :language-create)
+      (fn [{:keys [db]} [event form-data]]
+        {:db         (assoc db :loading? true)
+         ::ipc-send! [event form-data]}))
+
+(r-fx (s-ev :language-created)
+      (fn [{:keys [db]} [_ langs]]
+        {:db (assoc db :languages langs :loading? false)
+         :dispatch   [::set-toast {:type :confirmation :msg "Language created."}]
+         }))
+
+
+(r-fx (s-ev :language-delete)
+      (fn [{:keys [db]} [event lang]]
+        {:db         (assoc db :loading? true)
+         ::ipc-send! [event lang]}))
+
+(r-fx (s-ev :language-deleted)
+      (fn [{:keys [db]} [_ langs]]
+        {:db (assoc db :languages langs :loading? false)
+         :dispatch   [::set-toast {:type :confirmation :msg "Language deleted."}]
+         }))
+
+(r-fx (s-ev :language-update)
+      (fn [{:keys [db]} [event form-data]]
+        (let [curr-lang (db/get-current-language db)
+              updated-lang (assoc curr-lang
+                                  :word_regex (form-data :word_regex)
+                                  :text_splitting_regex (form-data :text_splitting_regex))]
+          {:db (assoc db :loading? true)
+           ::ipc-send! [event updated-lang]})))
+
+(r-fx (s-ev :language-updated)
+      (fn [{:keys [db]} [_ updated-lang]]
+        (let [old-langs     (db :languages)
+              updated-langs (map (fn [lang]
+                                   (if (= (lang :id) (:id updated-lang))
+                                     updated-lang
+                                     lang)) old-langs)]
+          {:db       (assoc db :languages updated-langs :loading? false)
+           :dispatch [::set-toast {:type :confirmation :msg "Language updated."}]
+           })))
 
 ;; -- Settings -----------------------------------------------------------------
 
@@ -465,10 +515,12 @@
 ;; -- IPC Event registrations --------------------------------------------------
 
 (def incoming-handlers
-  [:article-created :articles-got      :article-received       :article-deleted
-   :words-got       :word-updated      :words-marked-as-known  :phrase-updated :phrase-inserted
-   :settings-got    :settings-updated
-   :ipc-error       :ipc-success       :t-win-opened])
+  [:article-created  :articles-got      :article-received       :article-deleted
+   :words-got        :word-updated      :words-marked-as-known
+   :phrase-updated   :phrase-inserted
+   :settings-got     :settings-updated
+   :languages-got    :language-updated  :language-created :language-deleted
+   :ipc-error        :ipc-success       :t-win-opened])
 ;; Loop over the incoming handlers and set them up to dispatch a re-frame events whenever they get triggered by ipcMain.
 (defonce ipcHandlers
   (into {}

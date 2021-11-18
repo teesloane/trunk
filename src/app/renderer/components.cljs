@@ -7,22 +7,50 @@
    [reagent.core :as r]
    [re-frame.core :as rf]))
 
+(defn input-label
+  [label-text]
+  [:label.flex.mb-2.text-xs.italic {:for label-text} label-text])
+
 (defn input
   [props]
-  (let [input-stz "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-900 dark:border-gray-600 dark:text-white"]
-    [:input
-     (merge {:class input-stz} props)]))
+  (let [touched? (r/atom false)]
+    (fn [{:keys [valid? value label default-value on-change] :as props}]
+      (let [valid?      (if (fn? valid?) (valid? value) valid?)
+            base-styles "w-full p-1.5 text-gray-700 dark:text-gray-50 border rounded-sm focus:outline-none text-sm dark:bg-gray-900 dark:border-gray-500 dark:text-white"
+            input-stz   (if (nil? valid?)
+                          base-styles
+                          (str base-styles
+                               (when @touched?
+                                 (if valid? " border-green-500 dark:border-green-500" " border-red-500 dark:border-red-500"))))
+            ;; patch on-change to alter the internal state to show the field has been touched
+            props       (assoc props :on-change (fn [e]
+                                                  (when-not @touched? (reset! touched? true))
+                                                  (on-change e)))]
+        (if label
+          [:div
+           [input-label label]
+           [:input
+            (merge {:class input-stz :id label} (dissoc props :label :valid?))]]
+          [:input
+           (merge {:class input-stz} (dissoc props props :label :valid?))])))))
 
 (defn textarea
   [props]
-  (let [input-stz "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-900 dark:border-gray-600 dark:text-white"]
-    [:textarea
-     (merge {:class input-stz} props)]))
+  (let [input-stz "w-full p-2 text-gray-700 dark:text-gray-50 border focus:outline-none text-sm mb-4 dark:bg-gray-900 dark:border-gray-500 dark:text-white"
+        label     (props :label)]
+    (if label
+      [:div [input-label label] [:textarea (merge {:class input-stz :id label} props)]]
+      [:textarea (merge {:class input-stz} props)])))
 
 (defn select
   [props options]
-  (let [styles "mt-2 mb-2 flex border w-64 py-1 rounded dark:bg-gray-800 dark:text-white outline-none"]
-    [:select (merge {:class styles} props) options]))
+  (let [styles "flex border w-64 py-1.5 rounded-sm  dark:bg-gray-900 dark:text-white outline-none "
+        label (props :label)]
+    (if label
+      [:div
+       [input-label label]
+       [:select (merge {:class styles :id label} props) options]]
+      [:select (merge {:class styles} props) options])))
 
 (defn erase-db
   "Button for erasing the database"
@@ -71,14 +99,6 @@
    :chevron-down "chevron-down.svg"
    :check        "check.svg"})
 
-(defn card
-  [{:keys [header]} body]
-  [:div.bg-white.border {:class (u/twld "bg-white border" "bg-gray-800 border-gray-700")
-                         :key header}
-   (when header
-     [:div.border-b.px-4.py-2.text-sm.font-bold.dark:border-gray-700 [:span header]])
-   [:div.p-4 body]])
-
 (defn icon
   ""
   [{:keys [size icon on-click]}]
@@ -87,6 +107,30 @@
          :on-click on-click
          :style    {:width  (or size 32)
                     :height (or size 32)}}])
+
+(defn card
+  [{:keys [header toggleable? starts-closed?]} body]
+  (let [open? (r/atom (if starts-closed? false true))]
+    (fn [{:keys [header toggleable? starts-closed?]} body]
+      [:div.bg-white.border.shadow-sm
+       {:class (u/twld "bg-white border" "bg-gray-800 border-gray-700")
+        :key   header}
+       (when header
+         [:div.border-b.px-4.py-2.text-sm.font-bold.dark:border-gray-700
+          {:class (when toggleable? " cursor-pointer")
+           :on-click #(if toggleable?
+                        (reset! open? (not @open?))
+                        nil)}
+          [:div.flex.flex-1.justify-between.items-center
+           [:span header]
+           (when toggleable?
+             (if @open?
+               [icon {:icon :chevron-down :size 12}]
+               [icon {:icon :chevron-up :size 12}]))]])
+       (if toggleable?
+         (when @open?
+           [:div.p-4 body])
+         [:div.p-4 body])])))
 
 (defn loading-intercept
   [msg]
@@ -100,20 +144,28 @@
     [:a.text-blue-600.dark:text-blue-400.cursor-pointer {:on-click handle-click} text]))
 
 (defn button
-  [{:keys [on-click text icon-name icon-size disabled? style]
-    :or   {disabled? false style ""}}]
-  (let [style  (case style
-                 "primary" "bg-blue-400 hover:bg-blue-500 text-white border-none font-bold"
-                 ""        "bg-white text-gray-800 hover:bg-gray-100 dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700")
-        styles (str style " self-start text-xs py-1 px-2 border border-gray-400 rounded shadow " (when disabled? "cursor-not-allowed"))]
-        ;; styles (str "dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 self-start text-xs bg-white hover:bg-gray-100 text-gray-800 py-1 px-2 border border-gray-400 rounded shadow " (when disabled? "cursor-not-allowed"))]
-    [:button
-     {:class    styles
-      :on-click on-click
-      :disabled disabled?}
-     (if icon-name
-       [:span [icon {:icon icon-name :size (or icon-size 18)}] [:span text]]
-       text)]))
+  [props]
+  (let [dbl-check-count (r/atom 0)]
+    (fn [{:keys [on-click text icon-name icon-size disabled? style dbl-check]
+          :or   {disabled? false style ""}}]
+      (let [style        (if disabled? "disabled" style)
+            style        (case style
+                           "primary"  "bg-blue-500 hover:bg-blue-600 text-gray-50 border-none"
+                           "disabled" "cursor-not-allowed text-gray-50 bg-gray-500 hover:bg-gray-500 dark:bg-gray-500"
+                           "caution"  "bg-red-500 hover:bg-red-600 text-gray-50 border-none"
+                           ""         "bg-white text-gray-800 hover:bg-gray-100 dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-400 ")
+            styles       (str style " self-start text-xs py-1 px-2 rounded shadow ")
+            curr-text    (if dbl-check (if (> @dbl-check-count 0) dbl-check text) text)
+            handle-click (if dbl-check
+                           (if (> @dbl-check-count 0)
+                             (do #(reset! dbl-check-count 0) on-click)
+                             #(swap! dbl-check-count inc))
+                           on-click)]
+        [:button {:class styles :on-click handle-click :disabled disabled?}
+         (if icon-name
+           [:span [icon {:icon icon-name :size (or icon-size 18)}]
+            [:span curr-text]]
+           curr-text)]))))
 
 (defn trunk-logo
   [{:keys [width]}]
@@ -176,19 +228,16 @@
 
 (defn article-word
   "how single words are styled based on their familiarity/comfort."
-  [{:keys [word current-word index current-word-idx on-click current-phrase-idxs]}]
-  (let [{:keys [name comfort _translation]} word
+  [{:keys [word current-word index current-word-idx on-click current-phrase-idxs lang-word-regex]}]
+  (let [{:keys [name comfort is_not_a_word _translation]} word
         base-styles                         "border-b border-transparent px-0.5 py-px mr-1 cursor-pointer bg-opacity-25 hover:bg-opacity-50
                                              dark:bg-opacity-50 dark:text-gray-300"
         stz                                 (str (u/get-comfort-bg-col comfort) " "
-                                                 ;; (u/get-comfort-text-col comfort) " "
                                                  base-styles)
         is-in-current-phrase                (not (nil? (some #{index} current-phrase-idxs)))
         is-current-word                     (or (and (= (dissoc word :comfort) (dissoc current-word :comfort))
                                                      (= index current-word-idx))
-                                                is-in-current-phrase
-                                                ;; no current-word, but we have a
-                                                )
+                                                is-in-current-phrase)
         stz                                 (if is-current-word (str " border-black dark:border-b-gray-300 " stz) (str "  " stz))]
     (cond
       ;; newlines that are just from textarea...
@@ -200,7 +249,10 @@
 
       ;; if it's not a phrase...
       (and (word :id)
-           (not (u/word? name)))
+           (not (u/word? name lang-word-regex)))
+      [:span.mr-1 (str "" (word :name) " ")]
+
+      (= is_not_a_word 1) ; ie - it's punctuation.
       [:span.mr-1 (str "" (word :name) " ")]
 
       :else
@@ -212,8 +264,8 @@
 
   (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white
                        hover:bg-gray-100 text-gray-800 border-t border-gray-300
-                       dark:bg-gray-800 dark:border-gray-900 dark:hover:bg-gray-700 dark:text-white"
-        button-height 33
+                       dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:text-white"
+        button-height 48
         iframe-height 368
         window-width  js/window.innerWidth
         window-height js/window.innerHeight]
@@ -232,6 +284,7 @@
                     :on-click #(|> [(s-ev :t-win-close)])}
            "Close Translations"]]
          [:button {:class    stz
+                   :style {:height (- button-height 1)}
                    :on-click #(|> [(s-ev :t-win-open)
                                    {:width           window-width
                                     :word-or-phrase  word-or-phrase
