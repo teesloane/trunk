@@ -247,10 +247,12 @@
       (= name "\n\n")
       [:div.w-full [:br]]
 
-      ;; if it's not a phrase...
-      (and (word :id)
+      ;; it's a phrase
+      (and (word :first_word_slug)
            (not (u/word? name lang-word-regex)))
-      [:span.mr-1 (str "" (word :name) " ")]
+      [:span.relative {:on-click on-click}
+       [:span {:class stz} (str " " (word :name) " ")]]
+
 
       (= is_not_a_word 1) ; ie - it's punctuation.
       [:span.mr-1 (str "" (word :name) " ")]
