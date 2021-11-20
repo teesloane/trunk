@@ -1,5 +1,4 @@
-Trunk is an early prototype of a tool for learning new languages. It
-is inspired by [Learning With Texts](https://learningwithtexts.com/).
+Trunk is a tool for learning new languages. It is inspired by [Learning With Texts](https://learningwithtexts.com/).
 
 ![](./docs/screenshots/trunk_word.png)
 
@@ -9,8 +8,8 @@ View more screenshots [here](./docs/screenshots).
 With that said, it currently works as so:
 
 1. Download the [latest release](https://github.com/theiceshelf/trunk/releases) for your platform.
-2. Find and create an article to practice reading (preferrably something short).
-3. Read the article while marking the familiarity of works and adding translations.
+2. Find and create an article to practice reading. 
+3. Read the article while marking the familiarity of words and adding translations.
 
 ### Development
 
@@ -44,3 +43,7 @@ Requirements:
 Note: from time to time you will likely need to restart the `yarn dev-electron`
 process if you make stateful changes to certain variables that are only defined
 once, at boot.
+
+### Contributing
+
+- Use [conventional commit system](https://www.conventionalcommits.org/en/v1.0.0/).
