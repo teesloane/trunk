@@ -85,10 +85,16 @@
 ;; -- Helpers -----------------------------------------------------------------
 
 (defn bool->int
+  "Convert a bool into an integer. Needed as SQLite does not store booleans."
   [b]
   (if b 1 0))
 
 (defn sql
+  "A wrapper around better-sqlite, making it easier to make (simple) db calls.
+  `stmt`   - a sql statement with placeholders: ie: 'SELECT * FROM X WHERE Y = ?'
+  `params` - a vector or map of params to substitute into the prepare stmt.
+  `op`     - the type of operation to run ('run' 'all' 'get' etc)
+  "
   [{:keys [stmt params op]}]
   (let [prepared (.prepare db stmt)
         params   (cond
@@ -110,6 +116,7 @@
       (get "version")))
 
 (defn read-sample-file
+  "Pulls in a sample file as a string."
   [name]
   (-> (.readFileSync ^:export fs (.join path js/__dirname ".." "test/sample_texts/" name) "utf8")))
 
@@ -127,18 +134,22 @@
               :stmt    "INSERT INTO languages VALUES (@id, @name, @iso_639_1, @text_splitting_regex, @word_regex)"})))))
 
 (defn langs-all
+  "Fetch all languages"
   []
   (sql {:op :all :params [] :stmt "SELECT * FROM languages;"}))
 
 (defn lang-get-by-code
+  "Get a language by its 2 letter iso_639_1 code."
   [lang-code]
   (sql {:op :get :params [lang-code] :stmt "SELECT * FROM languages where iso_639_1 = ?;"}))
 
 (defn lang-get-text-split-regex
+  "Get a language's text_splitting_regex."
   [lang-code]
   (get (lang-get-by-code lang-code) :text_splitting_regex))
 
 (defn lang-get-word-regex
+  "Get a language's word_regex."
   [lang-code]
   (get (lang-get-by-code lang-code) :word_regex))
 
@@ -162,6 +173,7 @@
           :stmt   "INSERT INTO languages VALUES(@id, @name, @iso_639_1, @word_regex, @text_splitting_regex)"})))
 
 (defn lang-delete
+  "Deletes a language by id."
   [lang]
   (let [id (lang :id)]
     (sql {:op     :run
@@ -173,14 +185,17 @@
 ;; All settings updates/inserts need to be jsonified.
 
 (defn- settings->json
+  "Convert a settings map into json."
   [s]
   (-> s clj->js js/JSON.stringify))
 
 (defn- settings->edn
+  "Convert settings-as-json-from-the-db into edn."
   [json-from-db]
   (-> json-from-db js/JSON.parse js->clj))
 
 (defn settings-get
+  "Get settings (json) from the db."
   []
   (let [res (sql {:op :get :stmt "SELECT user FROM settings"})]
     (-> res :user settings->edn)))
@@ -201,6 +216,7 @@
       :else nil)))
 
 (defn settings-update
+  "Update the settings, (runs settings update hook before the actual patching.)"
   [settings]
   (settings-hook! settings)
   (sql {:op :run
@@ -220,24 +236,29 @@
 ;; -- DB: Articles -------------------------------------------------------------
 
 (defn article-get-by-id
+  "Fetch an article by id.
+  TODO/FIXME: not sure why I need language param - id's are unique."
   [{:keys [article_id language]}]
   (sql {:stmt "SELECT * FROM articles WHERE article_id = ? AND language = ?"
         :op :get
         :params [article_id language]}))
 
 (defn article-delete
+  "Delete an article by id."
   [id]
   (sql {:stmt "DELETE FROM articles WHERE article_id = ?"
         :op :run
         :params [id]}))
 
 (defn articles-get
+  "Fetch  ALL articles of a specific language"
   [{:keys [language]}]
   (sql {:stmt "SELECT * FROM articles WHERE language = ? ORDER BY date_created DESC"
         :params [language]
         :op :all}))
 
 (defn article-update-last-opened
+  "Update the last_opened col on a language."
   [{:keys [article_id current_page]}]
   (let [current_page (if (< current_page 0) 0 current_page)]
     (sql {:stmt "UPDATE articles SET last_opened = ?, current_page = ? WHERE article_ID = ?"
@@ -274,25 +295,30 @@
         :stmt    "INSERT INTO articles(original, word_ids, name, source, date_created, language) VALUES (?, ?, ?, ?, ?, ?)"}))
 
 (defn word-get
+  "Get a single word from the db."
   [id]
   (sql {:op :get
         :stmt "SELECT * FROM words WHERE id = ?"
         :params [id]}))
 
 (defn words-get
-  "https://stackoverflow.com/a/612268 < query help"
+  "Returns all words that the user has interacted  (changed comfort / translation).
+  FIXME: Currently not working exactly the way I want.
+  https://stackoverflow.com/a/612268 < query help"
   [{:keys [language]}]
   (sql {:op :all
         :params [language]
         ;; TODO: come back and get this sql query working so only the correct words are returned to fe.
         ;; :stmt "SELECT m.* FROM words m LEFT JOIN words b ON m.slug = b.slug AND m.count < b.count WHERE b.count IS NULL AND m.is_not_a_word = 0 AND m.language = 'fr' ORDER BY count DESC"
-        ;; NOTE: this query almost wordks - but the above query will be better because it returns distinct results by slug - for for example
+        ;; NOTE: this query almost works - but the above query will be better because it returns distinct results by slug - for for example
         ;; If `le` shows up 323 times in the db, it will be returned instead of `Le` which might only show up 5 times.
         ;; Both are technically the same, but we want to sort words by how common they are.)
         :stmt "SELECT * FROM words WHERE is_not_a_word = 0 AND language = ? AND comfort != 0 AND comfort != 5 GROUP BY slug ORDER BY comfort DESC"}))
 
 (defn words-and-phrases-mark-all-known
-  "Receives a list of words and updates their comfort to `known` for all."
+  "Receives a list of words and updates their comfort to `known` for all.
+  Used when a user imports an article and already knows most words in it, but
+  doesn't want to have to mark them manually."
   [words]
   (let [stmt-words         (str "UPDATE words SET comfort = " (specs/word-comfort :known) " WHERE slug = ? AND language = ?")
         stmt-phrases       (str "UPDATE phrases SET comfort = " (specs/word-comfort :known) " WHERE id = ? AND language = ?")
@@ -309,6 +335,7 @@
     (update-phrases just-phrases)))
 
 (defn word-update
+  "Update a word's comfort or translation."
   [data]
   (let [{:keys [translation comfort slug language]} data]
     (sql {:op :run
@@ -356,6 +383,7 @@
 ;; -- DB: Phrases --------------------------------------------------------------
 
 (defn phrase-upsert
+  "Inserts/Updates a phrase. "
   [phrase]
   (sql {:op     :run
         :params phrase
@@ -363,6 +391,7 @@
                   ON CONFLICT(name, language) DO UPDATE SET comfort=@comfort, name=@name, translation=@translation"}))
 
 (defn phrase-get
+  "Fetches a phrase"
   [id]
   (sql {:op :get
         :stmt "SELECT * FROM phrases WHERE id = ?"
@@ -404,6 +433,7 @@
 ;; Seed fns
 
 (defn seed-article
+  "Seeds a dummy article, should only be used in dev (= true u/debug?)"
   []
   (let [data             {:article (read-sample-file "fr_compte2.txt") :title "Compte, Ch 2", :source "..", :language "fr"}
         _                (words-insert data)
