@@ -126,7 +126,6 @@
 (defn paginate-vector
   "Simulated sql pagination with a vector"
   [v limit curr-page]
-  (prn (type limit) (type curr-page))
   (let [subvec-start (* curr-page limit) ; offset
         subvec-end   (+ subvec-start limit)
         total-size   (count v)]
