@@ -89,7 +89,10 @@
     [component/card {:header "Wipe your Trunk database" :toggleable? true}
      [:div.text-sm
       [:div.mb-4 "Caution: this will erase all your data and relaunch the application."]
-      [component/erase-db]]]]])
+      [component/button {:text      "Wipe Trunk database"
+                         :dbl-check "Are you sure you want to delete your data?"
+                         :style     "caution"
+                         :on-click  #(|> [(s-ev :wipe-db!)])}]]]]])
 
 (defn- get-selected-lang
   [settings languages typ]
@@ -164,7 +167,7 @@
             word-regex?           (make-regex? (@language-to-edit-form :word_regex))]
         (when-not @loading?
           [:div.mb-8
-           [component/card {:header "Advanced: Edit A Language" :key "edit-a-lang" :toggleable? true }
+           [component/card {:header "Advanced: Edit A Language" :key "edit-a-lang" :toggleable? true}
             [:div.flex.flex-col.text-sm
              [:div.disclaimer.my-2
               [:div "Below you may alter the regexes used to split up a text into words and determine what constitutes a word in a language."]
@@ -256,7 +259,7 @@
                                      (= (count (ltef :iso_639_1)) 2)))]
         (when-not @loading?
           [:div.mb-4
-           [component/card {:header "Advanced: Add A Language" :key "add-a-lang" :toggleable? true }
+           [component/card {:header "Advanced: Add A Language" :key "add-a-lang" :toggleable? true}
             [:div.flex.flex-col.text-sm
              [:div.disclaimer.my-2
               [:div "You can add a language to Trunk below. All fields are required."]

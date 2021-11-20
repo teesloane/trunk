@@ -52,23 +52,6 @@
        [:select (merge {:class styles :id label} props) options]]
       [:select (merge {:class styles} props) options])))
 
-(defn erase-db
-  "Button for erasing the database"
-  []
-  (let [sure-del? (r/atom 0)
-        handle-wipe-db (fn []
-                         (case @sure-del?
-                           0 (reset! sure-del? 1)
-                           1 (do (|> [(s-ev :wipe-db!)])
-                                 (reset! sure-del? 0))))]
-    (fn []
-      [:div.flex.rounded-sm
-       [:button.bg-white.border.rounded.py-1.px-2.text-xs.text-red-500.hover:bg-red-500.hover:text-white.shadow.dark:bg-gray-800.dark:text-white.dark:hover:bg-red-700
-        {:on-click #(handle-wipe-db)}
-        (case @sure-del?
-          0 "Wipe Trunk database"
-          1 "Are you sure you want to delete your data?")]])))
-
 (defn loading-wheel
   "Bottom right absolute position loading wheel."
   []
@@ -252,7 +235,6 @@
            (not (u/word? name lang-word-regex)))
       [:span.relative {:on-click on-click}
        [:span {:class stz} (str " " (word :name) " ")]]
-
 
       (= is_not_a_word 1) ; ie - it's punctuation.
       [:span.mr-1 (str "" (word :name) " ")]
