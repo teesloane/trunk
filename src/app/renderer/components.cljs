@@ -306,7 +306,7 @@
                   :on-change     (fn [e] (swap! form assoc :translation (-> e .-target .-value)))}]
 
           ;; radio button
-          [:div.my-2.flex.md:flex-col.lg:flex-row.xl:justify-between.flex-wrap
+          [:div.my-2.flex.md:flex-col.lg:flex-row.xl:justify-between.flex-wrap.pt-2
            (doall ;; needed for deref (@) in lazy for loop.
             (for [[comfort-int comfort-data] u/comfort-text-and-col
                   :let                       [{:keys [name text-col help-text]} comfort-data]]
