@@ -60,7 +60,7 @@
           [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
            [:div {:key "view-article" :class "flex flex-col flex-1 bg-white dark:bg-gray-800"}
             ;; metadata and actions
-            [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.px-8.py-2.dark:border-gray-900
+            [:div.flex.text-xs.px-4.border-b.border-gray-200.justify-between.py-2.dark:border-gray-900
              [:span (u/trunc-ellipse name 23)]
              [:span "Words recognized: " words-known " / " total-words]
              (if (= words-known total-words)
