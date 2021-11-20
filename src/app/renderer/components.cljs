@@ -151,9 +151,9 @@
       (let [style        (if disabled? "disabled" style)
             style        (case style
                            "primary"  "bg-blue-500 hover:bg-blue-600 text-gray-50 border-none"
-                           "disabled" "cursor-not-allowed text-gray-50 bg-gray-500 hover:bg-gray-500 dark:bg-gray-500"
+                           "disabled" "border border-opacity-0 dark:border-opacity-100 cursor-not-allowed text-gray-700 dark:text-gray-50 dark:bg-gray-800 dark:border-gray-500 dark:border dark:hover:bg-gray-800 bg-gray-200"
                            "caution"  "bg-red-500 hover:bg-red-600 text-gray-50 border-none"
-                           ""         "bg-white text-gray-800 hover:bg-gray-100 dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-400 ")
+                           ""         "bg-white text-gray-800 hover:bg-gray-100 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-400 ")
             styles       (str style " self-start text-xs py-1 px-2 rounded shadow ")
             curr-text    (if dbl-check (if (> @dbl-check-count 0) dbl-check text) text)
             handle-click (if dbl-check
@@ -267,7 +267,7 @@
   (let [stz           "absolute bottom-0 left-0 p-2 w-full text-center italic text-xs bg-white
                        hover:bg-gray-100 text-gray-800 border-t border-gray-300
                        dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 dark:text-white"
-        button-height 48
+        button-height 44
         iframe-height 368
         window-width  js/window.innerWidth
         window-height js/window.innerHeight]
@@ -342,9 +342,10 @@
 
           ;; submit update
           [:div.mt-4 [button {:type "submit"
+                              :style "primary"
                               :text (if is-phrase
                                       (if currently-selected-phrase  "Add phrase" "Update phrase")
-                                      "Update Word")}]]]]
+                                      "Update word")}]]]]
         [google-translate-view
          {:t-win-open?    t-win-open?
           :word-or-phrase (word-or-phrase :name)}]])]))

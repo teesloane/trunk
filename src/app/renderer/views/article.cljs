@@ -11,12 +11,12 @@
   [{:keys [current_page total-pages]}]
   (let [curr-page (inc current_page)]
     [:div.text-sm.flex.items-center.justify-between.border-t.border-gray-300.dark:border-gray-700
-     [:div.pt-2.py-3.mx-4
+     [:div.py-2.mx-4
       [component/button {:text "← Previous page"
                          :disabled? (= curr-page 1)
                          :on-click #(|> [(s-ev :article-change-page) :prev])}]]
-     [:div "Page " curr-page " / " total-pages]
-     [:div.pt-2.py-3.mx-4
+     [:div.text-xs "Page " curr-page " / " total-pages]
+     [:div.py-2.mx-4
       [component/button {:text "Next page →"
                          :disabled? (= curr-page total-pages)
                          :on-click #(|> [(s-ev :article-change-page) :next])}]]]))
