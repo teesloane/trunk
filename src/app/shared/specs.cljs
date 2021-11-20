@@ -121,4 +121,4 @@
   {:native-lang   ((get langs-db "english") :iso_639_1)
    :target-lang   ((get langs-db "french") :iso_639_1)
    :trunk-version trunk-version
-   :page-size     1000})
+   :page-size     500})
