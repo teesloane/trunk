@@ -40,6 +40,9 @@
       "provider": "github"
     }
   },
+  "resolutions": {
+    "ansi-regex": "5.0.1"
+  },
   "devDependencies": {
     "autoprefixer": "^10.3.1",
     "concurrently": "^6.2.0",
