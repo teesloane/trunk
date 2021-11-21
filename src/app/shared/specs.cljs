@@ -97,7 +97,18 @@
    "italian" {:name                 "italian"
               :iso_639_1            "it"
               :text_splitting_regex (lang-regexes :latin-split)
-              :word_regex           (lang-regexes :latin-word)}})
+              :word_regex           (lang-regexes :latin-word)}
+
+   "chinese-simplified" {:name                 "chinese(simplified)"
+                         :iso_639_1            "zh-CN"
+                         :text_splitting_regex ""
+                         :word_regex           "^[\u4e00-\u9fa5]+$"}
+
+   "chinese-traditional" {:name                 "chinese(traditional)"
+                          :iso_639_1            "zh-TW"
+                          :text_splitting_regex ""
+                          :word_regex           "^[\u4e00-\u9fa5]+$"}
+   })
 
 (defn get-lang-by-shortcode
   "Get English by passing `en`, for example"

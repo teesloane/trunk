@@ -121,29 +121,30 @@
              (let [swap-key (fn [option settings-key]
                               (let [new-settings (assoc @settings settings-key  (.. option -target -value))]
                                 (reset! settings new-settings)))]
-               [:div.flex.flex-col.md:flex-row
-                [:div {:class "text-sm w-1/2 md:mt-0"}
-                 ;; target lang --
-                 [component/select {:default-value selected-target
-                                    :label         "Language to practice:"
-                                    :on-change     #(swap-key % :target-lang)}
-                  (for [lang @languages
-                        :let [{:keys [name iso_639_1]} lang]]
-                    ^{:key name}
-                    [:option {:value iso_639_1} (str/capitalize name)])]]
+               [:div.flex-col
+                [:div.flex.flex-col.md:flex-row
+                 [:div {:class "text-sm w-1/2 md:mt-0"}
+                  ;; target lang --
+                  [component/select {:default-value selected-target
+                                     :label         "Language to practice*:"
+                                     :on-change     #(swap-key % :target-lang)}
+                   (for [lang @languages
+                         :let [{:keys [name iso_639_1]} lang]]
+                     ^{:key name}
+                     [:option {:value iso_639_1} (str/capitalize name)])]]
 
-                ;; native lang --
-                [:div {:class "text-sm w-1/2"}
-                 [component/select
-                  {:default-value selected-native
-                   :label         "Your native language:"
-                   :on-change     #(swap-key % :native-lang)}
-                  (for [lang @languages
-                        :let [{:keys [name iso_639_1]} lang]]
-                    ^{:key name}
-                    [:option {:value iso_639_1}
-                     (str/capitalize name)])]]])]]])))))
-
+                 ;; native lang --
+                 [:div {:class "text-sm w-1/2"}
+                  [component/select
+                   {:default-value selected-native
+                    :label         "Your native language:"
+                    :on-change     #(swap-key % :native-lang)}
+                   (for [lang @languages
+                         :let [{:keys [name iso_639_1]} lang]]
+                     ^{:key name}
+                     [:option {:value iso_639_1}
+                      (str/capitalize name)])]]]
+                [:span.flex.text-xs.pt-4.leading-4 "*Note: there is currently no way to determine what characters should be grouped as words in Chinese."]])]]])))))
 (defn language-edit-lang
   [curr-target-lang]
   (let [languages                (rf/subscribe [::subs/languages])
