@@ -62,7 +62,7 @@
 ;; common lang regexes.
 (def lang-regexes
   {:latin-split "(\\s+|[.,!?«»:;—\"])"
-   :latin-word  "^[a-zA-ZÀ-ÖØ-öø-ȳ-']+$"
+   :latin-word  "^[a-zA-ZÀ-ÖØ-öø-ȳ-'’]+$"
    })
 
 (def langs-db
