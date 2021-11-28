@@ -201,6 +201,7 @@
         (-> db
             (assoc :current-article data
                    :current-view "article"
+                   :current-word-idx 0
                    :current-word (-> data :word-data first)
                    :loading? false))))
 
