@@ -24,9 +24,13 @@
 (defn view
   "Displays a single article."
   []
-  (let [sure-mark? (r/atom 0)
-        loading?   (<| [::subs/loading?])]
+  (prn "rendering view")
+  (let [sure-mark?   (r/atom 0)
+        container-el (atom nil)
+        current-page (atom nil)
+        loading?     (<| [::subs/loading?])]
     (fn []
+      (prn "rendering inner render fn" @container-el)
       (when-not loading?
         (let [current-article     (<| [::subs/current-article])
               current-word        (<| [::subs/current-word])
@@ -51,10 +55,16 @@
                                               (reset! sure-mark? 0))))
 
               handle-word-click        (fn [word index]
-                                  (if (and current-word shift-held?)
-                                    (|> [::events/set-current-phrase index])
-                                    (|> [::events/set-current-word {:word word :index index}])))
+                                         (if (and current-word shift-held?)
+                                           (|> [::events/set-current-phrase index])
+                                           (|> [::events/set-current-word {:word word :index index}])))
               {:keys [name word-data]} current-article]
+
+          ;; scroll to top when the page changes.
+          (when-not (= (current-article :current_page) @current-page)
+            (reset! current-page (current-article :current_page))
+            (when-let [el @container-el] (set! (.-scrollTop el) 0)))
+
 
           ;; -- Render ---
           [:div.flex.flex-col.md:flex-row.overflow-y-auto.flex-1
@@ -68,9 +78,12 @@
                [:span.cursor-pointer {:on-click handle-mark-all-known}
                 (case @sure-mark? 0 "Mark all known?" 1 "You sure?")])]
 
-            [:article {:key "view-article" :class "flex overflow-auto flex-col flex-1 bg-white dark:bg-gray-900"}
+            [:article {:key   "view-article"
+                       :ref   #(reset! container-el %)
+                       :class "flex overflow-auto flex-col flex-1 bg-white dark:bg-gray-900"}
              [:div.leading-8.p-8.flex.flex-wrap.max-w-5xl.mx-auto
-              {:style {:user-select (if shift-held? "none" "inherit")}}
+              {:style {:user-select (if shift-held? "none" "inherit")}
+               }
               (map-indexed (fn [index word]
                              ^{:key (str word "-" index)}
                              [component/article-word
