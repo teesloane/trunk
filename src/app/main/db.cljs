@@ -170,7 +170,7 @@
         form-data (assoc form-data :id nil)]
     (sql {:op     :run
           :params form-data
-          :stmt   "INSERT INTO languages VALUES(@id, @name, @iso_639_1, @word_regex, @text_splitting_regex)"})))
+          :stmt   "INSERT INTO languages VALUES(@id, @name, @iso_639_1, @text_splitting_regex, @word_regex)"})))
 
 (defn lang-delete
   "Deletes a language by id."
