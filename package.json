@@ -56,7 +56,7 @@
     "tailwindcss": "^2.2.7"
   },
   "dependencies": {
-    "better-sqlite3": "^7.4.3",
+    "better-sqlite3": "7.5.3",
     "highlight.js": "10.7.1",
     "ws": "^7.5.5"
   }
